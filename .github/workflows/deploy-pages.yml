@@ -31,10 +31,12 @@ jobs:
         run: |
           rm -rf dist
           mkdir -p dist/data
-          cp index.html 404.html styles.css app.js dist/
+          cp index.html 404.html styles.css skins.css app.js skins.js dist/
           touch dist/.nojekyll
       - name: Build public data snapshot
         run: node scripts/build-data.mjs dist/data
+      - name: Build Blue Archive skin catalog
+        run: node scripts/build-blue-archive-skins.mjs dist/data/blue-archive.json
       - name: Normalize SDVX jacket URLs
         run: node scripts/normalize-sdvx.mjs dist/data/sound-voltex.json
       - name: Audit public source
