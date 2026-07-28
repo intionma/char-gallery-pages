@@ -24,6 +24,29 @@ const ANNOUNCED_SKINS = [
   sourceUrl: BA_55_LIVE,
 }));
 
+const OFFICIAL_RECENT_RELEASES = new Map([
+  ['ba-skin-10145', '2026-06-24'],
+  ['ba-skin-10144', '2026-06-24'],
+  ['ba-skin-10143', '2026-06-24'],
+  ['ba-skin-10142', '2026-06-10'],
+  ['ba-skin-10121', '2026-06-10'],
+  ['ba-skin-20047', '2026-06-10'],
+  ['ba-skin-13014', '2026-06-10'],
+  ['ba-skin-20059', '2026-05-27'],
+  ['ba-skin-10141', '2026-05-27'],
+  ['ba-skin-20058', '2026-05-20'],
+  ['ba-skin-10140', '2026-04-21'],
+  ['ba-skin-10139', '2026-04-21'],
+  ['ba-skin-20057', '2026-04-01'],
+  ['ba-skin-10138', '2026-03-18'],
+  ['ba-skin-10137', '2026-03-18'],
+  ['ba-skin-20056', '2026-03-04'],
+  ['ba-skin-20055', '2026-02-12'],
+  ['ba-skin-10136', '2026-02-12'],
+  ['ba-skin-10135', '2026-01-29'],
+  ['ba-skin-10134', '2026-01-29'],
+]);
+
 async function fetchJson(url) {
   const response = await fetch(url, {
     headers: { Accept: 'application/json,*/*', 'User-Agent': UA },
@@ -120,6 +143,10 @@ const skins = released
     const baseSkin = isBase(student);
     const skinName = baseSkin ? '기본' : costumeLabel(ko[String(student.Id)]?.Name, student.Name);
     const id = `ba-skin-${student.Id}`;
+    const releaseDate = OFFICIAL_RECENT_RELEASES.get(id);
+    const sourceOrder = releaseDate
+      ? Date.parse(`${releaseDate}T00:00:00+09:00`)
+      : Number(student.Id);
     return {
       id,
       characterId: `ba-${base.Id}`,
@@ -137,7 +164,8 @@ const skins = released
       thumbUrl: `${BASE}/images/student/icon/${student.Id}.webp`,
       sourceUrl: `${BASE}/student/${student.PathName}`,
       sourceType: baseSkin ? 'official_standing' : 'official_skin',
-      additionOrder: persistedOrder(id, Number(student.Id)),
+      releaseDate,
+      additionOrder: persistedOrder(id, sourceOrder),
     };
   });
 
