@@ -699,6 +699,11 @@ img { display: block; max-width: 100%; }
   z-index: 1;
   inset: 12px 72px;
   display: grid;
+  /* 트랙을 minmax(0, 1fr)로 고정해야 이미지의 max-height: 100%가 실제 높이에 걸린다.
+     auto 트랙이면 트랙 높이가 이미지 높이로 늘어나 제한이 무력화되고,
+     원본이 큰 세로 이미지는 stage의 overflow: hidden에 하단이 잘린다. */
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   pointer-events: none;
   transform: translate3d(0, 0, 0) scale(1);

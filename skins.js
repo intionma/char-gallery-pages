@@ -85,7 +85,7 @@
         <button class="skin-art" type="button" aria-label="${escapeHtml(`${displayName(skin)} ${skin.skinName} 크게 보기`)}">
           ${badge ? `<span class="skin-badge${skin.upcoming ? ' upcoming' : ''}">${escapeHtml(badge)}</span>` : ''}
           ${skin.announcementOnly ? '<span class="skin-waiting">공식 발표됨 · 전신 데이터 대기</span>' : ''}
-          <img src="${escapeHtml(skin.url)}" alt="${escapeHtml(`${displayName(skin)} ${skin.skinName}`)}" loading="${index < 12 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer">
+          <img src="${escapeHtml(skin.url)}" alt="${escapeHtml(`${displayName(skin)} ${skin.skinName}`)}" loading="${index < 12 ? 'eager' : 'lazy'}" referrerpolicy="${ui.referrerPolicyFor(skin.url)}">
         </button>
         <div class="skin-info">
           <strong>${escapeHtml(skin.skinName)}</strong>

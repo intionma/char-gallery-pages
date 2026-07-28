@@ -97,6 +97,59 @@ async function fetchJson(url) {
   return response.json();
 }
 
+// 메모리얼 URL은 SchaleDB PathName 으로 규칙 조합해 만든다. Blue Utils 가 모든 의상의
+// 메모리얼 로비를 갖고 있지는 않아서, 실제로 존재하는 것만 남기지 않으면 깨진 카드가 남는다.
+// 판정은 보수적으로 한다. 확실한 404/410 만 죽은 것으로 보고, 타임아웃·5xx·네트워크 오류는
+// 살아있는 것으로 남긴다. 원본이 잠시 흔들릴 때 멀쩡한 이미지를 지워버리면 안 되기 때문이다.
+// 동시 요청을 제한하지 않으면 레이트리밋 응답을 죽음으로 오판한다.
+const MISSING_STATUSES = new Set([404, 410]);
+const LIVE_CHECK_CONCURRENCY = 6;
+const liveUrlCache = new Map();
+
+async function isMissingUrl(url) {
+  if (liveUrlCache.has(url)) return liveUrlCache.get(url);
+  const check = (async () => {
+    for (const method of ['HEAD', 'GET']) {
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: { Accept: 'image/*,*/*', 'User-Agent': UA },
+          signal: AbortSignal.timeout(30000),
+        });
+        if (response.body) await response.body.cancel().catch(() => {});
+        if (response.status === 405 || response.status === 501) continue;
+        return MISSING_STATUSES.has(response.status);
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  })();
+  liveUrlCache.set(url, check);
+  return check;
+}
+
+async function mapLimited(items, limit, fn) {
+  const out = new Array(items.length);
+  let cursor = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (cursor < items.length) {
+      const index = cursor++;
+      out[index] = await fn(items[index]);
+    }
+  }));
+  return out;
+}
+
+async function filterLiveImages(images, label) {
+  if (SKIP_REMOTE) return images;
+  const missing = await mapLimited(images, LIVE_CHECK_CONCURRENCY, (image) => isMissingUrl(image.url));
+  const kept = images.filter((_, index) => !missing[index]);
+  const dropped = images.length - kept.length;
+  if (dropped) console.log(`${label}: dropped ${dropped} missing image URL(s) of ${images.length}`);
+  return kept;
+}
+
 function slug(prefix, value) {
   return `${prefix}-${String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
 }
@@ -159,10 +212,26 @@ async function enrichBlueArchive() {
   const charactersById = new Map((data.characters || []).map((character) => [character.id, character]));
   const announcedArt = await resolveAnnouncedArt();
 
+  const candidateMemorials = [];
   for (const character of data.characters || []) {
     const standing = (character.images || []).filter((image) => image?.url && image.type !== '메모리얼');
     const memorials = standing.map(memorialImage).filter(Boolean);
+    candidateMemorials.push(...memorials);
     character.images = [...standing.map(({ thumbUrl: _thumbUrl, ...image }) => image), ...memorials];
+  }
+
+  // 존재하지 않는 메모리얼은 제거한다. 규칙 조합이 전면적으로 어긋난 경우(대량 소실)는
+  // 원본 장애일 가능성이 높으므로 조용히 비우지 않고 빌드를 실패시킨다.
+  const liveMemorials = new Set((await filterLiveImages(candidateMemorials, 'Blue Archive memorial')).map((image) => image.url));
+  if (!SKIP_REMOTE) {
+    const kept = liveMemorials.size;
+    if (candidateMemorials.length && kept < candidateMemorials.length * 0.5) {
+      throw new Error(`Blue Archive memorial URLs mostly unreachable (${kept}/${candidateMemorials.length})`);
+    }
+    for (const character of data.characters || []) {
+      character.images = (character.images || [])
+        .filter((image) => image.type !== '메모리얼' || liveMemorials.has(image.url));
+    }
   }
 
   for (const skin of data.skins || []) {
@@ -188,10 +257,14 @@ async function enrichBlueArchive() {
     if (!(character.images || []).some((entry) => entry.url === image.url)) character.images.push(image);
   }
 
+  // 콜라보 학생처럼 Blue Utils 에 메모리얼 로비가 아예 없는 캐릭터가 있어서 전원 보유를
+  // 요구할 수는 없다. 대신 대다수가 유지되는지로 원본 장애를 감지한다.
+  const total = (data.characters || []).length;
   const memorialCharacters = (data.characters || []).filter((character) =>
     (character.images || []).some((image) => image.type === '메모리얼'));
-  if (memorialCharacters.length !== (data.characters || []).length) {
-    throw new Error(`Blue Archive memorial coverage is incomplete (${memorialCharacters.length}/${data.characters?.length || 0})`);
+  console.log(`Blue Archive memorial coverage: ${memorialCharacters.length}/${total} characters`);
+  if (total && memorialCharacters.length < total * 0.9) {
+    throw new Error(`Blue Archive memorial coverage is incomplete (${memorialCharacters.length}/${total})`);
   }
   const announcedIds = new Set(ANNOUNCED_ART.keys());
   const replaced = (data.skins || []).filter((skin) => announcedIds.has(skin.id) && skin.temporaryArt);
@@ -281,6 +354,46 @@ async function enrichDjmax() {
   console.log(`DJMAX enriched: ${characters.length} characters, ${imageCount} images`);
 }
 
+// 원신 기본 일러는 아이콘 파일명을 치환해 URL을 조합한다. 별인형처럼 가챠 일러가 없는
+// 더미 항목은 그 URL이 존재하지 않으므로, 확인해서 빈 캐릭터를 남기지 않는다.
+async function pruneGenshinDeadArt() {
+  if (SKIP_REMOTE) return;
+  const data = await readJson('genshin.json');
+  if (data.error) return;
+  const before = (data.characters || []).length;
+  for (const character of data.characters || []) {
+    character.images = await filterLiveImages(character.images || [], `Genshin ${character.names?.ko || character.id}`);
+  }
+  data.characters = (data.characters || []).filter((character) => (character.images || []).length);
+  const dropped = before - data.characters.length;
+
+  // 캐릭터가 사라지면 전체 스킨 뷰에 고아 항목이 남으므로 함께 정리한다.
+  if (Array.isArray(data.skins)) {
+    const keptIds = new Set(data.characters.map((character) => character.id));
+    const live = await filterLiveImages(
+      data.skins.filter((skin) => keptIds.has(skin.characterId)),
+      'Genshin skins',
+    );
+    const removedSkins = data.skins.length - live.length;
+    if (removedSkins) console.log(`Genshin skins: dropped ${removedSkins} orphaned or missing entries`);
+    data.skins = live;
+  }
+
+  if (before && data.characters.length < before * 0.9) {
+    throw new Error(`Genshin character art mostly unreachable (${data.characters.length}/${before})`);
+  }
+  await writeJson('genshin.json', data);
+
+  // 매니페스트의 건수는 실제 항목 수와 일치해야 검증을 통과한다.
+  if (dropped) {
+    const manifest = await readJson('manifest.json');
+    const result = (manifest.results || []).find((entry) => entry.name === 'genshin.json');
+    if (result) result.count = data.characters.length;
+    await writeJson('manifest.json', manifest);
+  }
+  console.log(`Genshin art verified: ${data.characters.length}/${before} characters kept${dropped ? ` (${dropped} dropped)` : ''}`);
+}
+
 async function restoreGameLogos() {
   const manifest = await readJson('manifest.json');
   manifest.games = (manifest.games || []).map((game) => ({
@@ -295,4 +408,5 @@ async function restoreGameLogos() {
 
 await enrichBlueArchive();
 await enrichDjmax();
+await pruneGenshinDeadArt();
 await restoreGameLogos();

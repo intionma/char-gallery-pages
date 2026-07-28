@@ -41,5 +41,17 @@ for (const jacket of data.jackets) {
   jacket.url = jacket.variants[0].url;
 }
 
+// 자켓과 별개로 연결 캐릭터에도 같은 자켓 URL이 복사되어 있어서, 여기도 정규화하지 않으면
+// `//img/...` 형태가 그대로 남는다.
+let characterUrls = 0;
+for (const character of data.characters || []) {
+  for (const image of character.images || []) {
+    image.url = toAbsoluteHttpsUrl(image.url);
+    for (const variant of image.variants || []) variant.url = toAbsoluteHttpsUrl(variant.url);
+    characterUrls += 1;
+  }
+  if (character.profileImage) character.profileImage = toAbsoluteHttpsUrl(character.profileImage);
+}
+
 await fs.writeFile(file, JSON.stringify(data), 'utf8');
-console.log(`SDVX URLs verified: ${data.jackets.length} jackets, ${variants} variants, ${normalized} normalized`);
+console.log(`SDVX URLs verified: ${data.jackets.length} jackets, ${variants} variants, ${characterUrls} character images, ${normalized} normalized`);

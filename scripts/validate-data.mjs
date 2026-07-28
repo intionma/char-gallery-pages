@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SDVX_JACKET_CATEGORIES } from './sdvx-jacket-ratings.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dataDir = path.resolve(root, process.argv[2] || 'dist/data');
@@ -85,11 +86,19 @@ for (const [gameId, expectation] of Object.entries(expectations)) {
       if (jacket.url !== jacket.variants[0].url) {
         fail(gameId, `jacket ${jacket.id} does not use its first variant as the cover`);
       }
-      if (!['□', '■'].includes(jacket.category)) {
+      if (!SDVX_JACKET_CATEGORIES.includes(jacket.category)) {
         fail(gameId, `jacket ${jacket.id} has an invalid public category`);
       }
       if (!Number.isInteger(jacket.popularity) || jacket.popularity < 0) {
         fail(gameId, `jacket ${jacket.id} has an invalid popularity count`);
+      }
+    }
+
+    // 자켓만 검사하면 연결 캐릭터에 복사된 URL이 검증을 통째로 비껴간다.
+    for (const character of data.characters || []) {
+      httpsUrl(gameId, `character ${character.id} profileImage`, character.profileImage);
+      for (const [index, image] of (character.images || []).entries()) {
+        httpsUrl(gameId, `character ${character.id} image ${index}`, image.url);
       }
     }
   }
