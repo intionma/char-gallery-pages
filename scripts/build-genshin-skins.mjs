@@ -82,6 +82,10 @@ if (pageData.error) throw new Error('Genshin data build failed before skin catal
 if (!Array.isArray(pageData.characters) || pageData.characters.length === 0) {
   throw new Error('Genshin character data is empty');
 }
+if (pageData.stale && Array.isArray(pageData.skins) && pageData.skins.length > 0) {
+  console.log(`Genshin skins retained from published snapshot: ${pageData.skins.length}`);
+  process.exit(0);
+}
 
 const { outfitsEn = [], outfitsKo = [], charactersEn = [] } = await loadMetadata();
 const characterMetaById = new Map(charactersEn.map((character) => [String(character.id), character]));

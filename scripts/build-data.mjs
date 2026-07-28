@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildBooruPopularityScores, releaseTimestamp } from './sort-utils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
@@ -8,6 +9,7 @@ const outDir = path.resolve(root, process.argv[2] || 'dist/data');
 const generatedAt = new Date().toISOString();
 const UA = 'char-gallery-pages/1.0 (+https://github.com/intionma/char-gallery-pages)';
 const PUBLISHED_DATA_ROOT = 'https://intionma.github.io/char-gallery-pages/data/';
+const publishedCache = new Map();
 
 await fs.mkdir(outDir, { recursive: true });
 
@@ -34,17 +36,41 @@ async function writeJson(name, value) {
   await fs.writeFile(path.join(outDir, name), JSON.stringify(value), 'utf8');
 }
 
-async function publishedFallback(name) {
-  if (name !== 'sound-voltex.json') return null;
-  const data = await fetchJson(new URL(name, PUBLISHED_DATA_ROOT), { timeout: 30000 });
-  if (!Array.isArray(data.jackets) || data.jackets.length === 0) {
-    throw new Error('published SDVX fallback contains no jackets');
+async function publishedData(name) {
+  if (!publishedCache.has(name)) {
+    publishedCache.set(
+      name,
+      fetchJson(new URL(name, PUBLISHED_DATA_ROOT), { timeout: 30000 }),
+    );
   }
+  return publishedCache.get(name);
+}
+
+function dataCount(data) {
+  return data.characters?.length ?? data.jackets?.length ?? 0;
+}
+
+async function publishedFallback(name) {
+  const data = await publishedData(name);
+  const count = dataCount(data);
+  if (!count) throw new Error(`published ${name} fallback is empty`);
   const fallback = {
     ...data,
     stale: true,
     fallbackUsedAt: generatedAt,
   };
+  if (name === 'blue-archive.json' && !fallback.sortMetadata?.popularity) {
+    fallback.sortMetadata = {
+      ...(fallback.sortMetadata || {}),
+      popularity: { available: false, source: 'unavailable', matched: 0, updatedAt: generatedAt },
+    };
+  }
+  if (name === 'eternal-return.json' && !fallback.sortMetadata?.release) {
+    fallback.sortMetadata = {
+      ...(fallback.sortMetadata || {}),
+      release: { available: false, source: 'unavailable', matched: 0, updatedAt: generatedAt },
+    };
+  }
   delete fallback.error;
   return fallback;
 }
@@ -57,6 +83,77 @@ function norm(value) {
 }
 function slug(prefix, value) {
   return `${prefix}-${String(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
+}
+
+async function fetchBlueArchivePopularity(characters) {
+  const tags = [];
+  for (let page = 1; page <= 3; page += 1) {
+    const url = new URL('https://danbooru.donmai.us/tags.json');
+    url.searchParams.set('search[category]', '4');
+    url.searchParams.set('search[name_matches]', '*_(blue_archive)');
+    url.searchParams.set('search[hide_empty]', 'yes');
+    url.searchParams.set('search[is_deprecated]', 'no');
+    url.searchParams.set('search[order]', 'count');
+    url.searchParams.set('limit', '1000');
+    url.searchParams.set('page', String(page));
+    const batch = await fetchJson(url, { timeout: 45000 });
+    if (!Array.isArray(batch)) throw new Error('Danbooru popularity response is not an array');
+    tags.push(...batch);
+    if (batch.length < 1000) break;
+  }
+  if (!tags.length) throw new Error('Danbooru returned no Blue Archive character tags');
+
+  const scores = buildBooruPopularityScores(characters, tags, 'blue_archive');
+  if (![...scores.values()].some((score) => score > 0)) {
+    throw new Error('Danbooru popularity matched no Blue Archive characters');
+  }
+  return { scores, source: 'danbooru', updatedAt: generatedAt };
+}
+
+async function blueArchivePopularity(characters) {
+  let snapshot;
+  try {
+    snapshot = await fetchBlueArchivePopularity(characters);
+  } catch (error) {
+    console.warn(`Blue Archive popularity refresh skipped: ${error.message}`);
+    try {
+      const previous = await publishedData('blue-archive.json');
+      const scores = new Map(
+        (previous.characters || [])
+          .filter((character) => Number.isFinite(Number(character.popularityScore)))
+          .map((character) => [character.id, Number(character.popularityScore)]),
+      );
+      if ([...scores.values()].some((score) => score > 0)) {
+        snapshot = {
+          scores,
+          source: previous.sortMetadata?.popularity?.source || 'published-snapshot',
+          updatedAt: previous.sortMetadata?.popularity?.updatedAt || previous.generatedAt,
+        };
+      }
+    } catch (fallbackError) {
+      console.warn(`Blue Archive popularity fallback unavailable: ${fallbackError.message}`);
+    }
+  }
+
+  if (!snapshot) {
+    return {
+      characters,
+      metadata: { available: false, source: 'unavailable', matched: 0, updatedAt: generatedAt },
+    };
+  }
+  const enriched = characters.map((character) => ({
+    ...character,
+    popularityScore: snapshot.scores.get(character.id) || 0,
+  }));
+  return {
+    characters: enriched,
+    metadata: {
+      available: true,
+      source: snapshot.source,
+      matched: enriched.filter((character) => character.popularityScore > 0).length,
+      updatedAt: snapshot.updatedAt,
+    },
+  };
 }
 
 async function buildBlueArchive() {
@@ -103,10 +200,12 @@ async function buildBlueArchive() {
     })
     .sort((a, b) => (a.order[0] < 0 ? 999 : a.order[0]) - (b.order[0] < 0 ? 999 : b.order[0]) || a.order[1] - b.order[1])
     .map(({ order, ...character }) => character);
+  const popularity = await blueArchivePopularity(rows);
   return {
     generatedAt,
     game: { id: 'blue-archive', name: '블루 아카이브', description: 'SchaleDB 기반 공식 스탠딩과 의상' },
-    characters: rows,
+    characters: popularity.characters,
+    sortMetadata: { popularity: popularity.metadata },
   };
 }
 
@@ -207,12 +306,15 @@ async function buildEternalReturn() {
   const category = await wikiCategory(host, 'Characters');
   const titles = category.map((row) => row.title);
   const female = new Set();
+  const releaseByName = new Map();
   for (let i = 0; i < titles.length; i += 50) {
     const params = new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', prop: 'revisions', rvprop: 'content', rvslots: 'main', titles: titles.slice(i, i + 50).join('|'), origin: '*' });
     const data = await fetchJson(`https://${host}/api.php?${params}`);
     for (const page of data.query?.pages || []) {
       const content = page.revisions?.[0]?.slots?.main?.content || '';
       if (/\|\s*gender\s*=\s*female/i.test(content)) female.add(page.title);
+      const timestamp = releaseTimestamp(content);
+      if (timestamp > 0) releaseByName.set(norm(page.title), timestamp);
     }
   }
   const [enData, koData] = await Promise.all([
@@ -243,6 +345,7 @@ async function buildEternalReturn() {
       return [{ url, group: label, type: isBase ? '기본' : '의상', sourceUrl: `https://${host}/wiki/${encodeURIComponent(name.replace(/ /g, '_'))}` }];
     });
     if (!images.length) return [];
+    const released = releaseByName.get(norm(name)) || 0;
     return [{
       id: slug('er', dak.key || dak.name),
       names: { en: dak.name, ko: koMap.get(norm(dak.key || dak.name)) },
@@ -250,9 +353,28 @@ async function buildEternalReturn() {
       profileImage: images[0].url,
       sourceUrl: `https://${host}/wiki/${encodeURIComponent(name.replace(/ /g, '_'))}`,
       images,
+      releasedAt: released ? new Date(released).toISOString().slice(0, 10) : undefined,
     }];
-  }).sort((a, b) => (a.names.ko || a.names.en).localeCompare(b.names.ko || b.names.en, 'ko'));
-  return { generatedAt, game: { id: 'eternal-return', name: '이터널 리턴', description: 'DAK.GG 및 공식 위키 기반 스탠딩과 스킨' }, characters };
+  }).sort((a, b) => {
+    const aTime = Date.parse(a.releasedAt || '') || 0;
+    const bTime = Date.parse(b.releasedAt || '') || 0;
+    return bTime - aTime
+      || (a.names.ko || a.names.en).localeCompare(b.names.ko || b.names.en, 'ko', { numeric: true });
+  }).map((character, releaseOrder) => ({ ...character, releaseOrder }));
+  const matched = characters.filter((character) => character.releasedAt).length;
+  return {
+    generatedAt,
+    game: { id: 'eternal-return', name: '이터널 리턴', description: 'DAK.GG 및 공식 위키 기반 스탠딩과 스킨' },
+    characters,
+    sortMetadata: {
+      release: {
+        available: matched > 0,
+        matched,
+        source: 'eternal-return-wiki',
+        updatedAt: generatedAt,
+      },
+    },
+  };
 }
 
 async function buildSoundVoltex() {

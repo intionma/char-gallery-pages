@@ -7,6 +7,7 @@ const file = path.resolve(root, process.argv[2] || 'dist/data/blue-archive.json'
 const BASE = 'https://schaledb.com';
 const UA = 'char-gallery-pages/1.0 (+https://github.com/intionma/char-gallery-pages)';
 const BA_55_LIVE = 'https://www.youtube.com/watch?v=tQ4z_gAngHc';
+const PUBLISHED_DATA = 'https://intionma.github.io/char-gallery-pages/data/blue-archive.json';
 
 const ANNOUNCED_SKINS = [
   ['makoto', 'makoto_swimsuit', '수영복', '2026-07-26', '2026-07-29'],
@@ -30,6 +31,24 @@ async function fetchJson(url) {
   });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${url}`);
   return response.json();
+}
+
+async function previousAdditionOrders() {
+  try {
+    const data = await fetchJson(PUBLISHED_DATA);
+    if (!Array.isArray(data.skins) || data.skins.length === 0) return { available: false, orders: new Map() };
+    return {
+      available: true,
+      orders: new Map(
+        data.skins
+          .filter((skin) => Number.isFinite(Number(skin.additionOrder)))
+          .map((skin) => [skin.id, Number(skin.additionOrder)]),
+      ),
+    };
+  } catch (error) {
+    console.warn(`Blue Archive previous skin order unavailable: ${error.message}`);
+    return { available: false, orders: new Map() };
+  }
 }
 
 function isReleased(student) {
@@ -68,6 +87,17 @@ function findAnnouncedVariant(all, base, announced) {
 
 const pageData = JSON.parse(await fs.readFile(file, 'utf8'));
 if (pageData.error) throw new Error('Blue Archive data build failed before skin catalog generation');
+if (pageData.stale && Array.isArray(pageData.skins) && pageData.skins.length > 0) {
+  console.log(`Blue Archive skins retained from published snapshot: ${pageData.skins.length}`);
+  process.exit(0);
+}
+const previous = await previousAdditionOrders();
+const firstSeenAt = Date.parse(pageData.generatedAt) || Date.now();
+const persistedOrder = (id, fallback) => {
+  if (!previous.available) return fallback;
+  const seen = previous.orders.get(id);
+  return seen == null ? firstSeenAt : Math.max(fallback, seen);
+};
 
 const [en, ko, ja] = await Promise.all([
   fetchJson(`${BASE}/data/en/students.min.json`),
@@ -89,8 +119,9 @@ const skins = released
     const baseId = String(base.Id);
     const baseSkin = isBase(student);
     const skinName = baseSkin ? '기본' : costumeLabel(ko[String(student.Id)]?.Name, student.Name);
+    const id = `ba-skin-${student.Id}`;
     return {
-      id: `ba-skin-${student.Id}`,
+      id,
       characterId: `ba-${base.Id}`,
       character: {
         id: `ba-${base.Id}`,
@@ -106,7 +137,7 @@ const skins = released
       thumbUrl: `${BASE}/images/student/icon/${student.Id}.webp`,
       sourceUrl: `${BASE}/student/${student.PathName}`,
       sourceType: baseSkin ? 'official_standing' : 'official_skin',
-      additionOrder: Number(student.Id),
+      additionOrder: persistedOrder(id, Number(student.Id)),
     };
   });
 
@@ -142,7 +173,7 @@ for (const announced of ANNOUNCED_SKINS) {
   });
 }
 
-skins.sort((a, b) => b.additionOrder - a.additionOrder);
+skins.sort((a, b) => b.additionOrder - a.additionOrder || a.id.localeCompare(b.id));
 if (!skins.length) throw new Error('Blue Archive skin catalog is empty');
 pageData.skins = skins;
 await fs.writeFile(file, JSON.stringify(pageData), 'utf8');
