@@ -3,6 +3,13 @@ name: Build and deploy GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    paths:
+      - 'app.js'
+      - 'skins.js'
+      - 'scripts/**'
+      - '.github/workflows/deploy-pages.yml'
+      - 'README.md'
   workflow_dispatch:
   schedule:
     - cron: '17 19 * * *'
@@ -13,7 +20,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages
+  group: github-pages-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -35,6 +42,7 @@ jobs:
           node --check scripts/build-blue-archive-skins.mjs
           node --check scripts/build-eternal-return-skins.mjs
           node --check scripts/build-genshin-skins.mjs
+          node --check scripts/enrich-gallery.mjs
           node --check scripts/normalize-sdvx.mjs
           node --check scripts/sort-utils.mjs
           node --check scripts/test-sort-metadata.mjs
@@ -56,6 +64,8 @@ jobs:
         run: node scripts/build-eternal-return-skins.mjs dist/data/eternal-return.json
       - name: Build Genshin skin catalog
         run: node scripts/build-genshin-skins.mjs dist/data/genshin.json
+      - name: Restore detail galleries and game logos
+        run: node scripts/enrich-gallery.mjs dist/data
       - name: Normalize SDVX jacket URLs
         run: node scripts/normalize-sdvx.mjs dist/data/sound-voltex.json
       - name: Validate generated data
@@ -63,13 +73,16 @@ jobs:
       - name: Audit public source
         run: node scripts/audit-public.mjs
       - name: Configure Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
           path: dist
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
