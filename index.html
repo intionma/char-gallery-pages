@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ko" data-theme="blue-archive">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#eaf1fa" />
   <meta name="description" content="여러 게임의 공식 캐릭터 일러스트와 자켓을 모아보는 정적 갤러리" />
   <title>캐릭터 아트 갤러리</title>
   <link rel="stylesheet" href="./styles.css" />
@@ -12,14 +12,21 @@
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <button id="homeButton" class="brand" type="button" aria-label="홈으로 이동">
-        <span class="brand-mark">✦</span>
-        <span>
-          <strong>캐릭터 아트 갤러리</strong>
-          <small>GitHub Pages 정적판</small>
-        </span>
+      <button id="backButton" class="header-icon" type="button" aria-label="뒤로" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
       </button>
-      <div id="status" class="status" aria-live="polite"></div>
+      <button id="homeButton" class="brand" type="button" aria-label="홈으로 이동">
+        <span class="brand-mark"><span class="brand-dot"></span></span>
+      </button>
+      <div class="header-copy">
+        <strong id="headerTitle">캐릭터 아트 갤러리</strong>
+        <small id="headerSubtitle">공식 일러부터 팬아트까지</small>
+      </div>
+      <div class="header-actions">
+        <div id="status" class="status" aria-live="polite"></div>
+      </div>
     </div>
   </header>
 
