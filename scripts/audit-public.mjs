@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const targets = ['index.html', '404.html', 'styles.css', 'skins.css', 'app.js', 'skins.js', 'README.md', 'AGENTS.md', '.github', 'scripts'];
+const targets = ['index.html', '404.html', 'styles.css', 'skins.css', 'app.js', 'skins.js', 'README.md', 'AGENTS.md', '.github', 'docs', 'scripts'];
 const blocked = [
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
   /\b(?:token|secret|password|api[_-]?key)\b\s*[:=]\s*['"][A-Za-z0-9_./+=-]{16,}['"]/i,

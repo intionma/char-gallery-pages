@@ -16,6 +16,8 @@
     'sound-voltex': '#080a12',
     djmax: '#0a0810',
   };
+  // SDVX 자켓 민감도 분류. 기준: docs/SDVX_JACKET_MODERATION.md
+  const JACKET_CATEGORIES = ['●', '○', '□', '■'];
 
   const app = document.getElementById('app');
   const status = document.getElementById('status');
@@ -413,8 +415,8 @@
     setTheme('sound-voltex');
     const jackets = Array.isArray(data.jackets) ? data.jackets : [];
     const hasCategory = jackets.some((jacket) => jacket.category);
-    const categories = [...new Set(jackets.map((jacket) => jacket.category).filter(Boolean))];
-    const hasPopularity = jackets.some((jacket) => jacket.popularity != null || jacket.adultScore != null);
+    const categories = JACKET_CATEGORIES.filter((value) => jackets.some((jacket) => jacket.category === value));
+    const hasPopularity = jackets.some((jacket) => jacket.popularity != null);
     let shown = PAGE_SIZE;
     let visibleRows = [];
 
@@ -430,7 +432,7 @@
         ${hasCategory ? `<select id="category" aria-label="자켓 분류"><option value="">전체</option>${categories.map((value) => `<option value="${escapeAttr(value)}">${escapeHtml(value)}</option>`).join('')}</select>` : ''}
         <select id="sort" aria-label="정렬">
           ${hasPopularity ? '<option value="popular">인기순</option>' : ''}
-          <option value="newest">발매일 최신순 ↓</option>
+          <option value="newest" selected>발매일 최신순 ↓</option>
           <option value="oldest">발매일 오래된순 ↑</option>
           <option value="name">이름순</option>
           <option value="level-high">레벨 높은순</option>
@@ -472,8 +474,7 @@
         if (sort.value === 'level-high') return maxLevel(b) - maxLevel(a);
         if (sort.value === 'level-low') return maxLevel(a) - maxLevel(b);
         if (sort.value === 'popular') {
-          return Number(b.adultScore ?? -1) - Number(a.adultScore ?? -1)
-            || Number(b.popularity ?? 0) - Number(a.popularity ?? 0)
+          return Number(b.popularity ?? 0) - Number(a.popularity ?? 0)
             || (b.releasedAt || '0000').localeCompare(a.releasedAt || '0000');
         }
         return (b.releasedAt || '0000').localeCompare(a.releasedAt || '0000');
