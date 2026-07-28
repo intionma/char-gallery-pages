@@ -5,8 +5,11 @@
   const PAGE_SIZE = 60;
   const app = document.getElementById('app');
   const status = document.getElementById('status');
+  const lightbox = document.getElementById('lightbox');
+  const copyImageUrl = document.getElementById('copyImageUrl');
   let renderToken = 0;
   let scheduled = false;
+  let currentSkinUrl = '';
 
   function route() {
     return location.hash.replace(/^#\/?/, '').replace(/\/+$/, '');
@@ -44,12 +47,13 @@
   }
 
   function openSkin(skin) {
-    const dialog = document.getElementById('lightbox');
     const image = document.getElementById('lightboxImage');
     const title = document.getElementById('lightboxTitle');
     const meta = document.getElementById('lightboxMeta');
     const source = document.getElementById('openSource');
     const variants = document.getElementById('variantButtons');
+    currentSkinUrl = skin.url;
+    lightbox.dataset.skinMode = '1';
     image.src = skin.url;
     image.alt = `${displayName(skin)} ${skin.skinName}`;
     title.textContent = `${displayName(skin)} · ${skin.skinName}`;
@@ -58,7 +62,19 @@
       : skin.sourceType === 'official_standing' ? '기본 스탠딩' : '공식 의상';
     source.href = skin.sourceUrl || skin.url;
     variants.innerHTML = '';
-    dialog.showModal();
+    lightbox.showModal();
+  }
+
+  async function copySkinUrl(event) {
+    if (lightbox.dataset.skinMode !== '1' || !currentSkinUrl) return;
+    event.stopImmediatePropagation();
+    try {
+      await navigator.clipboard.writeText(currentSkinUrl);
+      copyImageUrl.textContent = '복사됨';
+      setTimeout(() => { copyImageUrl.textContent = '이미지 주소 복사'; }, 1200);
+    } catch {
+      window.prompt('이미지 주소를 복사하세요.', currentSkinUrl);
+    }
   }
 
   function card(skin) {
@@ -70,7 +86,7 @@
         <button class="skin-art" type="button" aria-label="${escapeHtml(`${displayName(skin)} ${skin.skinName} 크게 보기`)}">
           ${badge ? `<span class="skin-badge${skin.upcoming ? ' upcoming' : ''}">${escapeHtml(badge)}</span>` : ''}
           ${skin.announcementOnly ? '<span class="skin-waiting">공식 발표됨 · 전신 데이터 대기</span>' : ''}
-          <img src="${escapeHtml(skin.thumbUrl || skin.url)}" alt="${escapeHtml(`${displayName(skin)} ${skin.skinName}`)}" loading="lazy" referrerpolicy="no-referrer">
+          <img src="${escapeHtml(skin.url)}" alt="${escapeHtml(`${displayName(skin)} ${skin.skinName}`)}" loading="lazy" referrerpolicy="no-referrer">
         </button>
         <div class="skin-info">
           <strong>${escapeHtml(skin.skinName)}</strong>
@@ -81,7 +97,7 @@
 
   async function renderSkins() {
     const token = ++renderToken;
-    app.innerHTML = '<div class="skeleton"></div>';
+    app.innerHTML = '<section class="ba-skins-view"><div class="skeleton"></div></section>';
     try {
       const response = await fetch(new URL('./data/blue-archive.json', document.baseURI), { cache: 'no-cache' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -154,7 +170,7 @@
       update();
     } catch (error) {
       if (token !== renderToken || !isSkinsRoute()) return;
-      app.innerHTML = `<div class="error">스킨 목록을 불러오지 못했어요.<br><small>${escapeHtml(error.message || String(error))}</small></div>`;
+      app.innerHTML = `<section class="ba-skins-view"><div class="error">스킨 목록을 불러오지 못했어요.<br><small>${escapeHtml(error.message || String(error))}</small></div></section>`;
       status.textContent = '스킨 데이터 로드 실패';
     }
   }
@@ -196,6 +212,11 @@
     });
   }
 
+  copyImageUrl.addEventListener('click', copySkinUrl, { capture: true });
+  lightbox.addEventListener('close', () => {
+    delete lightbox.dataset.skinMode;
+    currentSkinUrl = '';
+  });
   window.addEventListener('hashchange', syncRoute, { capture: true });
   new MutationObserver(scheduleSync).observe(app, { childList: true, subtree: true });
   syncRoute();
