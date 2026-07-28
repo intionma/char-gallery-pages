@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildBooruPopularityScores, releaseTimestamp } from './sort-utils.mjs';
+import { rateSdvxJacket } from './sdvx-jacket-ratings.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
@@ -149,7 +150,7 @@ async function enrichSoundVoltex(data) {
       character,
       characters: charactersForSong,
       popularity: charactersForSong.length,
-      category: charactersForSong.length ? '□' : '■',
+      category: rateSdvxJacket(jacket, charactersForSong.length),
     };
   });
   return {

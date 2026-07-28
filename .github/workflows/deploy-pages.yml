@@ -44,6 +44,7 @@ jobs:
           node --check scripts/build-genshin-skins.mjs
           node --check scripts/enrich-gallery.mjs
           node --check scripts/normalize-sdvx.mjs
+          node --check scripts/sdvx-jacket-ratings.mjs
           node --check scripts/sort-utils.mjs
           node --check scripts/test-sort-metadata.mjs
           node --check scripts/validate-data.mjs

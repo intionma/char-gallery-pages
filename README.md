@@ -38,4 +38,10 @@ python3 -m http.server 8000 -d dist
 
 캐릭터 목록은 가능한 경우 블루 아카이브 Danbooru 인기순과 이터널 리턴 공식 위키 출시순 메타데이터를 정적 JSON에 함께 저장합니다. 외부 원본 갱신이 일시적으로 실패하면 빈 목록으로 덮지 않고 마지막 정상 배포본을 검증해 유지합니다.
 
+## 자켓 민감도 분류
+
+SOUND VOLTEX 자켓의 `● / ○ / □ / ■` 분류 기준은 [`docs/SDVX_JACKET_MODERATION.md`](docs/SDVX_JACKET_MODERATION.md)를 따릅니다.
+수동 등급은 `scripts/sdvx-jacket-ratings.mjs`의 `MANUAL_RATINGS`에 자켓 단위로 등록하며, 등록되지 않은 자켓은 캐릭터 연결 여부로만 `□`/`■`로 분류합니다.
+민감도 분류와 인기순 정렬은 서로 독립된 데이터이고, 선정성 숫자 점수는 사용하지 않습니다.
+
 각 이미지와 게임 관련 권리는 해당 권리자에게 있습니다.
