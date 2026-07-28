@@ -13,6 +13,11 @@ const UA = 'char-gallery-pages/1.0 (+https://github.com/intionma/char-gallery-pa
 const PUBLISHED_DATA = 'https://intionma.github.io/char-gallery-pages/data/eternal-return.json';
 
 const RELEASE_DATES = new Map([
+  ['sissela:cadet', '2026-05-07'],
+  ['laura:panther', '2026-04-02'],
+  ['silvia:queen', '2026-04-02'],
+  ['blair:fearlessrace', '2026-02-20'],
+  ['lenore:musicteacher', '2026-02-05'],
   ['mirka:wildmaid', '2026-04-16'],
   ['leni:daisybearmaid', '2026-04-30'],
   ['bihyung:__base__', '2026-05-14'],
