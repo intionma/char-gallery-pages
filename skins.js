@@ -1,8 +1,26 @@
 (() => {
   'use strict';
 
-  const ROUTE = 'game/blue-archive/skins';
   const PAGE_SIZE = 60;
+  const CATALOGS = [
+    {
+      gameId: 'blue-archive',
+      gameName: '블루 아카이브',
+      dataFile: 'blue-archive.json',
+      description: '기본 스탠딩과 의상을 최신 추가순으로 한 번에 봅니다.',
+    },
+    {
+      gameId: 'eternal-return',
+      gameName: '이터널 리턴',
+      dataFile: 'eternal-return.json',
+      description: '기본 스탠딩과 스킨을 출시·추가 최신순으로 한 번에 봅니다.',
+    },
+  ].map((catalog) => ({
+    ...catalog,
+    gameRoute: `game/${catalog.gameId}`,
+    route: `game/${catalog.gameId}/skins`,
+  }));
+
   const app = document.getElementById('app');
   const status = document.getElementById('status');
   const lightbox = document.getElementById('lightbox');
@@ -15,8 +33,14 @@
     return location.hash.replace(/^#\/?/, '').replace(/\/+$/, '');
   }
 
-  function isSkinsRoute() {
-    return route() === ROUTE;
+  function skinCatalogForRoute() {
+    const current = route();
+    return CATALOGS.find((catalog) => catalog.route === current);
+  }
+
+  function gameCatalogForRoute() {
+    const current = route();
+    return CATALOGS.find((catalog) => catalog.gameRoute === current);
   }
 
   function navigate(path) {
@@ -59,7 +83,9 @@
     title.textContent = `${displayName(skin)} · ${skin.skinName}`;
     meta.textContent = skin.upcoming
       ? `출시 예정${skin.releaseDate ? ` · ${shortDate(skin.releaseDate)}` : ''}`
-      : skin.sourceType === 'official_standing' ? '기본 스탠딩' : '공식 의상';
+      : skin.releasedAt
+        ? `출시 ${shortDate(skin.releasedAt)}`
+        : skin.sourceType === 'official_standing' ? '기본 스탠딩' : '공식 의상';
     source.href = skin.sourceUrl || skin.url;
     variants.innerHTML = '';
     lightbox.showModal();
@@ -95,21 +121,21 @@
       </article>`;
   }
 
-  async function renderSkins() {
+  async function renderSkins(catalog) {
     const token = ++renderToken;
-    app.innerHTML = '<section class="ba-skins-view"><div class="skeleton"></div></section>';
+    app.innerHTML = `<section class="skins-view" data-skins-view="${escapeHtml(catalog.gameId)}"><div class="skeleton"></div></section>`;
     try {
-      const response = await fetch(new URL('./data/blue-archive.json', document.baseURI), { cache: 'no-cache' });
+      const response = await fetch(new URL(`./data/${catalog.dataFile}`, document.baseURI), { cache: 'no-cache' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      if (token !== renderToken || !isSkinsRoute()) return;
+      if (token !== renderToken || skinCatalogForRoute()?.gameId !== catalog.gameId) return;
       const skins = Array.isArray(data.skins) ? data.skins : [];
       if (!skins.length) throw new Error('스킨 데이터가 없습니다.');
       status.textContent = data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '';
       app.innerHTML = `
-        <section class="ba-skins-view">
-          <div class="breadcrumb"><button type="button" data-skins-home>게임 목록</button> / <button type="button" data-skins-game>블루 아카이브</button> / 전체 스킨</div>
-          <section class="hero"><h1>블루 아카이브 · 전체 스킨</h1><p>기본 스탠딩과 의상을 최신 추가순으로 한 번에 봅니다.</p></section>
+        <section class="skins-view" data-skins-view="${escapeHtml(catalog.gameId)}">
+          <div class="breadcrumb"><button type="button" data-skins-home>게임 목록</button> / <button type="button" data-skins-game>${escapeHtml(catalog.gameName)}</button> / 전체 스킨</div>
+          <section class="hero"><h1>${escapeHtml(catalog.gameName)} · 전체 스킨</h1><p>${escapeHtml(catalog.description)}</p></section>
           <div class="toolbar skin-toolbar">
             <input id="skinSearch" type="search" placeholder="스킨 또는 캐릭터 검색" autocomplete="off">
             <select id="skinSort" aria-label="정렬"><option value="newest">최신 추가순 ↓</option><option value="oldest">오래된 추가순 ↑</option><option value="name">이름순</option></select>
@@ -156,11 +182,11 @@
       sort.addEventListener('change', () => update(true));
       more.addEventListener('click', () => { shown += PAGE_SIZE; update(); });
       app.querySelector('[data-skins-home]').addEventListener('click', () => navigate(''));
-      app.querySelector('[data-skins-game]').addEventListener('click', () => navigate('game/blue-archive'));
+      app.querySelector('[data-skins-game]').addEventListener('click', () => navigate(catalog.gameRoute));
       grid.addEventListener('click', (event) => {
         const character = event.target.closest('[data-character-id]');
         if (character) {
-          navigate(`game/blue-archive/character/${encodeURIComponent(character.dataset.characterId)}`);
+          navigate(`${catalog.gameRoute}/character/${encodeURIComponent(character.dataset.characterId)}`);
           return;
         }
         const article = event.target.closest('[data-skin-id]');
@@ -169,31 +195,33 @@
       });
       update();
     } catch (error) {
-      if (token !== renderToken || !isSkinsRoute()) return;
-      app.innerHTML = `<section class="ba-skins-view"><div class="error">스킨 목록을 불러오지 못했어요.<br><small>${escapeHtml(error.message || String(error))}</small></div></section>`;
+      if (token !== renderToken || skinCatalogForRoute()?.gameId !== catalog.gameId) return;
+      app.innerHTML = `<section class="skins-view" data-skins-view="${escapeHtml(catalog.gameId)}"><div class="error">스킨 목록을 불러오지 못했어요.<br><small>${escapeHtml(error.message || String(error))}</small></div></section>`;
       status.textContent = '스킨 데이터 로드 실패';
     }
   }
 
   function ensureEntryLink() {
-    if (route() !== 'game/blue-archive') return;
-    if (app.querySelector('[data-ba-skins-entry]')) return;
+    const catalog = gameCatalogForRoute();
+    if (!catalog) return;
+    if (app.querySelector(`[data-skins-entry="${catalog.gameId}"]`)) return;
     const hero = app.querySelector('.hero');
     if (!hero) return;
     const button = document.createElement('button');
     button.type = 'button';
-    button.dataset.baSkinsEntry = '';
+    button.dataset.skinsEntry = catalog.gameId;
     button.className = 'feature-link';
     button.innerHTML = '<span>전체 스킨 최신순 보기</span><span aria-hidden="true">→</span>';
-    button.addEventListener('click', () => navigate(ROUTE));
+    button.addEventListener('click', () => navigate(catalog.route));
     hero.insertAdjacentElement('afterend', button);
   }
 
   function syncRoute(event) {
     renderToken += 1;
-    if (isSkinsRoute()) {
+    const catalog = skinCatalogForRoute();
+    if (catalog) {
       event?.stopImmediatePropagation();
-      renderSkins();
+      renderSkins(catalog);
     } else {
       queueMicrotask(ensureEntryLink);
     }
@@ -204,8 +232,9 @@
     scheduled = true;
     queueMicrotask(() => {
       scheduled = false;
-      if (isSkinsRoute()) {
-        if (!app.querySelector('.ba-skins-view')) renderSkins();
+      const catalog = skinCatalogForRoute();
+      if (catalog) {
+        if (app.querySelector('[data-skins-view]')?.dataset.skinsView !== catalog.gameId) renderSkins(catalog);
       } else {
         ensureEntryLink();
       }
