@@ -61,10 +61,18 @@ function outfitIdentity(outfit) {
   return String(outfit.id ?? `${outfit.characterId}:${outfit.name}`);
 }
 
+function safeDecode(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 function findExistingOutfitImage(character, outfit, localizedName) {
   const names = [outfit.name, localizedName].filter(Boolean).map(norm).filter(Boolean);
   return (character.images || []).find((image) => {
-    const source = norm(decodeURIComponent(String(image.sourceUrl || '')).replace(/_/g, ' '));
+    const source = norm(safeDecode(String(image.sourceUrl || '')).replace(/_/g, ' '));
     return names.includes(norm(image.group)) || names.some((name) => source.includes(name));
   });
 }
@@ -113,7 +121,7 @@ for (const outfit of outfitsEn) {
   const localized = outfitKoById.get(outfitIdentity(outfit));
   const skinName = localized?.name || outfit.name;
   const existing = findExistingOutfitImage(character, outfit, skinName);
-  const url = asset(outfit.images?.filename_splash) || existing?.url;
+  const url = existing?.url || asset(outfit.images?.filename_splash);
   if (!url) {
     missing.push(`${outfit.characterName || outfit.characterId}: ${outfit.name}`);
     continue;
@@ -143,7 +151,7 @@ for (const outfit of outfitsEn) {
     skinName,
     group: skinName,
     url,
-    thumbUrl: asset(outfit.images?.filename_icon) || existing?.thumbUrl,
+    thumbUrl: existing?.thumbUrl || asset(outfit.images?.filename_icon),
     sourceUrl,
     sourceType: 'official_skin',
     releaseVersion: outfit.version,
