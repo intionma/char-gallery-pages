@@ -15,8 +15,10 @@
 ```bash
 rm -rf dist
 mkdir -p dist/data
-cp index.html 404.html styles.css app.js dist/
+cp index.html 404.html styles.css skins.css app.js skins.js dist/
 node scripts/build-data.mjs dist/data
+node scripts/build-blue-archive-skins.mjs dist/data/blue-archive.json
+node scripts/normalize-sdvx.mjs dist/data/sound-voltex.json
 python3 -m http.server 8000 -d dist
 ```
 
