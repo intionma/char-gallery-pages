@@ -25,21 +25,43 @@
 
   <main id="app" class="app" tabindex="-1"></main>
 
-  <dialog id="lightbox" class="lightbox">
-    <button id="lightboxClose" class="lightbox-close" type="button" aria-label="닫기">×</button>
-    <div class="lightbox-stage">
-      <img id="lightboxImage" alt="" />
+  <dialog id="lightbox" class="lightbox" aria-labelledby="lightboxTitle">
+    <div class="lightbox-topbar">
+      <div class="lightbox-context">
+        <span id="lightboxSourceLabel" class="lightbox-source"></span>
+        <span id="lightboxTopMeta" class="lightbox-top-meta"></span>
+        <span id="lightboxCounter" class="lightbox-counter" aria-live="polite"></span>
+      </div>
+      <div class="lightbox-actions">
+        <button id="copyImageUrl" class="lightbox-action" type="button">주소 복사</button>
+        <a id="openSource" class="lightbox-action primary" target="_blank" rel="noopener noreferrer">원본 ↗</a>
+        <button id="lightboxClose" class="lightbox-close" type="button" aria-label="닫기" autofocus>×</button>
+      </div>
     </div>
-    <div class="lightbox-panel">
-      <div>
+
+    <div id="lightboxStage" class="lightbox-stage">
+      <button id="lightboxPrev" class="lightbox-nav prev" type="button" aria-label="이전 이미지">‹</button>
+      <div id="lightboxImageWrap" class="lightbox-image-wrap">
+        <img id="lightboxImage" alt="" draggable="false" />
+        <div id="lightboxImageError" class="lightbox-image-error" hidden>
+          <span>이미지를 불러올 수 없어요.</span>
+          <a id="lightboxErrorSource" target="_blank" rel="noopener noreferrer">원본 열기</a>
+        </div>
+      </div>
+      <button id="lightboxNext" class="lightbox-nav next" type="button" aria-label="다음 이미지">›</button>
+    </div>
+
+    <div class="lightbox-footer">
+      <div class="lightbox-caption">
         <h2 id="lightboxTitle"></h2>
         <p id="lightboxMeta"></p>
       </div>
-      <div class="lightbox-actions">
-        <button id="copyImageUrl" class="button secondary" type="button">이미지 주소 복사</button>
-        <a id="openSource" class="button" target="_blank" rel="noopener noreferrer">원본 열기</a>
+      <div id="variantButtons" class="variant-buttons" hidden></div>
+      <div class="lightbox-mobile-nav">
+        <button id="lightboxPrevMobile" type="button" aria-label="이전 이미지">‹ 이전</button>
+        <span id="lightboxCounterMobile"></span>
+        <button id="lightboxNextMobile" type="button" aria-label="다음 이미지">다음 ›</button>
       </div>
-      <div id="variantButtons" class="variant-buttons"></div>
     </div>
   </dialog>
 

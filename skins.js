@@ -29,11 +29,8 @@
 
   const app = document.getElementById('app');
   const status = document.getElementById('status');
-  const lightbox = document.getElementById('lightbox');
-  const copyImageUrl = document.getElementById('copyImageUrl');
   let renderToken = 0;
   let scheduled = false;
-  let currentSkinUrl = '';
 
   function route() {
     return location.hash.replace(/^#\/?/, '').replace(/\/+$/, '');
@@ -74,41 +71,6 @@
     return new Intl.DateTimeFormat('ko-KR', {
       timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
     }).format(date);
-  }
-
-  function openSkin(skin) {
-    const image = document.getElementById('lightboxImage');
-    const title = document.getElementById('lightboxTitle');
-    const meta = document.getElementById('lightboxMeta');
-    const source = document.getElementById('openSource');
-    const variants = document.getElementById('variantButtons');
-    currentSkinUrl = skin.url;
-    lightbox.dataset.skinMode = '1';
-    image.src = skin.url;
-    image.alt = `${displayName(skin)} ${skin.skinName}`;
-    title.textContent = `${displayName(skin)} · ${skin.skinName}`;
-    meta.textContent = skin.upcoming
-      ? `출시 예정${skin.releaseDate ? ` · ${shortDate(skin.releaseDate)}` : ''}`
-      : skin.releaseVersion
-        ? `버전 ${skin.releaseVersion}`
-        : skin.releasedAt
-          ? `출시 ${shortDate(skin.releasedAt)}`
-          : skin.sourceType === 'official_standing' ? '기본 스탠딩' : '공식 의상';
-    source.href = skin.sourceUrl || skin.url;
-    variants.innerHTML = '';
-    lightbox.showModal();
-  }
-
-  async function copySkinUrl(event) {
-    if (lightbox.dataset.skinMode !== '1' || !currentSkinUrl) return;
-    event.stopImmediatePropagation();
-    try {
-      await navigator.clipboard.writeText(currentSkinUrl);
-      copyImageUrl.textContent = '복사됨';
-      setTimeout(() => { copyImageUrl.textContent = '이미지 주소 복사'; }, 1200);
-    } catch {
-      window.prompt('이미지 주소를 복사하세요.', currentSkinUrl);
-    }
   }
 
   function card(skin) {
@@ -202,7 +164,10 @@
         }
         const article = event.target.closest('[data-skin-id]');
         const skin = article ? byId.get(article.dataset.skinId) : null;
-        if (skin) openSkin(skin);
+        if (skin) {
+          const index = visible.findIndex((item) => item.id === skin.id);
+          window.CharGalleryViewer?.open(visible, index);
+        }
       });
       update();
     } catch (error) {
@@ -252,11 +217,6 @@
     });
   }
 
-  copyImageUrl.addEventListener('click', copySkinUrl, { capture: true });
-  lightbox.addEventListener('close', () => {
-    delete lightbox.dataset.skinMode;
-    currentSkinUrl = '';
-  });
   window.addEventListener('hashchange', syncRoute, { capture: true });
   new MutationObserver(scheduleSync).observe(app, { childList: true, subtree: true });
   syncRoute();
