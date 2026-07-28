@@ -20,18 +20,21 @@ node scripts/build-data.mjs dist/data
 node scripts/build-blue-archive-skins.mjs dist/data/blue-archive.json
 node scripts/build-eternal-return-skins.mjs dist/data/eternal-return.json
 node scripts/build-genshin-skins.mjs dist/data/genshin.json
+node scripts/enrich-gallery.mjs dist/data
 node scripts/normalize-sdvx.mjs dist/data/sound-voltex.json
 node scripts/validate-data.mjs dist/data
 python3 -m http.server 8000 -d dist
 ```
 
+외부 요청 없이 보강 스크립트의 구조만 확인할 때는 `CG_SKIP_REMOTE=1 node scripts/enrich-gallery.mjs dist/data`를 사용할 수 있습니다.
+
 ## 데이터 출처
 
-- Blue Archive: SchaleDB
+- Blue Archive: SchaleDB, Blue Utils 메모리얼 로비, 공식 X 및 공개 이미지 원본
 - Eternal Return: DAK.GG, Eternal Return Wiki, 공식 뉴스 이미지
 - Genshin Impact: Project Amber, genshin-db, Genshin Impact Wiki
 - SOUND VOLTEX: SDVX Index
-- DJMAX RESPECT V: DJMAX Wiki 및 각 이미지 원본 페이지
+- DJMAX RESPECT V: DJMAX Wiki, Danbooru 일반 등급 팬아트 및 각 이미지 원본 페이지
 
 캐릭터 목록은 가능한 경우 블루 아카이브 Danbooru 인기순과 이터널 리턴 공식 위키 출시순 메타데이터를 정적 JSON에 함께 저장합니다. 외부 원본 갱신이 일시적으로 실패하면 빈 목록으로 덮지 않고 마지막 정상 배포본을 검증해 유지합니다.
 
