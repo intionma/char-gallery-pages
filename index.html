@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="여러 게임의 공식 캐릭터 일러스트와 자켓을 모아보는 정적 갤러리" />
+  <title>캐릭터 아트 갤러리</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <button id="homeButton" class="brand" type="button" aria-label="홈으로 이동">
+        <span class="brand-mark">✦</span>
+        <span>
+          <strong>캐릭터 아트 갤러리</strong>
+          <small>GitHub Pages 정적판</small>
+        </span>
+      </button>
+      <div id="status" class="status" aria-live="polite"></div>
+    </div>
+  </header>
+
+  <main id="app" class="app" tabindex="-1"></main>
+
+  <dialog id="lightbox" class="lightbox">
+    <button id="lightboxClose" class="lightbox-close" type="button" aria-label="닫기">×</button>
+    <div class="lightbox-stage">
+      <img id="lightboxImage" alt="" />
+    </div>
+    <div class="lightbox-panel">
+      <div>
+        <h2 id="lightboxTitle"></h2>
+        <p id="lightboxMeta"></p>
+      </div>
+      <div class="lightbox-actions">
+        <button id="copyImageUrl" class="button secondary" type="button">이미지 주소 복사</button>
+        <a id="openSource" class="button" target="_blank" rel="noopener noreferrer">원본 열기</a>
+      </div>
+      <div id="variantButtons" class="variant-buttons"></div>
+    </div>
+  </dialog>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
