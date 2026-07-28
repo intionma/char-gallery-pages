@@ -18,6 +18,7 @@ mkdir -p dist/data
 cp index.html 404.html styles.css skins.css app.js skins.js dist/
 node scripts/build-data.mjs dist/data
 node scripts/build-blue-archive-skins.mjs dist/data/blue-archive.json
+node scripts/build-eternal-return-skins.mjs dist/data/eternal-return.json
 node scripts/normalize-sdvx.mjs dist/data/sound-voltex.json
 python3 -m http.server 8000 -d dist
 ```
@@ -25,7 +26,7 @@ python3 -m http.server 8000 -d dist
 ## 데이터 출처
 
 - Blue Archive: SchaleDB
-- Eternal Return: DAK.GG, Eternal Return Wiki
+- Eternal Return: DAK.GG, Eternal Return Wiki, 공식 뉴스 이미지
 - Genshin Impact: Project Amber, Genshin Impact Wiki
 - SOUND VOLTEX: SDVX Index
 - DJMAX RESPECT V: DJMAX Wiki 및 각 이미지 원본 페이지
