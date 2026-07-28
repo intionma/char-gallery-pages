@@ -85,6 +85,12 @@ for (const [gameId, expectation] of Object.entries(expectations)) {
       if (jacket.url !== jacket.variants[0].url) {
         fail(gameId, `jacket ${jacket.id} does not use its first variant as the cover`);
       }
+      if (!['□', '■'].includes(jacket.category)) {
+        fail(gameId, `jacket ${jacket.id} has an invalid public category`);
+      }
+      if (!Number.isInteger(jacket.popularity) || jacket.popularity < 0) {
+        fail(gameId, `jacket ${jacket.id} has an invalid popularity count`);
+      }
     }
   }
 
@@ -120,6 +126,29 @@ for (const [gameId, expectation] of Object.entries(expectations)) {
         fail(gameId, 'an available release snapshot has invalid releaseOrder values');
       }
       if (!(Number(release.matched) > 0)) fail(gameId, 'release metadata matched no characters');
+    }
+  }
+
+  if (gameId === 'genshin') {
+    const trimTargets = [
+      ...items.flatMap((character) => character.images || []),
+      ...skins,
+    ].filter((image) => image.sourceType !== 'official_standing' || image.url.includes('Gacha_AvatarImg'));
+    if (!trimTargets.some((image) => image.trimTransparent === true)) {
+      fail(gameId, 'transparent-margin trim metadata is missing');
+    }
+  }
+
+  if (gameId === 'sound-voltex') {
+    const characters = Array.isArray(data.characters) ? data.characters : [];
+    if (characters.length < 60) fail(gameId, `character roster is unexpectedly small (${characters.length})`);
+    const linked = items.filter((jacket) => jacket.character?.id);
+    if (linked.length < 300) fail(gameId, `too few jackets are linked to characters (${linked.length})`);
+    for (const character of characters) {
+      if (!character.names || !Object.values(character.names).some(Boolean)) {
+        fail(gameId, `character ${character.id} has no display name`);
+      }
+      httpsUrl(gameId, `character ${character.id} profileImage`, character.profileImage);
     }
   }
 
