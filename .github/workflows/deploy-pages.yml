@@ -27,6 +27,14 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check skins.js
+          node --check scripts/build-data.mjs
+          node --check scripts/build-blue-archive-skins.mjs
+          node --check scripts/normalize-sdvx.mjs
+          node --check scripts/audit-public.mjs
       - name: Prepare static site
         run: |
           rm -rf dist
