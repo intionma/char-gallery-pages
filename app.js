@@ -65,6 +65,9 @@
   const lightboxPrevMobile = document.getElementById('lightboxPrevMobile');
   const lightboxNextMobile = document.getElementById('lightboxNextMobile');
   const cache = new Map();
+  // 목록에서 보고 있던 순서(정렬·검색·그룹 필터 반영)를 상세로 넘겨 이전/다음 이동에 쓴다.
+  let browseOrder = { gameId: '', ids: [] };
+  let characterNav = null;
   const imageViewer = createImageViewer();
   window.CharGalleryViewer = imageViewer;
   let backPath = '';
@@ -73,6 +76,21 @@
   backButton.addEventListener('click', () => navigate(backPath));
   colorModeToggle.addEventListener('click', toggleColorMode);
   window.addEventListener('hashchange', renderRoute);
+  // 상세 화면에서 좌우 방향키로 캐릭터를 넘긴다. 라이트박스가 열려 있을 때는
+  // 방향키가 이미지 이동에 쓰이므로 건드리지 않는다.
+  document.addEventListener('keydown', (event) => {
+    if (!characterNav || lightbox.open || event.defaultPrevented) return;
+    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+    const target = event.target;
+    if (target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      navigate(characterNav.previous);
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      navigate(characterNav.next);
+    }
+  });
   syncColorModeButton();
 
   function navigate(path) {
@@ -160,6 +178,7 @@
   async function renderRoute() {
     window.scrollTo({ top: 0, behavior: 'auto' });
     const parts = routeParts();
+    characterNav = null;
     setRouteActions('');
     app.innerHTML = '<div class="skeleton"></div>';
     try {
@@ -225,12 +244,7 @@
     const characters = Array.isArray(data.characters) ? data.characters : [];
     const groups = [...new Set(characters.map((character) => character.group).filter(Boolean))];
     const sourceIndex = new Map(characters.map((character, index) => [character.id, index]));
-    const capabilities = {
-      popularity: Boolean(data.sortMetadata?.popularity?.available)
-        || characters.some((character) => Number(character.popularityScore) > 0),
-      release: Boolean(data.sortMetadata?.release?.available)
-        || characters.some((character) => Boolean(character.releasedAt)),
-    };
+    const capabilities = sortCapabilities(data, characters);
     let activeGroup = '';
     let query = '';
     const defaultMode = defaultSort(gameId, capabilities);
@@ -286,6 +300,8 @@
         return (!normalizedQuery || text.includes(normalizedQuery)) && (!activeGroup || character.group === activeGroup);
       });
       rows = sortCharacters(rows, sortMode, sourceIndex);
+      // 상세에서 이전/다음이 지금 보고 있는 목록 순서를 그대로 따르게 한다.
+      browseOrder = { gameId, ids: rows.map((character) => character.id) };
       count.textContent = `${rows.length}명`;
       headerSubtitle.textContent = `${rows.length}명`;
       headerSubtitle.hidden = false;
@@ -345,6 +361,50 @@
     return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle><path d="M20 20l-3.2-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>';
   }
 
+  function sortCapabilities(data, characters) {
+    return {
+      popularity: Boolean(data.sortMetadata?.popularity?.available)
+        || characters.some((character) => Number(character.popularityScore) > 0),
+      release: Boolean(data.sortMetadata?.release?.available)
+        || characters.some((character) => Boolean(character.releasedAt)),
+    };
+  }
+
+  // 상세 화면의 이전/다음 대상. 목록을 거쳐 들어왔으면 그때 보던 순서를,
+  // 링크로 바로 들어왔으면 그 게임의 기본 정렬 순서를 쓴다.
+  function characterNeighbors(gameId, data, characterId) {
+    const characters = Array.isArray(data.characters) ? data.characters : [];
+    let ids = browseOrder.gameId === gameId ? browseOrder.ids : [];
+    if (!ids.includes(characterId)) {
+      const sourceIndex = new Map(characters.map((character, index) => [character.id, index]));
+      const mode = defaultSort(gameId, sortCapabilities(data, characters));
+      ids = sortCharacters(characters, mode, sourceIndex).map((character) => character.id);
+    }
+    const index = ids.indexOf(characterId);
+    if (index < 0 || ids.length < 2) return null;
+    const byId = new Map(characters.map((character) => [character.id, character]));
+    const at = (offset) => byId.get(ids[(index + offset + ids.length) % ids.length]);
+    return { previous: at(-1), next: at(1), position: index + 1, total: ids.length };
+  }
+
+  function characterNavBar(gameId, neighbors) {
+    if (!neighbors) return '';
+    const link = (character, direction, label) => `
+      <button class="character-nav-button ${direction}" type="button" data-character-nav="${escapeAttr(character.id)}">
+        <span class="character-nav-arrow" aria-hidden="true">${direction === 'prev' ? '‹' : '›'}</span>
+        <span class="character-nav-text">
+          <small>${label}</small>
+          <strong>${escapeHtml(displayName(character))}</strong>
+        </span>
+      </button>`;
+    return `
+      <nav class="character-nav" aria-label="캐릭터 이동">
+        ${link(neighbors.previous, 'prev', '이전')}
+        <span class="character-nav-count">${neighbors.position} / ${neighbors.total}</span>
+        ${link(neighbors.next, 'next', '다음')}
+      </nav>`;
+  }
+
   function defaultSort(gameId, capabilities) {
     if (gameId === 'blue-archive' && capabilities.popularity) return 'popularity';
     if (gameId === 'eternal-return' && capabilities.release) return 'release';
@@ -401,20 +461,33 @@
     const images = Array.isArray(character.images) ? character.images.filter((image) => image.url) : [];
     const name = displayName(character);
     const english = character.names?.en && character.names.en !== name ? character.names.en : '';
+    const neighbors = characterNeighbors(gameId, data, characterId);
+    const navBar = characterNavBar(gameId, neighbors);
     setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
     setHeader({ title: name, subtitle: english, back: `game/${gameId}` });
     app.innerHTML = `
       ${data.stale
         ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 데이터를 표시합니다.</div>'
         : data.error ? '<div class="error">일부 원본 데이터를 갱신하지 못했습니다. 마지막 생성 결과만 표시합니다.</div>' : ''}
+      ${navBar}
       <div class="section-title"><h2>${gameId === 'sound-voltex' ? '공식 이미지' : '스탠딩 · 의상'}</h2><span>${images.length}종</span></div>
       <section class="standing-grid">
         ${images.length ? images.map((image, index) => detailCard(image, index)).join('') : '<div class="empty">공식 이미지를 찾지 못했어요.</div>'}
       </section>
+      ${navBar}
     `;
     app.querySelectorAll('[data-image-index]').forEach((card) => {
       card.addEventListener('click', () => imageViewer.open(images, Number(card.dataset.imageIndex)));
     });
+    app.querySelectorAll('[data-character-nav]').forEach((button) => {
+      button.addEventListener('click', () => {
+        navigate(`game/${gameId}/character/${encodeURIComponent(button.dataset.characterNav)}`);
+      });
+    });
+    characterNav = neighbors ? {
+      previous: `game/${gameId}/character/${encodeURIComponent(neighbors.previous.id)}`,
+      next: `game/${gameId}/character/${encodeURIComponent(neighbors.next.id)}`,
+    } : null;
   }
 
   function detailCard(image, index) {

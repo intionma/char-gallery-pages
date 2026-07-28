@@ -435,6 +435,59 @@ img { display: block; max-width: 100%; }
 .filter-chip:active { transform: scale(.96); }
 .filter-chip.active { border-color: rgb(var(--accent)); background: rgb(var(--accent)); color: white; box-shadow: var(--shadow); }
 
+/* 캐릭터 상세의 이전·다음 이동. 헤더의 .route-actions 는 모바일에서 감춰지므로
+   본문에 두어 모든 화면 폭에서 보이게 한다. */
+.character-nav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 10px;
+  margin: 16px 0 4px;
+}
+.character-nav-button {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid rgb(var(--line));
+  border-radius: 14px;
+  background: rgb(var(--panel));
+  box-shadow: var(--shadow);
+  color: rgb(var(--text));
+  cursor: pointer;
+  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.character-nav-button:hover {
+  border-color: rgb(var(--accent));
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+.character-nav-button:active { transform: scale(.985); }
+.character-nav-button.next { flex-direction: row-reverse; text-align: right; }
+.character-nav-arrow {
+  flex: 0 0 auto;
+  color: rgb(var(--accent-strong));
+  font-size: 20px;
+  line-height: 1;
+}
+.character-nav-text { min-width: 0; display: grid; gap: 1px; }
+.character-nav-text small { color: rgb(var(--sub)); font-size: 10px; font-weight: 700; }
+.character-nav-text strong {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.character-nav-count {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0 4px;
+  color: rgb(var(--sub));
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
 .section-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 0 14px; }
 .section-title h2 { margin: 0; display: flex; align-items: center; gap: 8px; color: rgb(var(--text)); font-size: 14px; }
 .section-title h2::before { content: ""; width: 6px; height: 16px; border-radius: 2px; background: rgb(var(--accent)); transform: skewX(-10deg); }
