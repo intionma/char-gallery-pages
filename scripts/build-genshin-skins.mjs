@@ -11,6 +11,7 @@ const metadataFile = metadataArg ? path.resolve(root, metadataArg.slice('--metad
 const API = 'https://genshin-db-api.vercel.app/api/v5';
 const ASSET = 'https://gi.yatta.moe/assets/UI';
 const UA = 'char-gallery-pages/1.0 (+https://github.com/intionma/char-gallery-pages)';
+const PUBLISHED_DATA = 'https://intionma.github.io/char-gallery-pages/data/genshin.json';
 
 function norm(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -45,6 +46,26 @@ async function loadCategory(folder, language) {
   });
   const payload = await fetchJson(`${API}/${folder}?${params}`);
   return Array.isArray(payload) ? payload : (payload.result || []);
+}
+
+async function previousAdditionOrders() {
+  try {
+    const data = await fetchJson(PUBLISHED_DATA);
+    if (!Array.isArray(data.skins) || data.skins.length === 0) {
+      return { available: false, orders: new Map() };
+    }
+    return {
+      available: true,
+      orders: new Map(
+        data.skins
+          .filter((skin) => Number.isFinite(Number(skin.additionOrder)))
+          .map((skin) => [skin.id, Number(skin.additionOrder)]),
+      ),
+    };
+  } catch (error) {
+    console.warn(`Genshin previous skin order unavailable: ${error.message}`);
+    return { available: false, orders: new Map() };
+  }
 }
 
 async function loadMetadata() {
@@ -86,6 +107,8 @@ if (pageData.stale && Array.isArray(pageData.skins) && pageData.skins.length > 0
   console.log(`Genshin skins retained from published snapshot: ${pageData.skins.length}`);
   process.exit(0);
 }
+const previous = await previousAdditionOrders();
+const firstSeenAt = Date.parse(pageData.generatedAt) || Date.now();
 
 const { outfitsEn = [], outfitsKo = [], charactersEn = [] } = await loadMetadata();
 const characterMetaById = new Map(charactersEn.map((character) => [String(character.id), character]));
@@ -113,6 +136,7 @@ for (const character of pageData.characters) {
     thumbUrl: character.profileImage,
     sourceUrl: base.sourceUrl || character.sourceUrl,
     sourceType: 'official_standing',
+    trimTransparent: true,
     releaseVersion: meta?.version,
     additionOrder: versionOrder(meta?.version, Number(numericId)),
   });
@@ -146,6 +170,7 @@ for (const outfit of outfitsEn) {
       skinId: id,
       skinNameEn: outfit.name,
       releaseVersion: outfit.version,
+      trimTransparent: true,
     });
   }
   skins.push({
@@ -158,6 +183,7 @@ for (const outfit of outfitsEn) {
     thumbUrl: existing?.thumbUrl || asset(outfit.images?.filename_icon),
     sourceUrl,
     sourceType: 'official_skin',
+    trimTransparent: true,
     releaseVersion: outfit.version,
     additionOrder: versionOrder(outfit.version, Number(outfit.id)),
   });
@@ -165,6 +191,12 @@ for (const outfit of outfitsEn) {
 
 if (missing.length) {
   throw new Error(`Genshin outfits are missing usable images: ${missing.join(', ')}`);
+}
+if (previous.available) {
+  for (const skin of skins) {
+    const seenAt = previous.orders.get(skin.id);
+    skin.additionOrder = Math.max(skin.additionOrder, seenAt ?? firstSeenAt);
+  }
 }
 skins.sort((a, b) => b.additionOrder - a.additionOrder || a.id.localeCompare(b.id));
 if (!skins.length) throw new Error('Genshin skin catalog is empty');
