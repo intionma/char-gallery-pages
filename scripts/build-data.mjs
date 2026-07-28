@@ -7,6 +7,7 @@ const root = path.resolve(__dirname, '..');
 const outDir = path.resolve(root, process.argv[2] || 'dist/data');
 const generatedAt = new Date().toISOString();
 const UA = 'char-gallery-pages/1.0 (+https://github.com/intionma/char-gallery-pages)';
+const PUBLISHED_DATA_ROOT = 'https://intionma.github.io/char-gallery-pages/data/';
 
 await fs.mkdir(outDir, { recursive: true });
 
@@ -31,6 +32,21 @@ async function fetchText(url) {
 
 async function writeJson(name, value) {
   await fs.writeFile(path.join(outDir, name), JSON.stringify(value), 'utf8');
+}
+
+async function publishedFallback(name) {
+  if (name !== 'sound-voltex.json') return null;
+  const data = await fetchJson(new URL(name, PUBLISHED_DATA_ROOT), { timeout: 30000 });
+  if (!Array.isArray(data.jackets) || data.jackets.length === 0) {
+    throw new Error('published SDVX fallback contains no jackets');
+  }
+  const fallback = {
+    ...data,
+    stale: true,
+    fallbackUsedAt: generatedAt,
+  };
+  delete fallback.error;
+  return fallback;
 }
 
 function released(value) {
@@ -298,6 +314,18 @@ for (const [name, builder] of builders) {
     results.push({ name, ok: true, count: data.characters?.length ?? data.jackets?.length ?? 0 });
     console.log(`${name}: ${results.at(-1).count}`);
   } catch (error) {
+    try {
+      const fallback = await publishedFallback(name);
+      if (fallback) {
+        await writeJson(name, fallback);
+        const count = fallback.characters?.length ?? fallback.jackets?.length ?? 0;
+        results.push({ name, ok: true, stale: true, count });
+        console.warn(`${name}: upstream refresh failed; retained ${count} published items (${error.message})`);
+        continue;
+      }
+    } catch (fallbackError) {
+      console.error(`${name}: published fallback failed: ${fallbackError.stack || fallbackError.message}`);
+    }
     console.error(`${name}: ${error.stack || error.message}`);
     const gameId = name.replace('.json', '');
     const gameNames = { 'blue-archive': '블루 아카이브', 'eternal-return': '이터널 리턴', genshin: '원신', 'sound-voltex': 'SOUND VOLTEX', djmax: 'DJMAX RESPECT V' };
