@@ -58,6 +58,7 @@
   const lightboxCounterMobile = document.getElementById('lightboxCounterMobile');
   const openSource = document.getElementById('openSource');
   const copyImageUrl = document.getElementById('copyImageUrl');
+  const copyImageCrop = document.getElementById('copyImageCrop');
   const variantButtons = document.getElementById('variantButtons');
   const lightboxPrev = document.getElementById('lightboxPrev');
   const lightboxNext = document.getElementById('lightboxNext');
@@ -567,6 +568,11 @@
     let returnFocus = null;
     let bodyStyle = null;
     let copyResetTimer = 0;
+    let cropResetTimer = 0;
+    // 좁은 화면에서는 액션 바가 4칸이라 긴 라벨이 들어가지 않는다.
+    const cropLabel = () => (window.matchMedia('(max-width: 639px)').matches ? '영역 복사' : '보이는 영역 복사');
+    const CROP_HINT = '확대·이동한 상태로 화면에 보이는 부분만 이미지로 복사합니다';
+    const CROP_BLOCKED_HINT = '이 이미지의 원본 서버가 브라우저의 이미지 추출을 허용하지 않습니다. 주소 복사를 사용하세요.';
 
     function variantsFor(item = items[itemIndex]) {
       return Array.isArray(item?.variants) ? item.variants.filter((variant) => variant?.url) : [];
@@ -947,6 +953,83 @@
       window.clearTimeout(copyResetTimer);
       copyImageUrl.textContent = '주소 복사';
       copyImageUrl.classList.remove('is-success', 'is-error');
+      window.clearTimeout(cropResetTimer);
+      copyImageCrop.textContent = cropLabel();
+      copyImageCrop.classList.remove('is-success', 'is-error');
+      copyImageCrop.title = CROP_HINT;
+    }
+
+    // 확대·이동한 상태에서 화면에 실제로 보이는 영역만 잘라 PNG로 복사한다.
+    // stage 는 overflow: hidden 이라 이미지 사각형과 stage 사각형의 교집합이 보이는 부분이다.
+    function visibleCropBox() {
+      const imageRect = lightboxImage.getBoundingClientRect();
+      const stageRect = lightboxStage.getBoundingClientRect();
+      const left = Math.max(imageRect.left, stageRect.left);
+      const top = Math.max(imageRect.top, stageRect.top);
+      const right = Math.min(imageRect.right, stageRect.right);
+      const bottom = Math.min(imageRect.bottom, stageRect.bottom);
+      if (right - left < 2 || bottom - top < 2) return null;
+      return { imageRect, left, top, right, bottom };
+    }
+
+    // 캔버스에서 픽셀을 읽으려면 CORS 모드로 받은 원본이어야 한다. 서버 프록시가 없으므로
+    // 원본 CDN이 Access-Control-Allow-Origin 을 주지 않으면 이 기능은 쓸 수 없다.
+    function loadCorsImage(url) {
+      return new Promise((resolve, reject) => {
+        const source = new Image();
+        source.crossOrigin = 'anonymous';
+        source.referrerPolicy = referrerPolicyFor(url);
+        source.onload = () => resolve(source);
+        source.onerror = () => reject(new Error('cors'));
+        source.src = url;
+      });
+    }
+
+    async function renderCropBlob(url, box) {
+      const source = await loadCorsImage(url);
+      const scaleX = source.naturalWidth / box.imageRect.width;
+      const scaleY = source.naturalHeight / box.imageRect.height;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round((box.right - box.left) * scaleX));
+      canvas.height = Math.max(1, Math.round((box.bottom - box.top) * scaleY));
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('canvas');
+      context.drawImage(
+        source,
+        (box.left - box.imageRect.left) * scaleX,
+        (box.top - box.imageRect.top) * scaleY,
+        (box.right - box.left) * scaleX,
+        (box.bottom - box.top) * scaleY,
+        0, 0, canvas.width, canvas.height,
+      );
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error('blob');
+      return blob;
+    }
+
+    async function copyVisibleCrop() {
+      const url = shownUrl();
+      const box = visibleCropBox();
+      if (!url || !box) return;
+      resetCopyButton();
+      copyImageCrop.textContent = '복사 중…';
+      try {
+        if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') {
+          throw new Error('unsupported');
+        }
+        // Safari는 사용자 제스처 안에서 ClipboardItem이 만들어져야 하므로,
+        // Blob을 await 하지 않고 Promise 상태로 그대로 넘긴다.
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': renderCropBlob(url, box) }),
+        ]);
+        copyImageCrop.textContent = '복사됨 ✓';
+        copyImageCrop.classList.add('is-success');
+      } catch {
+        copyImageCrop.textContent = '복사 불가';
+        copyImageCrop.classList.add('is-error');
+        copyImageCrop.title = CROP_BLOCKED_HINT;
+      }
+      cropResetTimer = window.setTimeout(resetCopyButton, 2000);
     }
 
     async function copyCurrentUrl() {
@@ -1011,6 +1094,7 @@
     lightboxPrevMobile.addEventListener('click', () => move(-1));
     lightboxNextMobile.addEventListener('click', () => move(1));
     copyImageUrl.addEventListener('click', copyCurrentUrl);
+    copyImageCrop.addEventListener('click', copyVisibleCrop);
     lightboxImage.addEventListener('load', markImageLoaded);
     lightboxImage.addEventListener('error', markImageFailed);
     lightbox.addEventListener('cancel', (event) => {

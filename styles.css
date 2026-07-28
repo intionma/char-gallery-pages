@@ -909,7 +909,8 @@ img { display: block; max-width: 100%; }
   .lightbox-source { padding: 4px 8px; }
   .lightbox-actions {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 38px;
+    /* 복사 버튼 2개 + 원본 + 닫기. 칸 수가 버튼 수보다 적으면 줄이 넘쳐 닫기 버튼이 밀린다. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 38px;
     gap: 7px;
   }
   .lightbox-action {
