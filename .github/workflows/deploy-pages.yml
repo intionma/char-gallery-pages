@@ -34,6 +34,7 @@ jobs:
           node --check scripts/build-data.mjs
           node --check scripts/build-blue-archive-skins.mjs
           node --check scripts/build-eternal-return-skins.mjs
+          node --check scripts/build-genshin-skins.mjs
           node --check scripts/normalize-sdvx.mjs
           node --check scripts/audit-public.mjs
       - name: Prepare static site
@@ -48,6 +49,8 @@ jobs:
         run: node scripts/build-blue-archive-skins.mjs dist/data/blue-archive.json
       - name: Build Eternal Return skin catalog
         run: node scripts/build-eternal-return-skins.mjs dist/data/eternal-return.json
+      - name: Build Genshin skin catalog
+        run: node scripts/build-genshin-skins.mjs dist/data/genshin.json
       - name: Normalize SDVX jacket URLs
         run: node scripts/normalize-sdvx.mjs dist/data/sound-voltex.json
       - name: Audit public source
