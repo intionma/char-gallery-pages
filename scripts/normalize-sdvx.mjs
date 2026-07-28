@@ -14,6 +14,7 @@ function toAbsoluteHttpsUrl(value) {
   if (url.protocol !== 'https:') {
     throw new Error(`SDVX image URL must use HTTPS: ${value}`);
   }
+  url.pathname = url.pathname.replace(/\/{2,}/g, '/');
   return url.href;
 }
 

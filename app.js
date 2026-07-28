@@ -206,9 +206,15 @@
     const characters = Array.isArray(data.characters) ? data.characters : [];
     const groups = [...new Set(characters.map((character) => character.group).filter(Boolean))];
     const sourceIndex = new Map(characters.map((character, index) => [character.id, index]));
+    const capabilities = {
+      popularity: Boolean(data.sortMetadata?.popularity?.available)
+        || characters.some((character) => Number(character.popularityScore) > 0),
+      release: Boolean(data.sortMetadata?.release?.available)
+        || characters.some((character) => Boolean(character.releasedAt)),
+    };
     let activeGroup = '';
     let query = '';
-    const defaultMode = defaultSort(gameId);
+    const defaultMode = defaultSort(gameId, capabilities);
     let sortMode = defaultMode;
 
     setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
@@ -220,7 +226,7 @@
       </label>
       <label class="header-sort">
         <span aria-hidden="true">⇅</span>
-        <select id="headerSort" aria-label="정렬 기준">${sortOptions(gameId, defaultMode)}</select>
+        <select id="headerSort" aria-label="정렬 기준">${sortOptions(gameId, defaultMode, capabilities)}</select>
         <span aria-hidden="true">▾</span>
       </label>
     `);
@@ -233,13 +239,15 @@
 
     app.innerHTML = `
       ${entry}
-      ${data.error ? '<div class="error">일부 원본 데이터를 갱신하지 못했습니다. 마지막 생성 결과만 표시합니다.</div>' : ''}
+      ${data.stale
+        ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 데이터를 표시합니다.</div>'
+        : data.error ? '<div class="error">일부 원본 데이터를 갱신하지 못했습니다. 마지막 생성 결과만 표시합니다.</div>' : ''}
       <div class="mobile-character-controls">
         <label class="mobile-search">
           <span class="search-icon" aria-hidden="true">${searchIcon()}</span>
           <input id="mobileSearch" type="search" placeholder="이름 검색 (한/영/일)" autocomplete="off">
         </label>
-        <select id="mobileSort" aria-label="정렬 기준">${sortOptions(gameId, defaultMode)}</select>
+        <select id="mobileSort" aria-label="정렬 기준">${sortOptions(gameId, defaultMode, capabilities)}</select>
       </div>
       ${groups.length > 1 ? `<div id="groupChips" class="filter-chips"><button class="filter-chip active" type="button" data-group="">전체</button>${groups.map((group) => `<button class="filter-chip" type="button" data-group="${escapeAttr(group)}">${escapeHtml(group)}</button>`).join('')}</div>` : ''}
       <div class="section-title"><h2>캐릭터</h2><span id="count"></span></div>
@@ -318,17 +326,21 @@
     return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle><path d="M20 20l-3.2-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>';
   }
 
-  function defaultSort(gameId) {
-    if (gameId === 'blue-archive') return 'popularity';
-    if (gameId === 'eternal-return') return 'release';
+  function defaultSort(gameId, capabilities) {
+    if (gameId === 'blue-archive' && capabilities.popularity) return 'popularity';
+    if (gameId === 'eternal-return' && capabilities.release) return 'release';
     return 'source';
   }
 
-  function sortOptions(gameId, selected) {
+  function sortOptions(gameId, selected, capabilities) {
     const modes = gameId === 'blue-archive'
-      ? [['popularity', '인기순'], ['ko', '가나다순']]
+      ? capabilities.popularity
+        ? [['popularity', '인기순'], ['ko', '가나다순']]
+        : [['source', '기본순'], ['ko', '가나다순']]
       : gameId === 'eternal-return'
-        ? [['release', '출시순'], ['ko', '가나다순'], ['en', 'A–Z']]
+        ? capabilities.release
+          ? [['release', '출시순'], ['ko', '가나다순'], ['en', 'A–Z']]
+          : [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']]
         : [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']];
     return modes.map(([value, label]) => `<option value="${value}"${value === selected ? ' selected' : ''}>${label}</option>`).join('');
   }
@@ -343,14 +355,20 @@
       return [...rows].sort((a, b) => {
         const aScore = Number(a.popularityScore ?? a.popularity ?? 0);
         const bScore = Number(b.popularityScore ?? b.popularity ?? 0);
-        return bScore - aScore || (sourceIndex.get(a.id) ?? 0) - (sourceIndex.get(b.id) ?? 0);
+        return bScore - aScore
+          || displayName(a).localeCompare(displayName(b), 'ko', { numeric: true })
+          || (sourceIndex.get(a.id) ?? 0) - (sourceIndex.get(b.id) ?? 0);
       });
     }
     if (mode === 'release') {
       return [...rows].sort((a, b) => {
-        const aOrder = Number(a.releaseOrder ?? a.additionOrder ?? sourceIndex.get(a.id) ?? Number.MAX_SAFE_INTEGER);
-        const bOrder = Number(b.releaseOrder ?? b.additionOrder ?? sourceIndex.get(b.id) ?? Number.MAX_SAFE_INTEGER);
-        return aOrder - bOrder || displayName(a).localeCompare(displayName(b), 'ko', { numeric: true });
+        const aOrder = Number(a.releaseOrder ?? a.additionOrder);
+        const bOrder = Number(b.releaseOrder ?? b.additionOrder);
+        const safeA = Number.isFinite(aOrder) ? aOrder : Number.MAX_SAFE_INTEGER;
+        const safeB = Number.isFinite(bOrder) ? bOrder : Number.MAX_SAFE_INTEGER;
+        return safeA - safeB
+          || displayName(a).localeCompare(displayName(b), 'ko', { numeric: true })
+          || (sourceIndex.get(a.id) ?? 0) - (sourceIndex.get(b.id) ?? 0);
       });
     }
     return rows;
@@ -367,7 +385,9 @@
     setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
     setHeader({ title: name, subtitle: english, back: `game/${gameId}` });
     app.innerHTML = `
-      ${data.error ? '<div class="error">일부 원본 데이터를 갱신하지 못했습니다. 마지막 생성 결과만 표시합니다.</div>' : ''}
+      ${data.stale
+        ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 데이터를 표시합니다.</div>'
+        : data.error ? '<div class="error">일부 원본 데이터를 갱신하지 못했습니다. 마지막 생성 결과만 표시합니다.</div>' : ''}
       <div class="section-title"><h2>${gameId === 'sound-voltex' ? '공식 이미지' : '스탠딩 · 의상'}</h2><span>${images.length}종</span></div>
       <section class="standing-grid">
         ${images.length ? images.map((image, index) => detailCard(image, index)).join('') : '<div class="empty">공식 이미지를 찾지 못했어요.</div>'}
@@ -401,7 +421,9 @@
     setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
     setHeader({ title: '모든 곡 자켓', subtitle: `${jackets.length}곡`, back: 'game/sound-voltex' });
     app.innerHTML = `
-      ${data.error ? '<div class="error">최신 카탈로그 생성 중 일부 원본 요청이 실패했습니다.</div>' : ''}
+      ${data.stale
+        ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 자켓 데이터를 표시합니다.</div>'
+        : data.error ? '<div class="error">최신 카탈로그 생성 중 일부 원본 요청이 실패했습니다.</div>' : ''}
       <div class="toolbar jacket-toolbar${hasCategory ? ' has-category' : ''}">
         <input id="search" type="search" placeholder="곡 또는 캐릭터 검색" autocomplete="off">
         <select id="level" aria-label="레벨 필터"><option value="">모든 레벨</option>${levelOptions(jackets)}</select>

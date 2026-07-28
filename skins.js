@@ -112,6 +112,7 @@
       else status.textContent = generated;
       app.innerHTML = `
         <section class="skins-view" data-skins-view="${escapeHtml(catalog.gameId)}">
+          ${data.stale ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 스킨 데이터를 표시합니다.</div>' : ''}
           <div class="toolbar skin-toolbar">
             <input id="skinSearch" type="search" placeholder="스킨 또는 캐릭터 검색" autocomplete="off">
             <select id="skinSort" aria-label="정렬"><option value="newest">최신 추가순 ↓</option><option value="oldest">오래된 추가순 ↑</option><option value="name">이름순</option></select>
@@ -141,11 +142,14 @@
         visible = [...visible].sort((a, b) => {
           if (sort.value === 'name') {
             const bySkin = String(a.skinName).localeCompare(String(b.skinName), 'ko', { numeric: true });
-            return bySkin || displayName(a).localeCompare(displayName(b), 'ko', { numeric: true });
+            return bySkin
+              || displayName(a).localeCompare(displayName(b), 'ko', { numeric: true })
+              || String(a.id).localeCompare(String(b.id));
           }
-          return sort.value === 'oldest'
+          const byOrder = sort.value === 'oldest'
             ? Number(a.additionOrder) - Number(b.additionOrder)
             : Number(b.additionOrder) - Number(a.additionOrder);
+          return byOrder || String(a.id).localeCompare(String(b.id));
         });
         count.textContent = `${visible.length}종`;
         ui?.setHeader?.({ title: `${catalog.gameName} · 전체 스킨`, subtitle: `${visible.length}종`, back: catalog.gameRoute });

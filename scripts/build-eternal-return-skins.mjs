@@ -10,8 +10,14 @@ const skipWiki = args.includes('--skip-wiki');
 const skipDak = args.includes('--skip-dak');
 const WIKI_HOST = 'eternalreturn.fandom.com';
 const UA = 'char-gallery-pages/1.0 (+https://github.com/intionma/char-gallery-pages)';
+const PUBLISHED_DATA = 'https://intionma.github.io/char-gallery-pages/data/eternal-return.json';
 
 const RELEASE_DATES = new Map([
+  ['sissela:cadet', '2026-05-07'],
+  ['laura:panther', '2026-04-02'],
+  ['silvia:queen', '2026-04-02'],
+  ['blair:fearlessrace', '2026-02-20'],
+  ['lenore:musicteacher', '2026-02-05'],
   ['mirka:wildmaid', '2026-04-16'],
   ['leni:daisybearmaid', '2026-04-30'],
   ['bihyung:__base__', '2026-05-14'],
@@ -78,6 +84,24 @@ async function fetchJson(url) {
   return response.json();
 }
 
+async function previousAdditionOrders() {
+  try {
+    const data = await fetchJson(PUBLISHED_DATA);
+    if (!Array.isArray(data.skins) || data.skins.length === 0) return { available: false, orders: new Map() };
+    return {
+      available: true,
+      orders: new Map(
+        data.skins
+          .filter((skin) => Number.isFinite(Number(skin.additionOrder)))
+          .map((skin) => [skin.id, Number(skin.additionOrder)]),
+      ),
+    };
+  } catch (error) {
+    console.warn(`ER previous skin order unavailable: ${error.message}`);
+    return { available: false, orders: new Map() };
+  }
+}
+
 async function wikiUploadDates(rawNames) {
   if (skipWiki) return new Map();
   const out = new Map();
@@ -109,6 +133,12 @@ if (pageData.error) throw new Error('Eternal Return data build failed before ski
 if (!Array.isArray(pageData.characters) || pageData.characters.length === 0) {
   throw new Error('Eternal Return character data is empty');
 }
+if (pageData.stale && Array.isArray(pageData.skins) && pageData.skins.length > 0) {
+  console.log(`Eternal Return skins retained from published snapshot: ${pageData.skins.length}`);
+  process.exit(0);
+}
+const previous = await previousAdditionOrders();
+const firstSeenAt = Date.parse(pageData.generatedAt) || Date.now();
 
 const verifiedByKey = new Map(
   VERIFIED_SKINS.map((skin) => [`${norm(skin.character)}:${norm(skin.group)}`, skin]),
@@ -197,6 +227,12 @@ for (const verified of VERIFIED_SKINS) {
   });
 }
 
+if (previous.available) {
+  for (const skin of skins) {
+    const seen = previous.orders.get(skin.id);
+    skin.additionOrder = Math.max(skin.additionOrder, seen ?? firstSeenAt);
+  }
+}
 skins.sort((a, b) => b.additionOrder - a.additionOrder || a.id.localeCompare(b.id));
 if (!skins.length) throw new Error('Eternal Return skin catalog is empty');
 if (skins.some((skin) => !Number.isFinite(Number(skin.additionOrder)))) {

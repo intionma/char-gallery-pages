@@ -36,7 +36,12 @@ jobs:
           node --check scripts/build-eternal-return-skins.mjs
           node --check scripts/build-genshin-skins.mjs
           node --check scripts/normalize-sdvx.mjs
+          node --check scripts/sort-utils.mjs
+          node --check scripts/test-sort-metadata.mjs
+          node --check scripts/validate-data.mjs
           node --check scripts/audit-public.mjs
+      - name: Test sort metadata
+        run: node scripts/test-sort-metadata.mjs
       - name: Prepare static site
         run: |
           rm -rf dist
@@ -53,6 +58,8 @@ jobs:
         run: node scripts/build-genshin-skins.mjs dist/data/genshin.json
       - name: Normalize SDVX jacket URLs
         run: node scripts/normalize-sdvx.mjs dist/data/sound-voltex.json
+      - name: Validate generated data
+        run: node scripts/validate-data.mjs dist/data
       - name: Audit public source
         run: node scripts/audit-public.mjs
       - name: Configure Pages
