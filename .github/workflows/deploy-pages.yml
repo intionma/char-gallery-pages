@@ -35,6 +35,8 @@ jobs:
           touch dist/.nojekyll
       - name: Build public data snapshot
         run: node scripts/build-data.mjs dist/data
+      - name: Normalize SDVX jacket URLs
+        run: node scripts/normalize-sdvx.mjs dist/data/sound-voltex.json
       - name: Audit public source
         run: node scripts/audit-public.mjs
       - name: Configure Pages
