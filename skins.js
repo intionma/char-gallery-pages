@@ -15,6 +15,12 @@
       dataFile: 'eternal-return.json',
       description: '기본 스탠딩과 스킨을 출시·추가 최신순으로 한 번에 봅니다.',
     },
+    {
+      gameId: 'genshin',
+      gameName: '원신',
+      dataFile: 'genshin.json',
+      description: '기본 일러스트와 의상을 게임 버전 최신순으로 한 번에 봅니다.',
+    },
   ].map((catalog) => ({
     ...catalog,
     gameRoute: `game/${catalog.gameId}`,
@@ -83,9 +89,11 @@
     title.textContent = `${displayName(skin)} · ${skin.skinName}`;
     meta.textContent = skin.upcoming
       ? `출시 예정${skin.releaseDate ? ` · ${shortDate(skin.releaseDate)}` : ''}`
-      : skin.releasedAt
-        ? `출시 ${shortDate(skin.releasedAt)}`
-        : skin.sourceType === 'official_standing' ? '기본 스탠딩' : '공식 의상';
+      : skin.releaseVersion
+        ? `버전 ${skin.releaseVersion}`
+        : skin.releasedAt
+          ? `출시 ${shortDate(skin.releasedAt)}`
+          : skin.sourceType === 'official_standing' ? '기본 스탠딩' : '공식 의상';
     source.href = skin.sourceUrl || skin.url;
     variants.innerHTML = '';
     lightbox.showModal();
@@ -104,9 +112,12 @@
   }
 
   function card(skin) {
+    const baseSkin = skin.sourceType === 'official_standing';
     const badge = skin.upcoming
       ? `출시 예정${skin.releaseDate ? ` · ${shortDate(skin.releaseDate)}` : ''}`
-      : skin.sourceType === 'official_standing' ? '기본' : '';
+      : skin.releaseVersion
+        ? `${baseSkin ? '기본 · ' : ''}v${skin.releaseVersion}`
+        : baseSkin ? '기본' : '';
     return `
       <article class="skin-card" data-skin-id="${escapeHtml(skin.id)}">
         <button class="skin-art" type="button" aria-label="${escapeHtml(`${displayName(skin)} ${skin.skinName} 크게 보기`)}">
