@@ -19,6 +19,22 @@
   // SDVX 자켓 민감도 분류. 기준: docs/SDVX_JACKET_MODERATION.md
   const JACKET_CATEGORIES = ['●', '○', '□', '■'];
 
+  // 원본 CDN마다 Referer 요구가 정반대라 호스트별로 정해야 한다.
+  //  - cdn.donmai.us: Referer 없는 요청을 403으로 차단한다.
+  //  - static.wikia.nocookie.net: Referer가 붙으면 404를 준다.
+  // 따라서 기본은 no-referrer로 두고, Referer가 필요한 호스트만 예외로 origin을 보낸다.
+  const REFERRER_REQUIRED_HOSTS = ['donmai.us'];
+  function referrerPolicyFor(url) {
+    try {
+      const { hostname } = new URL(url, location.href);
+      const needsReferrer = REFERRER_REQUIRED_HOSTS
+        .some((host) => hostname === host || hostname.endsWith(`.${host}`));
+      return needsReferrer ? 'strict-origin-when-cross-origin' : 'no-referrer';
+    } catch {
+      return 'no-referrer';
+    }
+  }
+
   const app = document.getElementById('app');
   const status = document.getElementById('status');
   const homeButton = document.getElementById('homeButton');
@@ -123,7 +139,7 @@
     routeActions.parentElement.classList.toggle('has-route-actions', Boolean(content));
   }
 
-  window.CharGalleryUI = { navigate, setTheme, setHeader, setStatus, setRouteActions };
+  window.CharGalleryUI = { navigate, setTheme, setHeader, setStatus, setRouteActions, referrerPolicyFor };
 
   async function loadJson(name) {
     if (cache.has(name)) return cache.get(name);
@@ -174,7 +190,7 @@
         <div class="game-card-glow"></div>
         <div class="game-card-vignette"></div>
         <div class="game-card-art">
-          ${game.coverImage ? `<img src="${escapeAttr(game.coverImage)}" alt="${escapeAttr(game.name)}" loading="${game.id === 'blue-archive' ? 'eager' : 'lazy'}" referrerpolicy="no-referrer">` : '<span aria-hidden="true">✦</span>'}
+          ${game.coverImage ? `<img src="${escapeAttr(game.coverImage)}" alt="${escapeAttr(game.name)}" loading="${game.id === 'blue-archive' ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(game.coverImage)}">` : '<span aria-hidden="true">✦</span>'}
         </div>
         <div class="game-card-content">
           <h2>${escapeHtml(game.name)}</h2>
@@ -276,7 +292,7 @@
         <article class="character-card" data-id="${escapeAttr(character.id)}" tabindex="0" role="link" style="animation-delay:${Math.min(index, 20) * 18}ms">
           <div class="art">
             ${character.profileImage
-              ? `<img src="${escapeAttr(character.profileImage)}" alt="${escapeAttr(displayName(character))}" loading="${index < 24 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer">`
+              ? `<img src="${escapeAttr(character.profileImage)}" alt="${escapeAttr(displayName(character))}" loading="${index < 24 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(character.profileImage)}">`
               : `<div class="empty">${escapeHtml(displayName(character))}</div>`}
           </div>
           <div class="info"><strong>${escapeHtml(displayName(character))}</strong><small>${escapeHtml(character.group || character.names?.en || '')}</small></div>
@@ -406,7 +422,7 @@
     return `
       <button class="standing-card${landscape ? ' landscape' : ''}" type="button" data-image-index="${index}" aria-label="${escapeAttr(`${label} 크게 보기`)}">
         <span class="badge">${escapeHtml(label)}</span>
-        <div class="art"><img src="${escapeAttr(image.thumbUrl || image.url)}" alt="${escapeAttr(label)}" loading="${index < 3 ? 'eager' : 'lazy'}" referrerpolicy="no-referrer"></div>
+        <div class="art"><img src="${escapeAttr(image.thumbUrl || image.url)}" alt="${escapeAttr(label)}" loading="${index < 3 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(image.thumbUrl || image.url)}"></div>
       </button>
     `;
   }
@@ -509,7 +525,7 @@
         <button class="art" type="button" data-image-index="${index}" aria-label="${escapeAttr(`${title} 크게 보기`)}">
           ${level > 0 ? `<span class="badge">Lv ${escapeHtml(level)}</span>` : ''}
           ${jacket.category ? `<span class="category" aria-label="분류 ${escapeAttr(jacket.category)}">${escapeHtml(jacket.category)}</span>` : ''}
-          <img src="${escapeAttr(jacket.thumbUrl || jacket.url)}" alt="${escapeAttr(title)}" loading="lazy" referrerpolicy="no-referrer">
+          <img src="${escapeAttr(jacket.thumbUrl || jacket.url)}" alt="${escapeAttr(title)}" loading="lazy" referrerpolicy="${referrerPolicyFor(jacket.thumbUrl || jacket.url)}">
         </button>
         <div class="info">
           <strong>${escapeHtml(title)}</strong>
@@ -799,6 +815,7 @@
       lightboxImage.classList.remove('is-loaded');
       lightboxImage.classList.add('is-loading');
       lightboxImage.alt = `${viewerTitle(item)}${variantsFor(item)[variantIndex]?.difficulty ? ` ${variantsFor(item)[variantIndex].difficulty}` : ''}`;
+      lightboxImage.referrerPolicy = referrerPolicyFor(url);
       lightboxImage.src = url;
       lightboxErrorSource.href = item?.sourceUrl || url;
       openSource.href = item?.sourceUrl || url;
@@ -880,7 +897,7 @@
       urls.delete(shownUrl());
       urls.forEach((url) => {
         const image = new Image();
-        image.referrerPolicy = 'no-referrer';
+        image.referrerPolicy = referrerPolicyFor(url);
         image.src = url;
       });
     }
