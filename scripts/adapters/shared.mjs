@@ -132,7 +132,9 @@ export async function wikiImageInfo(host, titles, { batch = 40 } = {}) {
   for (let i = 0; i < titles.length; i += batch) {
     const params = new URLSearchParams({
       action: 'query', format: 'json', formatversion: '2', prop: 'imageinfo',
-      iiprop: 'url|size', titles: titles.slice(i, i + batch).join('|'), origin: '*',
+      // timestamp 는 파일이 위키에 올라온 시각이다. 출시일 필드가 없는 위키 기반
+      // 게임에서 "최신 추가순"의 유일한 실제 근거가 되므로 항상 함께 받는다.
+      iiprop: 'url|size|timestamp', titles: titles.slice(i, i + batch).join('|'), origin: '*',
     });
     const data = await fetchJson(`https://${host}/api.php?${params}`);
     for (const page of data.query?.pages || []) {
@@ -208,4 +210,17 @@ export function wikiThumb(url, width) {
 
 export function wikiPageUrl(host, title) {
   return `https://${host}/wiki/${encodeURIComponent(String(title).replace(/ /g, '_'))}`;
+}
+
+/**
+ * 전체 스킨 뷰의 "최신 추가순" 정렬 키를 만든다.
+ *
+ * 실제 시각(위키 업로드 시각 등)을 알면 epoch ms 를 그대로 쓴다. 모르면 원본이
+ * 나열한 순서를 쓴다. epoch ms(약 1.7e12)는 나열 순서(수만 단위)보다 훨씬 크므로
+ * 시각을 아는 항목이 항상 위로 온다 — 시각을 모르는 항목을 "오래된 것"으로
+ * 취급하는 셈이고, 이게 "최신 추가순"이 약속하는 화면과 맞는다.
+ */
+export function additionOrderOf(timestamp, fallbackOrder) {
+  const parsed = Date.parse(timestamp || '');
+  return Number.isFinite(parsed) ? parsed : fallbackOrder;
 }

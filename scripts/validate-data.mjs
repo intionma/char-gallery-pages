@@ -102,15 +102,44 @@ for (const [gameId, expectation] of Object.entries(expectations)) {
     }
   }
 
+  // 목록에서 서로 구분되지 않는 이름은 사용자에게 같은 캐릭터로 보인다.
+  const labels = (data.characters || []).map((character) => character.names?.ko || character.names?.en);
+  const duplicateLabels = [...new Set(labels.filter((value, index) => labels.indexOf(value) !== index))];
+  if (duplicateLabels.length) {
+    fail(gameId, `duplicate display names: ${duplicateLabels.slice(0, 5).join(', ')}`);
+  }
+  // 이미지 없는 캐릭터는 빈 카드로 남는다. 자켓 게임의 부가 캐릭터도 마찬가지다.
+  const emptyCharacters = (data.characters || []).filter((character) => !(character.images || []).length);
+  if (emptyCharacters.length) {
+    fail(gameId, `${emptyCharacters.length} character(s) have no images`);
+  }
+
   const skins = Array.isArray(data.skins) ? data.skins : [];
   if (expectation.skins && !skins.length) fail(gameId, 'skins is empty');
   uniqueIds(gameId, 'skins', skins);
+  // 캐릭터가 없는 스킨은 전체 스킨 뷰에서 눌러도 404 로 간다.
+  const characterIds = new Set((data.characters || []).map((character) => character.id));
+  const dangling = skins.filter((skin) => skin.characterId && !characterIds.has(skin.characterId));
+  if (dangling.length) {
+    fail(gameId, `${dangling.length} skin(s) reference a missing character (e.g. ${dangling[0].id})`);
+  }
   for (const skin of skins) {
     if (!Number.isFinite(Number(skin.additionOrder))) {
       fail(gameId, `skin ${skin.id} has an invalid additionOrder`);
     }
     if (!skin.characterId) fail(gameId, `skin ${skin.id} has no characterId`);
     httpsUrl(gameId, `skin ${skin.id} url`, skin.url);
+    // 목록 카드는 썸네일을, 검열판이 있으면 그쪽을 먼저 쓴다. 본문만 검사하면
+    // 실제로 화면에 걸리는 주소가 검증을 통째로 비껴간다.
+    if (skin.thumbUrl) httpsUrl(gameId, `skin ${skin.id} thumbUrl`, skin.thumbUrl);
+    if (skin.safeUrl) httpsUrl(gameId, `skin ${skin.id} safeUrl`, skin.safeUrl);
+    if (skin.safeThumbUrl) httpsUrl(gameId, `skin ${skin.id} safeThumbUrl`, skin.safeThumbUrl);
+  }
+  // 전체 스킨 뷰는 캐릭터 상세로 되돌아가는 버튼을 스킨의 characterId 로 만든다.
+  // 이름이 겹쳐 보이는 문제와 별개로, 스킨 쪽 이름 사본이 비면 카드가 id 를 노출한다.
+  const namelessSkins = skins.filter((skin) => !Object.values(skin.character?.names || {}).some(Boolean));
+  if (namelessSkins.length) {
+    fail(gameId, `${namelessSkins.length} skin(s) carry no character name (e.g. ${namelessSkins[0].id})`);
   }
 
   if (gameId === 'blue-archive') {

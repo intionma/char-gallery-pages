@@ -5,7 +5,7 @@
 // 등장인물이 전부 여성형 바이오로이드라 성별 필터가 필요 없다.
 import {
   fetchJson, slug, mapLimited, wikiCategoryMembers, wikiPageImages, wikiImageInfo,
-  wikiThumb,
+  wikiThumb, additionOrderOf,
   normalizeTitle, wikiPageUrl,
 } from './shared.mjs';
 
@@ -89,6 +89,7 @@ export default async function buildLastOrigin() {
         const safe = censored ? info.get(normalizeTitle(censored)) : null;
         return {
           file: entry.file,
+          uploadedAt: entry.meta.timestamp,
           url: entry.meta.url,
           // 목록·상세 카드는 축소본을 쓰고, 라이트박스만 원본을 연다.
           thumbUrl: wikiThumb(entry.meta.url, 480),
@@ -119,7 +120,7 @@ export default async function buildLastOrigin() {
       profileImage: wikiThumb(images[0].url, 240),
       ...(images[0].safeUrl ? { safeProfileImage: wikiThumb(images[0].safeUrl, 240) } : {}),
       sourceUrl,
-      images: images.map(({ file: _file, ...image }) => image),
+      images: images.map(({ file: _file, uploadedAt: _uploadedAt, ...image }) => image),
     });
     images.forEach((image, index) => {
       skins.push({
@@ -134,7 +135,9 @@ export default async function buildLastOrigin() {
         ...(image.safeUrl ? { safeUrl: image.safeUrl, safeThumbUrl: image.safeThumbUrl } : {}),
         sourceUrl,
         sourceType: image.sourceType,
-        additionOrder: characters.length * 100 + index,
+        // 라스트오리진도 출시일 필드가 없다. 위키 업로드 시각이 실제 추가 시점에
+        // 가장 가까운 공개 근거다.
+        additionOrder: additionOrderOf(image.uploadedAt, characters.length * 100 + index),
       });
     });
   }

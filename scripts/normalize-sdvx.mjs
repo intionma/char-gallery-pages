@@ -53,5 +53,14 @@ for (const character of data.characters || []) {
   if (character.profileImage) character.profileImage = toAbsoluteHttpsUrl(character.profileImage);
 }
 
+// 전체 스킨 뷰용 목록도 같은 URL을 복사해 온다. enrich 단계에서 만들어지므로 여기서 함께 고친다.
+let skinUrls = 0;
+for (const skin of data.skins || []) {
+  skin.url = toAbsoluteHttpsUrl(skin.url);
+  if (skin.thumbUrl) skin.thumbUrl = toAbsoluteHttpsUrl(skin.thumbUrl);
+  for (const variant of skin.variants || []) variant.url = toAbsoluteHttpsUrl(variant.url);
+  skinUrls += 1;
+}
+
 await fs.writeFile(file, JSON.stringify(data), 'utf8');
-console.log(`SDVX URLs verified: ${data.jackets.length} jackets, ${variants} variants, ${characterUrls} character images, ${normalized} normalized`);
+console.log(`SDVX URLs verified: ${data.jackets.length} jackets, ${variants} variants, ${characterUrls} character images, ${skinUrls} skins, ${normalized} normalized`);

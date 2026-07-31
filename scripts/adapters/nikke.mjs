@@ -5,7 +5,7 @@
 // 니케가 전부 여성이라 성별 필터가 필요 없다.
 import {
   slug, wikiCategoryMembers, wikiPageImages, wikiImageInfo, normalizeTitle, wikiPageUrl,
-  wikiThumb,
+  wikiThumb, additionOrderOf,
 } from './shared.mjs';
 
 const HOST = 'nikke-goddess-of-victory-international.fandom.com';
@@ -98,7 +98,9 @@ export default async function buildNikke() {
         thumbUrl: wikiThumb(entry.meta.url, 480),
         sourceUrl,
         sourceType: entry.costume === '기본' ? 'official_standing' : 'official_skin',
-        additionOrder: characters.length * 100 + index,
+        // 니케는 출시일 필드가 없다. 위키에 일러가 올라온 시각이 실제 추가 시점에
+        // 가장 가까운 공개 근거라 이걸 정렬 키로 쓴다.
+        additionOrder: additionOrderOf(entry.meta.timestamp, characters.length * 100 + index),
       });
     });
   }

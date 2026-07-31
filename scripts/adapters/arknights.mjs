@@ -2,7 +2,7 @@
 //
 // 공식 데이터에 성별 필드는 없지만 핸드북 프로필 본문에 `[Gender] Female` 이 들어 있어
 // 자동 판별이 된다 (registry 의 genderFilter: 'handbook').
-import { fetchJson, slug, mapLimited, isMissingUrl } from './shared.mjs';
+import { fetchJson, slug, mapLimited, isMissingUrl, additionOrderOf } from './shared.mjs';
 
 const GAME_DATA = 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/main';
 // 전신 일러는 Aceship 이 화질이 가장 좋지만 최신 오퍼레이터가 빠져 있다(표본 14% 누락).
@@ -86,6 +86,11 @@ export default async function buildArknights() {
       name: isDefault ? defaultSkinLabel(portraitId) : skin.displaySkin.skinName,
       isDefault,
       sortOrder: Number(skin.displaySkin?.sortId ?? 0),
+      // displaySkin.getTime 은 스킨 실장 시각(epoch 초)이다. 유상·이벤트 스킨에만
+      // 들어 있고 기본 아트는 0 이라, 있을 때만 실제 날짜로 쓴다.
+      releasedAt: Number(skin.displaySkin?.getTime) > 0
+        ? new Date(Number(skin.displaySkin.getTime) * 1000).toISOString().slice(0, 10)
+        : undefined,
     });
   }
 
@@ -133,31 +138,41 @@ export default async function buildArknights() {
         portraitId: skin.portraitId,
         sourceUrl,
         sourceType: skin.isDefault ? 'official_standing' : 'official_skin',
-        additionOrder: skin.sortOrder * 1000 + index,
+        ...(skin.releasedAt ? { releasedAt: skin.releasedAt } : {}),
+        additionOrder: additionOrderOf(skin.releasedAt, skin.sortOrder * 1000 + index),
       });
     });
   }
 
-  // Aceship 은 화질이 좋지만 최신 오퍼레이터가 빠져 있다. 없는 것만 대체본으로 바꾸고,
-  // 양쪽 모두 없으면 그 이미지를 뺀다. 이미지가 하나도 남지 않은 오퍼레이터만 제외한다.
+  // 두 소스를 모두 확인한다.
+  //  - Aceship: 화질이 좋지만 최신 오퍼레이터가 빠져 있다
+  //  - ArknightsGameResource: 소형이지만 커버리지가 넓다. 썸네일 겸 대체본으로 쓴다
+  // 대체본에도 없는 스킨이 있으므로(ambienceSynesthesia 계열) 썸네일도 확인해야 한다.
   const allImages = [...characters.flatMap((character) => character.images), ...skins];
   const aceUrls = [...new Set(allImages.map((image) => image.url))];
-  const aceMissing = await mapLimited(aceUrls, 6, (url) => isMissingUrl(url));
+  const resourceUrls = [...new Set(allImages.map((image) => image.thumbUrl))];
+  const [aceMissing, resourceMissing] = await Promise.all([
+    mapLimited(aceUrls, 6, (url) => isMissingUrl(url)),
+    mapLimited(resourceUrls, 6, (url) => isMissingUrl(url)),
+  ]);
   const missingAce = new Set(aceUrls.filter((_, index) => aceMissing[index]));
-
-  const replacements = [...new Set(allImages
-    .filter((image) => missingAce.has(image.url))
-    .map((image) => resourcePortrait(image.portraitId)))];
-  const replacementMissing = await mapLimited(replacements, 6, (url) => isMissingUrl(url));
-  const usableReplacement = new Set(replacements.filter((_, index) => !replacementMissing[index]));
+  const missingResource = new Set(resourceUrls.filter((_, index) => resourceMissing[index]));
 
   let swapped = 0;
+  let thumbless = 0;
   let removed = 0;
   const resolve = (image) => {
+    const fallback = image.thumbUrl;
+    // 썸네일이 없으면 필드를 빼서 프런트엔드가 원본으로 되돌아가게 한다.
+    if (missingResource.has(fallback)) {
+      delete image.thumbUrl;
+      thumbless += 1;
+    }
     if (!missingAce.has(image.url)) return true;
-    const alternative = resourcePortrait(image.portraitId);
-    if (!usableReplacement.has(alternative)) return false;
-    image.url = alternative;
+    // 전신이 없으면 대체본을 본문으로 승격한다. 그것도 없으면 이 이미지는 뺀다.
+    if (missingResource.has(fallback)) return false;
+    image.url = fallback;
+    delete image.thumbUrl;
     swapped += 1;
     return true;
   };
@@ -174,7 +189,7 @@ export default async function buildArknights() {
 
   const kept = characters.filter((character) => character.images.length);
   const droppedCharacters = characters.length - kept.length;
-  console.log(`Arknights art: ${swapped} swapped to the fallback source, ${removed} removed, ${droppedCharacters} operator(s) dropped`);
+  console.log(`Arknights art: ${swapped} swapped to the fallback source, ${thumbless} without a thumbnail, ${removed} removed, ${droppedCharacters} operator(s) dropped`);
   characters.length = 0;
   characters.push(...kept);
 
