@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import { filterLiveImages as filterLive, mapLimited } from './adapters/shared.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -99,55 +100,9 @@ async function fetchJson(url) {
 
 // 메모리얼 URL은 SchaleDB PathName 으로 규칙 조합해 만든다. Blue Utils 가 모든 의상의
 // 메모리얼 로비를 갖고 있지는 않아서, 실제로 존재하는 것만 남기지 않으면 깨진 카드가 남는다.
-// 판정은 보수적으로 한다. 확실한 404/410 만 죽은 것으로 보고, 타임아웃·5xx·네트워크 오류는
-// 살아있는 것으로 남긴다. 원본이 잠시 흔들릴 때 멀쩡한 이미지를 지워버리면 안 되기 때문이다.
-// 동시 요청을 제한하지 않으면 레이트리밋 응답을 죽음으로 오판한다.
-const MISSING_STATUSES = new Set([404, 410]);
-const LIVE_CHECK_CONCURRENCY = 6;
-const liveUrlCache = new Map();
-
-async function isMissingUrl(url) {
-  if (liveUrlCache.has(url)) return liveUrlCache.get(url);
-  const check = (async () => {
-    for (const method of ['HEAD', 'GET']) {
-      try {
-        const response = await fetch(url, {
-          method,
-          headers: { Accept: 'image/*,*/*', 'User-Agent': UA },
-          signal: AbortSignal.timeout(30000),
-        });
-        if (response.body) await response.body.cancel().catch(() => {});
-        if (response.status === 405 || response.status === 501) continue;
-        return MISSING_STATUSES.has(response.status);
-      } catch {
-        return false;
-      }
-    }
-    return false;
-  })();
-  liveUrlCache.set(url, check);
-  return check;
-}
-
-async function mapLimited(items, limit, fn) {
-  const out = new Array(items.length);
-  let cursor = 0;
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (cursor < items.length) {
-      const index = cursor++;
-      out[index] = await fn(items[index]);
-    }
-  }));
-  return out;
-}
-
+// 존재 확인과 동시성 제한은 어댑터 공용 모듈에 한 벌만 둔다.
 async function filterLiveImages(images, label) {
-  if (SKIP_REMOTE) return images;
-  const missing = await mapLimited(images, LIVE_CHECK_CONCURRENCY, (image) => isMissingUrl(image.url));
-  const kept = images.filter((_, index) => !missing[index]);
-  const dropped = images.length - kept.length;
-  if (dropped) console.log(`${label}: dropped ${dropped} missing image URL(s) of ${images.length}`);
-  return kept;
+  return filterLive(images, label, { skip: SKIP_REMOTE });
 }
 
 function slug(prefix, value) {

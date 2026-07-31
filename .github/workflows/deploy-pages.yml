@@ -47,6 +47,7 @@ jobs:
           node --check scripts/sdvx-jacket-ratings.mjs
           node --check scripts/games/registry.mjs
           node --check scripts/build-registry.mjs
+          node --check scripts/adapters/shared.mjs
           node --check scripts/sort-utils.mjs
           node --check scripts/test-sort-metadata.mjs
           node --check scripts/validate-data.mjs

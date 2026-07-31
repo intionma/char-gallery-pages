@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { GAMES, clientGames, defaultGame } from './games/registry.mjs';
+import { GAMES, clientGames, defaultGame, REFERRER_REQUIRED_HOSTS } from './games/registry.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.resolve(root, process.argv[2] || 'dist');
@@ -50,7 +50,11 @@ function themeCss() {
 }
 
 function gamesJs() {
-  const payload = { games: clientGames(), defaultGameId: defaultGame().id };
+  const payload = {
+    games: clientGames(),
+    defaultGameId: defaultGame().id,
+    referrerRequiredHosts: REFERRER_REQUIRED_HOSTS,
+  };
   return `/* scripts/build-registry.mjs 가 생성한 파일입니다. 직접 고치지 마세요. */\n`
     + `window.CharGalleryGames = ${JSON.stringify(payload, null, 2)};\n`;
 }

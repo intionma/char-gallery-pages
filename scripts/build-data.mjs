@@ -3,6 +3,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildBooruPopularityScores, releaseTimestamp } from './sort-utils.mjs';
 import { rateSdvxJacket } from './sdvx-jacket-ratings.mjs';
+import { GAMES, gameById } from './games/registry.mjs';
+import { wikiCategoryMembers } from './adapters/shared.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
@@ -13,6 +15,13 @@ const PUBLISHED_DATA_ROOT = 'https://intionma.github.io/char-gallery-pages/data/
 const publishedCache = new Map();
 
 await fs.mkdir(outDir, { recursive: true });
+
+// 게임 메타는 레지스트리가 단일 기준이다. 빌더마다 리터럴을 두면 이름·설명이 어긋난다.
+function gameMeta(gameId) {
+  const game = gameById.get(gameId);
+  if (!game) throw new Error(`unknown game id: ${gameId}`);
+  return { id: game.id, name: game.name, description: game.dataDescription };
+}
 
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, {
@@ -287,7 +296,7 @@ async function buildBlueArchive() {
   const popularity = await blueArchivePopularity(rows);
   return {
     generatedAt,
-    game: { id: 'blue-archive', name: '블루 아카이브', description: 'SchaleDB 기반 공식 스탠딩과 의상' },
+    game: gameMeta('blue-archive'),
     characters: popularity.characters,
     sortMetadata: { popularity: popularity.metadata },
   };
@@ -376,21 +385,11 @@ async function buildGenshin() {
   }
 
   characters.sort((a, b) => a.group.localeCompare(b.group, 'ko') || (a.names.ko || a.names.en).localeCompare(b.names.ko || b.names.en, 'ko'));
-  return { generatedAt, game: { id: 'genshin', name: '원신', description: 'Project Amber 기반 공식 캐릭터 이미지와 의상' }, characters };
+  return { generatedAt, game: gameMeta('genshin'), characters };
 }
 
-async function wikiCategory(host, category) {
-  const rows = [];
-  let cmcontinue;
-  do {
-    const params = new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', list: 'categorymembers', cmtitle: `Category:${category}`, cmlimit: '500', cmtype: 'page', origin: '*' });
-    if (cmcontinue) params.set('cmcontinue', cmcontinue);
-    const data = await fetchJson(`https://${host}/api.php?${params}`);
-    rows.push(...(data.query?.categorymembers || []));
-    cmcontinue = data.continue?.cmcontinue;
-  } while (cmcontinue);
-  return rows;
-}
+// 구현은 어댑터 공용 모듈에 한 벌만 둔다. 신규 위키 기반 게임도 같은 것을 쓴다.
+const wikiCategory = wikiCategoryMembers;
 
 async function buildEternalReturn() {
   const host = 'eternalreturn.fandom.com';
@@ -471,7 +470,7 @@ async function buildEternalReturn() {
   const matched = releaseSource === 'eternal-return-wiki' ? wikiMatched : characters.length;
   return {
     generatedAt,
-    game: { id: 'eternal-return', name: '이터널 리턴', description: 'DAK.GG 및 공식 위키 기반 스탠딩과 스킨' },
+    game: gameMeta('eternal-return'),
     characters,
     sortMetadata: {
       release: {
@@ -512,7 +511,7 @@ async function buildSoundVoltex() {
   });
   return enrichSoundVoltex({
     generatedAt,
-    game: { id: 'sound-voltex', name: 'SOUND VOLTEX', description: '전체 곡 자켓과 난이도별 변형' },
+    game: gameMeta('sound-voltex'),
     jackets,
   });
 }
@@ -528,16 +527,22 @@ async function buildDjmax() {
     id: slug('djmax', en), names: { en, ko }, group: 'DJMAX', profileImage: image, sourceUrl,
     images: [{ url: image, group: '대표 이미지', type: '이미지', sourceUrl }],
   }));
-  return { generatedAt, game: { id: 'djmax', name: 'DJMAX RESPECT V', description: '대표 캐릭터 이미지' }, characters };
+  return { generatedAt, game: gameMeta('djmax'), characters };
 }
 
-const builders = [
-  ['blue-archive.json', buildBlueArchive],
-  ['eternal-return.json', buildEternalReturn],
-  ['genshin.json', buildGenshin],
-  ['sound-voltex.json', buildSoundVoltex],
-  ['djmax.json', buildDjmax],
-];
+// 게임 추가 시 여기에 id → 빌더 한 줄만 잇는다. 순서와 파일명은 레지스트리가 정한다.
+const BUILDERS = {
+  'blue-archive': buildBlueArchive,
+  'eternal-return': buildEternalReturn,
+  genshin: buildGenshin,
+  'sound-voltex': buildSoundVoltex,
+  djmax: buildDjmax,
+};
+const builders = GAMES.map((game) => {
+  const builder = BUILDERS[game.id];
+  if (!builder) throw new Error(`registry game "${game.id}" has no builder`);
+  return [game.dataFile, builder];
+});
 
 const results = [];
 for (const [name, builder] of builders) {
@@ -561,21 +566,19 @@ for (const [name, builder] of builders) {
     }
     console.error(`${name}: ${error.stack || error.message}`);
     const gameId = name.replace('.json', '');
-    const gameNames = { 'blue-archive': '블루 아카이브', 'eternal-return': '이터널 리턴', genshin: '원신', 'sound-voltex': 'SOUND VOLTEX', djmax: 'DJMAX RESPECT V' };
-    await writeJson(name, { generatedAt, game: { id: gameId, name: gameNames[gameId] || gameId }, characters: [], jackets: [], error: true });
+    await writeJson(name, { generatedAt, game: { id: gameId, name: gameById.get(gameId)?.name || gameId }, characters: [], jackets: [], error: true });
     results.push({ name, ok: false, count: 0 });
   }
 }
 
 const manifest = {
   generatedAt,
-  games: [
-    { id: 'blue-archive', name: '블루 아카이브', description: '공식 스탠딩과 의상', coverImage: 'https://schaledb.com/images/student/portrait/10000.webp' },
-    { id: 'eternal-return', name: '이터널 리턴', description: '실험체 스탠딩과 스킨', coverImage: 'https://cdn.dak.gg/assets/er/game-assets/1.40.0/ui/characterfullsize/CharFull_Jackie_001.png' },
-    { id: 'genshin', name: '원신', description: '공식 캐릭터 이미지와 의상', coverImage: 'https://gi.yatta.moe/assets/UI/UI_Gacha_AvatarImg_Ayaka.png' },
-    { id: 'sound-voltex', name: 'SOUND VOLTEX', description: '전체 곡 자켓과 난이도별 변형', coverImage: null },
-    { id: 'djmax', name: 'DJMAX RESPECT V', description: '대표 캐릭터 이미지', coverImage: 'https://static.wikia.nocookie.net/djmax/images/d/da/El_Clear_Tic_Tac_Toe.webp/revision/latest' },
-  ],
+  games: GAMES.map((game) => ({
+    id: game.id,
+    name: game.name,
+    description: game.description,
+    coverImage: game.coverImage,
+  })),
   results,
 };
 await writeJson('manifest.json', manifest);
