@@ -84,7 +84,7 @@ export const GAMES = [
     dataFile: 'eternal-return.json',
     // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
     dataDescription: 'DAK.GG 및 공식 위키 기반 스탠딩과 스킨',
-    coverImage: 'https://cdn.dak.gg/assets/er/game-assets/1.40.0/ui/characterfullsize/CharFull_Jackie_001.png',
+    coverImage: 'https://cdn.dak.gg/assets/er/game-assets/11.7.0/ui/characterfullsize/CharFull_Jackie_S000.png',
     collection: 'characters',
     features: { skins: true, jackets: false },
     labels: {
@@ -241,6 +241,42 @@ export const GAMES = [
           'radial-gradient(840px 560px at -8% 110%, rgb(var(--accent-soft) / .2), transparent 60%)',
         ].join(', '),
         'topbar-glow': '0 1px 0 rgb(var(--accent) / .4), 0 8px 24px -14px rgb(var(--accent-soft) / .55)',
+      },
+    },
+  },
+  {
+    id: 'honkai-star-rail',
+    name: '붕괴: 스타레일',
+    description: '공식 캐릭터 일러스트',
+    dataFile: 'honkai-star-rail.json',
+    // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
+    dataDescription: 'Project Amber 기반 공식 캐릭터 일러스트',
+    coverImage: 'https://sr.yatta.moe/hsr/assets/UI/avatar/large/1003.png',
+    collection: 'characters',
+    features: { skins: false, jackets: false },
+    labels: { detailSection: '스탠딩 · 의상', emptyList: '표시할 캐릭터가 없습니다.' },
+    sort: {
+      capability: 'release',
+      modes: [['release', '출시순'], ['ko', '가나다순'], ['en', 'A–Z']],
+      fallbackModes: [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']],
+    },
+    // 어떤 공개 소스에도 성별 필드가 없다. 오너 결정에 따라 필터 없이 전원을 담는다.
+    genderFilter: 'none',
+    theme: {
+      scheme: 'dark',
+      themeColor: '#0e0f1a',
+      tokens: {
+        bg: '14 15 26',
+        'bg-2': '20 22 36',
+        panel: '28 30 48',
+        line: '52 56 84',
+        accent: '168 140 255',
+        'accent-strong': '198 178 255',
+        'accent-soft': '255 208 122',
+        text: '234 235 248',
+        sub: '156 160 190',
+        halo: '255 214 130',
+        'danger-bg': '52 24 30',
       },
     },
   },
