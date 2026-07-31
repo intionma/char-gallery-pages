@@ -280,6 +280,42 @@ export const GAMES = [
       },
     },
   },
+  {
+    id: 'azur-lane',
+    name: '벽람항로',
+    description: '함선 인격 일러스트와 스킨',
+    dataFile: 'azur-lane.json',
+    dataDescription: 'AzurAPI 기반 함선 일러스트와 스킨',
+    coverImage: 'https://raw.githubusercontent.com/AzurAPI/azurapi-js-setup/master/images/skins/077/Default/image.png',
+    collection: 'characters',
+    features: { skins: true, jackets: false },
+    labels: {
+      detailSection: '스탠딩 · 의상',
+      emptyList: '표시할 캐릭터가 없습니다.',
+      skins: '기본 일러스트와 스킨을 함선 순서로 한 번에 봅니다.',
+      skinsEntry: '전체 스킨 보기',
+    },
+    sort: { modes: [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']] },
+    // 함선 인격이 전부 여성이라 필터가 필요 없다.
+    genderFilter: 'not-needed',
+    theme: {
+      scheme: 'dark',
+      themeColor: '#0b1220',
+      tokens: {
+        bg: '11 18 32',
+        'bg-2': '16 25 42',
+        panel: '23 34 55',
+        line: '46 62 92',
+        accent: '96 174 255',
+        'accent-strong': '150 205 255',
+        'accent-soft': '126 226 214',
+        text: '229 238 250',
+        sub: '150 168 196',
+        halo: '255 206 122',
+        'danger-bg': '52 24 30',
+      },
+    },
+  },
 ];
 
 // 원본 CDN마다 Referer 요구가 정반대다. 기본은 no-referrer 이고, 여기 적힌 호스트만

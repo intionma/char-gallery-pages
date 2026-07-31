@@ -35,6 +35,7 @@ python3 -m http.server 8000 -d dist
 - Eternal Return: DAK.GG, Eternal Return Wiki, 공식 뉴스 이미지
 - Genshin Impact: Project Amber, genshin-db, Genshin Impact Wiki
 - Honkai: Star Rail: Project Amber
+- Azur Lane: AzurAPI, Azur Lane Wiki
 - SOUND VOLTEX: SDVX Index
 - DJMAX RESPECT V: DJMAX Wiki, Danbooru 일반 등급 팬아트 및 각 이미지 원본 페이지
 

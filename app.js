@@ -259,7 +259,7 @@
     const entry = features.jackets
       ? '<button class="feature-link" type="button" data-jackets-entry><span>모든 곡 자켓 보기</span><span aria-hidden="true">→</span></button>'
       : features.skins
-        ? `<button class="feature-link" type="button" data-skins-entry="${escapeAttr(gameId)}"><span>전체 스킨 최신순 보기</span><span aria-hidden="true">→</span></button>`
+        ? `<button class="feature-link" type="button" data-skins-entry="${escapeAttr(gameId)}"><span>${escapeHtml(GAME_BY_ID.get(gameId)?.labels?.skinsEntry || '전체 스킨 최신순 보기')}</span><span aria-hidden="true">→</span></button>`
         : '';
 
     app.innerHTML = `
