@@ -9,6 +9,7 @@ import buildHonkaiStarRail from './adapters/honkai-star-rail.mjs';
 import buildAzurLane from './adapters/azur-lane.mjs';
 import buildArknights from './adapters/arknights.mjs';
 import buildLastOrigin from './adapters/last-origin.mjs';
+import buildNikke from './adapters/nikke.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
@@ -546,6 +547,7 @@ const BUILDERS = {
   'azur-lane': async () => ({ generatedAt, game: gameMeta('azur-lane'), ...(await buildAzurLane()) }),
   arknights: async () => ({ generatedAt, game: gameMeta('arknights'), ...(await buildArknights()) }),
   'last-origin': async () => ({ generatedAt, game: gameMeta('last-origin'), ...(await buildLastOrigin()) }),
+  nikke: async () => ({ generatedAt, game: gameMeta('nikke'), ...(await buildNikke()) }),
 };
 const builders = GAMES.map((game) => {
   const builder = BUILDERS[game.id];

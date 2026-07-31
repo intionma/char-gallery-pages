@@ -388,6 +388,42 @@ export const GAMES = [
       },
     },
   },
+  {
+    id: 'nikke',
+    name: '승리의 여신: 니케',
+    description: '니케 일러스트와 코스튬',
+    dataFile: 'nikke.json',
+    dataDescription: 'NIKKE Wiki 기반 니케 일러스트와 코스튬',
+    coverImage: null,
+    collection: 'characters',
+    features: { skins: true, jackets: false },
+    labels: {
+      detailSection: '스탠딩 · 의상',
+      emptyList: '표시할 캐릭터가 없습니다.',
+      skins: '기본 일러스트와 코스튬을 이름순으로 한 번에 봅니다.',
+      skinsEntry: '전체 스킨 보기',
+    },
+    sort: { modes: [['source', '기본순'], ['en', 'A–Z']] },
+    // 니케가 전부 여성이라 필터가 필요 없다.
+    genderFilter: 'not-needed',
+    theme: {
+      scheme: 'dark',
+      themeColor: '#0f0d14',
+      tokens: {
+        bg: '15 13 20',
+        'bg-2': '21 18 28',
+        panel: '30 26 40',
+        line: '58 50 76',
+        accent: '236 92 130',
+        'accent-strong': '250 140 170',
+        'accent-soft': '140 208 232',
+        text: '240 234 245',
+        sub: '166 156 180',
+        halo: '250 206 120',
+        'danger-bg': '52 24 30',
+      },
+    },
+  },
 ];
 
 // 원본 CDN마다 Referer 요구가 정반대다. 기본은 no-referrer 이고, 여기 적힌 호스트만

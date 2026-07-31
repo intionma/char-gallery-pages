@@ -52,6 +52,7 @@ jobs:
           node --check scripts/adapters/azur-lane.mjs
           node --check scripts/adapters/arknights.mjs
           node --check scripts/adapters/last-origin.mjs
+          node --check scripts/adapters/nikke.mjs
           node --check scripts/sort-utils.mjs
           node --check scripts/test-sort-metadata.mjs
           node --check scripts/validate-data.mjs
