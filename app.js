@@ -11,11 +11,8 @@
   // SDVX 자켓 민감도 분류. 기준: docs/SDVX_JACKET_MODERATION.md
   const JACKET_CATEGORIES = ['●', '○', '□', '■'];
 
-  // 원본 CDN마다 Referer 요구가 정반대라 호스트별로 정해야 한다.
-  //  - cdn.donmai.us: Referer 없는 요청을 403으로 차단한다.
-  //  - static.wikia.nocookie.net: Referer가 붙으면 404를 준다.
-  // 따라서 기본은 no-referrer로 두고, Referer가 필요한 호스트만 예외로 origin을 보낸다.
-  const REFERRER_REQUIRED_HOSTS = ['donmai.us'];
+  // 원본 CDN마다 Referer 요구가 정반대라 호스트별로 정해야 한다. 목록은 레지스트리가 관리한다.
+  const REFERRER_REQUIRED_HOSTS = REGISTRY.referrerRequiredHosts || ['donmai.us'];
   function referrerPolicyFor(url) {
     try {
       const { hostname } = new URL(url, location.href);

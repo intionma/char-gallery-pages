@@ -22,6 +22,9 @@ export const GAMES = [
     name: '블루 아카이브',
     description: '공식 스탠딩과 의상',
     dataFile: 'blue-archive.json',
+    // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
+    dataDescription: 'SchaleDB 기반 공식 스탠딩과 의상',
+    coverImage: 'https://schaledb.com/images/student/portrait/10000.webp',
     collection: 'characters',
     features: { skins: true, jackets: false },
     labels: {
@@ -79,6 +82,9 @@ export const GAMES = [
     name: '이터널 리턴',
     description: '실험체 스탠딩과 스킨',
     dataFile: 'eternal-return.json',
+    // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
+    dataDescription: 'DAK.GG 및 공식 위키 기반 스탠딩과 스킨',
+    coverImage: 'https://cdn.dak.gg/assets/er/game-assets/1.40.0/ui/characterfullsize/CharFull_Jackie_001.png',
     collection: 'characters',
     features: { skins: true, jackets: false },
     labels: {
@@ -115,6 +121,9 @@ export const GAMES = [
     name: '원신',
     description: '공식 캐릭터 이미지와 의상',
     dataFile: 'genshin.json',
+    // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
+    dataDescription: 'Project Amber 기반 공식 캐릭터 이미지와 의상',
+    coverImage: 'https://gi.yatta.moe/assets/UI/UI_Gacha_AvatarImg_Ayaka.png',
     collection: 'characters',
     features: { skins: true, jackets: false },
     labels: {
@@ -160,6 +169,9 @@ export const GAMES = [
     name: 'SOUND VOLTEX',
     description: '전체 곡 자켓과 난이도별 변형',
     dataFile: 'sound-voltex.json',
+    // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
+    dataDescription: '전체 곡 자켓과 난이도별 변형',
+    coverImage: null,
     collection: 'jackets',
     features: { skins: false, jackets: true },
     labels: {
@@ -199,6 +211,9 @@ export const GAMES = [
     name: 'DJMAX RESPECT V',
     description: '대표 캐릭터 이미지',
     dataFile: 'djmax.json',
+    // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
+    dataDescription: '대표 캐릭터 이미지',
+    coverImage: 'https://static.wikia.nocookie.net/djmax/images/d/da/El_Clear_Tic_Tac_Toe.webp/revision/latest',
     collection: 'characters',
     features: { skins: false, jackets: false },
     labels: { detailSection: '스탠딩 · 의상', emptyList: '표시할 캐릭터가 없습니다.' },
@@ -230,6 +245,12 @@ export const GAMES = [
     },
   },
 ];
+
+// 원본 CDN마다 Referer 요구가 정반대다. 기본은 no-referrer 이고, 여기 적힌 호스트만
+// 예외로 origin 을 보낸다. 게임을 추가하다 이미지가 403 으로 깨지면 여기를 확인한다.
+//   cdn.donmai.us            : Referer 없으면 403
+//   static.wikia.nocookie.net: Referer 있으면 404 (그래서 기본이 no-referrer 다)
+export const REFERRER_REQUIRED_HOSTS = ['donmai.us'];
 
 export const gameById = new Map(GAMES.map((game) => [game.id, game]));
 
