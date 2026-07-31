@@ -45,6 +45,8 @@ jobs:
           node --check scripts/enrich-gallery.mjs
           node --check scripts/normalize-sdvx.mjs
           node --check scripts/sdvx-jacket-ratings.mjs
+          node --check scripts/games/registry.mjs
+          node --check scripts/build-registry.mjs
           node --check scripts/sort-utils.mjs
           node --check scripts/test-sort-metadata.mjs
           node --check scripts/validate-data.mjs
@@ -57,6 +59,8 @@ jobs:
           mkdir -p dist/data
           cp index.html 404.html styles.css skins.css app.js skins.js dist/
           touch dist/.nojekyll
+      - name: Generate game registry assets
+        run: node scripts/build-registry.mjs dist
       - name: Build public data snapshot
         run: node scripts/build-data.mjs dist/data
       - name: Build Blue Archive skin catalog

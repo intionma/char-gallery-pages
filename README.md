@@ -16,6 +16,7 @@
 rm -rf dist
 mkdir -p dist/data
 cp index.html 404.html styles.css skins.css app.js skins.js dist/
+node scripts/build-registry.mjs dist
 node scripts/build-data.mjs dist/data
 node scripts/build-blue-archive-skins.mjs dist/data/blue-archive.json
 node scripts/build-eternal-return-skins.mjs dist/data/eternal-return.json
@@ -37,6 +38,13 @@ python3 -m http.server 8000 -d dist
 - DJMAX RESPECT V: DJMAX Wiki, Danbooru 일반 등급 팬아트 및 각 이미지 원본 페이지
 
 캐릭터 목록은 가능한 경우 블루 아카이브 Danbooru 인기순과 이터널 리턴 공식 위키 출시순 메타데이터를 정적 JSON에 함께 저장합니다. 외부 원본 갱신이 일시적으로 실패하면 빈 목록으로 덮지 않고 마지막 정상 배포본을 검증해 유지합니다.
+
+## 게임 추가
+
+게임 정의는 [`scripts/games/registry.mjs`](scripts/games/registry.mjs)가 단일 기준입니다.
+id·이름·테마 색 토큰·정렬 모드·기능 플래그를 한곳에 적으면 프런트엔드, 테마 CSS,
+데이터 검증이 모두 따라옵니다. 빌드가 이 정의로부터 `dist/games.js`와 `dist/themes.css`를
+생성하므로 두 파일은 직접 고치지 않습니다.
 
 ## 자켓 민감도 분류
 
