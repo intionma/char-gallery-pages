@@ -22,6 +22,8 @@ export const GAMES = [
     name: '블루 아카이브',
     description: '공식 스탠딩과 의상',
     dataFile: 'blue-archive.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    logoImage: 'https://static.wikia.nocookie.net/blue-archive/images/e/e6/Site-logo.png/revision/latest',
     // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
     dataDescription: 'SchaleDB 기반 공식 스탠딩과 의상',
     coverImage: 'https://schaledb.com/images/student/portrait/10000.webp',
@@ -82,6 +84,8 @@ export const GAMES = [
     name: '이터널 리턴',
     description: '실험체 스탠딩과 스킨',
     dataFile: 'eternal-return.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    logoImage: 'https://static.wikia.nocookie.net/blacksurvivaleternalreturn_gamepedia_en/images/e/e6/Site-logo.png/revision/latest',
     // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
     dataDescription: 'DAK.GG 및 공식 위키 기반 스탠딩과 스킨',
     coverImage: 'https://cdn.dak.gg/assets/er/game-assets/11.7.0/ui/characterfullsize/CharFull_Jackie_S000.png',
@@ -121,6 +125,8 @@ export const GAMES = [
     name: '원신',
     description: '공식 캐릭터 이미지와 의상',
     dataFile: 'genshin.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    logoImage: 'https://static.wikia.nocookie.net/gensin-impact/images/e/e6/Site-logo.png/revision/latest',
     // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
     dataDescription: 'Project Amber 기반 공식 캐릭터 이미지와 의상',
     coverImage: 'https://gi.yatta.moe/assets/UI/UI_Gacha_AvatarImg_Ayaka.png',
@@ -169,6 +175,8 @@ export const GAMES = [
     name: 'SOUND VOLTEX',
     description: '전체 곡 자켓과 난이도별 변형',
     dataFile: 'sound-voltex.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    logoImage: 'https://static.wikia.nocookie.net/sound-voltex/images/e/e6/Site-logo.png/revision/latest',
     // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
     dataDescription: '전체 곡 자켓과 난이도별 변형',
     coverImage: null,
@@ -211,6 +219,8 @@ export const GAMES = [
     name: 'DJMAX RESPECT V',
     description: '대표 캐릭터 이미지',
     dataFile: 'djmax.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    logoImage: 'https://static.wikia.nocookie.net/djmax/images/e/e6/Site-logo.png/revision/latest',
     // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
     dataDescription: '대표 캐릭터 이미지',
     coverImage: 'https://static.wikia.nocookie.net/djmax/images/d/da/El_Clear_Tic_Tac_Toe.webp/revision/latest',
@@ -249,6 +259,8 @@ export const GAMES = [
     name: '붕괴: 스타레일',
     description: '공식 캐릭터 일러스트',
     dataFile: 'honkai-star-rail.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    logoImage: 'https://static.wikia.nocookie.net/houkai-star-rail/images/e/e6/Site-logo.png/revision/latest',
     // 각 게임 JSON 안에 들어가는 설명. 홈 카드의 description 과는 따로 관리한다.
     dataDescription: 'Project Amber 기반 공식 캐릭터 일러스트',
     coverImage: 'https://sr.yatta.moe/hsr/assets/UI/avatar/large/1003.png',
@@ -285,6 +297,8 @@ export const GAMES = [
     name: '벽람항로',
     description: '함선 인격 일러스트와 스킨',
     dataFile: 'azur-lane.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    logoImage: 'https://static.wikia.nocookie.net/azur-lane/images/e/e6/Site-logo.png/revision/latest',
     dataDescription: 'AzurAPI 기반 함선 일러스트와 스킨',
     coverImage: 'https://raw.githubusercontent.com/AzurAPI/azurapi-js-setup/master/images/skins/077/Default/image.png',
     collection: 'characters',
@@ -321,6 +335,8 @@ export const GAMES = [
     name: '명일방주',
     description: '여성 오퍼레이터 일러스트와 스킨',
     dataFile: 'arknights.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    logoImage: 'https://static.wikia.nocookie.net/mrfz/images/e/e6/Site-logo.png/revision/latest',
     dataDescription: 'ArknightsGameData 및 Aceship 기반 오퍼레이터 일러스트',
     coverImage: 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/characters/char_002_amiya_2.png',
     collection: 'characters',
@@ -357,6 +373,8 @@ export const GAMES = [
     name: '라스트오리진',
     description: '바이오로이드 일러스트와 스킨',
     dataFile: 'last-origin.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    logoImage: 'https://static.wikia.nocookie.net/lastorigin/images/e/e6/Site-logo.png/revision/latest',
     dataDescription: 'Last Origin Wiki 기반 바이오로이드 일러스트',
     coverImage: null,
     collection: 'characters',
@@ -393,6 +411,8 @@ export const GAMES = [
     name: '승리의 여신: 니케',
     description: '니케 일러스트와 코스튬',
     dataFile: 'nikke.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    logoImage: 'https://static.wikia.nocookie.net/nikke-goddess-of-victory-international/images/e/e6/Site-logo.png/revision/latest',
     dataDescription: 'NIKKE Wiki 기반 니케 일러스트와 코스튬',
     coverImage: null,
     collection: 'characters',
