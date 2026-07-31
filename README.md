@@ -37,7 +37,7 @@ python3 -m http.server 8000 -d dist
 - Honkai: Star Rail: Project Amber
 - Azur Lane: AzurAPI, Azur Lane Wiki
 - Arknights: ArknightsGameData(YoStar), Aceship 이미지, ArknightsGameResource 아이콘
-- Last Origin: Last Origin Wiki
+- Last Origin: Last Origin Wiki (검열판·무검열판 모두 수록, 화면 기본값은 검열판)
 - NIKKE: NIKKE Wiki
 - SOUND VOLTEX: SDVX Index
 - DJMAX RESPECT V: DJMAX Wiki, Danbooru 일반 등급 팬아트 및 각 이미지 원본 페이지
@@ -50,6 +50,13 @@ python3 -m http.server 8000 -d dist
 id·이름·테마 색 토큰·정렬 모드·기능 플래그를 한곳에 적으면 프런트엔드, 테마 CSS,
 데이터 검증이 모두 따라옵니다. 빌드가 이 정의로부터 `dist/games.js`와 `dist/themes.css`를
 생성하므로 두 파일은 직접 고치지 않습니다.
+
+## 검열 토글
+
+라스트오리진은 위키에 검열판이 따로 있어 두 판본을 함께 싣습니다. **사이트 기본값은
+검열판**이고, 상단 눈 모양 버튼으로 해제할 수 있습니다. 선택은 브라우저에 저장되며,
+검열판이 없는 이미지는 애초에 검열 대상이 아니므로 그대로 표시합니다. 검열판이 실린
+게임에서만 버튼이 나타납니다.
 
 ## 자켓 민감도 분류
 

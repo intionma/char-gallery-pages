@@ -66,6 +66,12 @@ img { display: block; max-width: 100%; }
 .header-icon:hover { border-color: rgb(var(--accent)); color: rgb(var(--accent)); }
 .brand:active,
 .header-icon:active { transform: scale(.95); }
+/* 검열 토글. 기본은 검열판(눈 감김 아이콘)이고, 해제하면 눈 뜬 아이콘이 된다. */
+.censor-toggle .censor-icon-off { display: none; }
+.censor-toggle[aria-pressed="true"] { border-color: rgb(var(--accent)); color: rgb(var(--accent)); }
+.censor-toggle[aria-pressed="true"] .censor-icon-on { display: none; }
+.censor-toggle[aria-pressed="true"] .censor-icon-off { display: block; }
+
 .mode-toggle .mode-icon-sun { display: none; }
 [data-mode="dark"] .mode-toggle .mode-icon-moon { display: none; }
 [data-mode="dark"] .mode-toggle .mode-icon-sun { display: block; }

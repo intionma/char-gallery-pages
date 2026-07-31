@@ -12,6 +12,10 @@
       if (mode === 'dark' || (!mode && matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.dataset.mode = 'dark';
       }
+      // 검열 해제는 명시적으로 켠 적이 있을 때만 적용한다. 기본값은 검열판이다.
+      if (localStorage.getItem('cg-uncensored') === 'on') {
+        document.documentElement.dataset.uncensored = 'on';
+      }
     } catch {}
   </script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
@@ -37,6 +41,17 @@
       </div>
       <div class="header-actions">
         <div id="routeActions" class="route-actions"></div>
+        <button id="censorToggle" class="header-icon censor-toggle" type="button" aria-label="검열 해제" title="검열 해제" aria-pressed="false" hidden>
+          <svg class="censor-icon censor-icon-on" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path d="M10.6 5.2A9.6 9.6 0 0 1 12 5c5 0 9 4.5 9 7 0 .9-.5 2-1.4 3.1M6.3 6.9C3.9 8.4 3 10.4 3 12c0 2.5 4 7 9 7 1.6 0 3-.4 4.2-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <svg class="censor-icon censor-icon-off" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M3 12s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" />
+          </svg>
+        </button>
         <button id="colorModeToggle" class="header-icon mode-toggle" type="button" aria-label="다크 모드로" title="다크 모드로">
           <svg class="mode-icon mode-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />

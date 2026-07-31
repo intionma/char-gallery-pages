@@ -24,6 +24,55 @@
     }
   }
 
+  // 검열판이 함께 실린 게임(라스트오리진)은 기본값이 검열판이고, 버튼으로 해제한다.
+  // 검열판이 없는 이미지는 애초에 검열 대상이 아니므로 그대로 보여준다.
+  function uncensored() {
+    return document.documentElement.dataset.uncensored === 'on';
+  }
+
+  function artUrl(image) {
+    if (!image) return '';
+    return (!uncensored() && image.safeUrl) || image.url;
+  }
+
+  function artThumb(image) {
+    if (!image) return '';
+    if (!uncensored() && image.safeUrl) return image.safeThumbUrl || image.safeUrl;
+    return image.thumbUrl || image.url;
+  }
+
+  function artProfile(character) {
+    if (!character) return '';
+    return (!uncensored() && character.safeProfileImage) || character.profileImage;
+  }
+
+  /** 데이터에 검열판이 하나라도 있으면 토글을 노출한다. */
+  function setCensorAvailability(available) {
+    censorToggle.hidden = !available;
+  }
+
+  function syncCensorButton() {
+    const on = uncensored();
+    censorToggle.setAttribute('aria-pressed', String(on));
+    const label = on ? '검열판으로 보기' : '검열 해제';
+    censorToggle.setAttribute('aria-label', label);
+    censorToggle.title = label;
+  }
+
+  function toggleCensor() {
+    const next = uncensored() ? 'off' : 'on';
+    if (next === 'on') document.documentElement.dataset.uncensored = 'on';
+    else delete document.documentElement.dataset.uncensored;
+    try {
+      localStorage.setItem('cg-uncensored', next);
+    } catch {
+      // Private browsing may make localStorage unavailable.
+    }
+    syncCensorButton();
+    renderRoute();
+    window.dispatchEvent(new CustomEvent('cg-censor-change'));
+  }
+
   const app = document.getElementById('app');
   const status = document.getElementById('status');
   const homeButton = document.getElementById('homeButton');
@@ -48,6 +97,7 @@
   const openSource = document.getElementById('openSource');
   const copyImageUrl = document.getElementById('copyImageUrl');
   const copyImageCrop = document.getElementById('copyImageCrop');
+  const censorToggle = document.getElementById('censorToggle');
   const variantButtons = document.getElementById('variantButtons');
   const lightboxPrev = document.getElementById('lightboxPrev');
   const lightboxNext = document.getElementById('lightboxNext');
@@ -80,7 +130,9 @@
       navigate(characterNav.next);
     }
   });
+  censorToggle.addEventListener('click', toggleCensor);
   syncColorModeButton();
+  syncCensorButton();
 
   function navigate(path) {
     const next = path ? `#/${path.replace(/^\/+/, '')}` : '#/';
@@ -149,7 +201,10 @@
     routeActions.parentElement.classList.toggle('has-route-actions', Boolean(content));
   }
 
-  window.CharGalleryUI = { navigate, setTheme, setHeader, setStatus, setRouteActions, referrerPolicyFor };
+  window.CharGalleryUI = {
+    navigate, setTheme, setHeader, setStatus, setRouteActions, referrerPolicyFor,
+    artUrl, artThumb, artProfile, setCensorAvailability, uncensored,
+  };
 
   async function loadJson(name) {
     if (cache.has(name)) return cache.get(name);
@@ -170,6 +225,7 @@
     window.scrollTo({ top: 0, behavior: 'auto' });
     const parts = routeParts();
     characterNav = null;
+    setCensorAvailability(false);
     setRouteActions('');
     app.innerHTML = '<div class="skeleton"></div>';
     try {
@@ -236,6 +292,8 @@
     const groups = [...new Set(characters.map((character) => character.group).filter(Boolean))];
     const sourceIndex = new Map(characters.map((character, index) => [character.id, index]));
     const capabilities = sortCapabilities(data, characters);
+    setCensorAvailability(characters.some((character) => character.safeProfileImage
+      || (character.images || []).some((image) => image.safeUrl)));
     let activeGroup = '';
     let query = '';
     const defaultMode = defaultSort(gameId, capabilities);
@@ -301,7 +359,7 @@
         <article class="character-card" data-id="${escapeAttr(character.id)}" tabindex="0" role="link" style="animation-delay:${Math.min(index, 20) * 18}ms">
           <div class="art">
             ${character.profileImage
-              ? `<img src="${escapeAttr(character.profileImage)}" alt="${escapeAttr(displayName(character))}" loading="${index < 24 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(character.profileImage)}">`
+              ? `<img src="${escapeAttr(artProfile(character))}" alt="${escapeAttr(displayName(character))}" loading="${index < 24 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(artProfile(character))}">`
               : `<div class="empty">${escapeHtml(displayName(character))}</div>`}
           </div>
           <div class="info"><strong>${escapeHtml(displayName(character))}</strong><small>${escapeHtml(character.group || character.names?.en || '')}</small></div>
@@ -453,6 +511,8 @@
     const images = Array.isArray(character.images) ? character.images.filter((image) => image.url) : [];
     const name = displayName(character);
     const english = character.names?.en && character.names.en !== name ? character.names.en : '';
+    setCensorAvailability((data.characters || []).some((entry) => entry.safeProfileImage
+      || (entry.images || []).some((image) => image.safeUrl)));
     const neighbors = characterNeighbors(gameId, data, characterId);
     const navBar = characterNavBar(gameId, neighbors);
     setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
@@ -488,7 +548,7 @@
     return `
       <button class="standing-card${landscape ? ' landscape' : ''}" type="button" data-image-index="${index}" aria-label="${escapeAttr(`${label} 크게 보기`)}">
         <span class="badge">${escapeHtml(label)}</span>
-        <div class="art"><img src="${escapeAttr(image.thumbUrl || image.url)}" alt="${escapeAttr(label)}" loading="${index < 3 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(image.thumbUrl || image.url)}"></div>
+        <div class="art"><img src="${escapeAttr(artThumb(image))}" alt="${escapeAttr(label)}" loading="${index < 3 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(artThumb(image))}"></div>
       </button>
     `;
   }
@@ -643,10 +703,18 @@
       return Array.isArray(item?.variants) ? item.variants.filter((variant) => variant?.url) : [];
     }
 
+    /** 라이트박스가 실제로 여는 주소. 검열 설정을 반영한다. */
     function shownUrl() {
       const item = items[itemIndex];
       const variants = variantsFor(item);
-      return variants[variantIndex]?.url || item?.url || '';
+      const variant = variants[variantIndex];
+      return artUrl(variant) || artUrl(item) || '';
+    }
+
+    /** 주소 복사·원본 열기는 검열 설정과 무관하게 지금 보고 있는 이미지를 가리킨다. */
+    function sourcePageUrl() {
+      const item = items[itemIndex];
+      return item?.sourceUrl || shownUrl();
     }
 
     function characterName(item) {
@@ -957,12 +1025,12 @@
 
     function preloadAround() {
       if (!items.length) return;
-      const urls = new Set(variantsFor().map((variant) => variant.url));
+      const urls = new Set(variantsFor().map((variant) => artUrl(variant)));
       const previous = items[(itemIndex - 1 + items.length) % items.length];
       const next = items[(itemIndex + 1) % items.length];
       [previous, next].forEach((item) => {
         const variants = variantsFor(item);
-        const url = variants[0]?.url || item?.url;
+        const url = artUrl(variants[0]) || artUrl(item);
         if (url) urls.add(url);
       });
       urls.delete(shownUrl());
