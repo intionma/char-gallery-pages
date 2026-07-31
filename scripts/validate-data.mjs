@@ -2,16 +2,15 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SDVX_JACKET_CATEGORIES } from './sdvx-jacket-ratings.mjs';
+import { GAMES } from './games/registry.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dataDir = path.resolve(root, process.argv[2] || 'dist/data');
-const expectations = {
-  'blue-archive': { collection: 'characters', skins: true },
-  'eternal-return': { collection: 'characters', skins: true },
-  genshin: { collection: 'characters', skins: true },
-  'sound-voltex': { collection: 'jackets', skins: false },
-  djmax: { collection: 'characters', skins: false },
-};
+// 검사 대상은 레지스트리가 정한다. 게임을 추가해도 이 파일은 고칠 필요가 없다.
+const expectations = Object.fromEntries(GAMES.map((game) => [
+  game.id,
+  { collection: game.collection, skins: Boolean(game.features?.skins) },
+]));
 const failures = [];
 const summary = [];
 

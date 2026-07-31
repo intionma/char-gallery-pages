@@ -2,26 +2,16 @@
   'use strict';
 
   const PAGE_SIZE = 60;
-  const CATALOGS = [
-    {
-      gameId: 'blue-archive',
-      gameName: '블루 아카이브',
-      dataFile: 'blue-archive.json',
-      description: '기본 스탠딩과 의상을 최신 추가순으로 한 번에 봅니다.',
-    },
-    {
-      gameId: 'eternal-return',
-      gameName: '이터널 리턴',
-      dataFile: 'eternal-return.json',
-      description: '기본 스탠딩과 스킨을 출시·추가 최신순으로 한 번에 봅니다.',
-    },
-    {
-      gameId: 'genshin',
-      gameName: '원신',
-      dataFile: 'genshin.json',
-      description: '기본 일러스트와 의상을 게임 버전 최신순으로 한 번에 봅니다.',
-    },
-  ].map((catalog) => ({
+  // 전체 스킨 뷰를 갖는 게임은 레지스트리의 features.skins 로 정해진다.
+  const CATALOGS = ((window.CharGalleryGames || {}).games || [])
+    .filter((game) => game.features?.skins)
+    .map((game) => ({
+      gameId: game.id,
+      gameName: game.name,
+      dataFile: game.dataFile,
+      description: game.labels?.skins || '',
+    }))
+    .map((catalog) => ({
     ...catalog,
     gameRoute: `game/${catalog.gameId}`,
     route: `game/${catalog.gameId}/skins`,

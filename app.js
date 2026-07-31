@@ -1,21 +1,13 @@
 (() => {
   'use strict';
 
-  const DATA_FILES = {
-    'blue-archive': 'blue-archive.json',
-    'eternal-return': 'eternal-return.json',
-    genshin: 'genshin.json',
-    'sound-voltex': 'sound-voltex.json',
-    djmax: 'djmax.json',
-  };
+  // 게임 정의는 scripts/games/registry.mjs 가 단일 기준이고, 빌드가 games.js 로 내보낸다.
+  const REGISTRY = window.CharGalleryGames || { games: [], defaultGameId: '' };
+  const GAMES = REGISTRY.games;
+  const GAME_BY_ID = new Map(GAMES.map((game) => [game.id, game]));
+  const DEFAULT_GAME_ID = REGISTRY.defaultGameId || GAMES[0]?.id || '';
+  const DATA_FILES = Object.fromEntries(GAMES.map((game) => [game.id, game.dataFile]));
   const PAGE_SIZE = 60;
-  const THEME_COLORS = {
-    'blue-archive': '#eaf1fa',
-    'eternal-return': '#0d0f15',
-    genshin: '#f0e9da',
-    'sound-voltex': '#080a12',
-    djmax: '#0a0810',
-  };
   // SDVX 자켓 민감도 분류. 기준: docs/SDVX_JACKET_MODERATION.md
   const JACKET_CATEGORIES = ['●', '○', '□', '■'];
 
@@ -99,8 +91,8 @@
     else location.hash = next;
   }
 
-  function setTheme(gameId = 'blue-archive') {
-    const theme = DATA_FILES[gameId] ? gameId : 'blue-archive';
+  function setTheme(gameId = DEFAULT_GAME_ID) {
+    const theme = GAME_BY_ID.has(gameId) ? gameId : DEFAULT_GAME_ID;
     document.documentElement.dataset.theme = theme;
     updateThemeColor();
   }
@@ -131,11 +123,13 @@
 
   function updateThemeColor() {
     if (!themeColor) return;
-    const theme = document.documentElement.dataset.theme || 'blue-archive';
-    const darkSurface = theme === 'blue-archive' ? '#0c111a' : '#121411';
-    themeColor.content = colorMode() === 'dark' && ['blue-archive', 'genshin'].includes(theme)
-      ? darkSurface
-      : THEME_COLORS[theme] || THEME_COLORS['blue-archive'];
+    const theme = document.documentElement.dataset.theme || DEFAULT_GAME_ID;
+    const game = GAME_BY_ID.get(theme) || GAME_BY_ID.get(DEFAULT_GAME_ID);
+    if (!game) return;
+    // 라이트를 기본으로 쓰는 게임만 다크 표면색을 따로 갖는다.
+    themeColor.content = (colorMode() === 'dark' && game.darkThemeColor)
+      ? game.darkThemeColor
+      : game.themeColor;
   }
 
   function setHeader({ title, subtitle = '', back = null }) {
@@ -188,9 +182,9 @@
       if (!DATA_FILES[gameId]) return renderNotFound();
       if (parts[2] === 'skins') return;
       if (parts[2] === 'character' && parts[3]) return renderCharacter(gameId, parts[3]);
-      if (gameId === 'sound-voltex' && parts[2] === 'jackets') {
+      if (GAME_BY_ID.get(gameId)?.features?.jackets && parts[2] === 'jackets') {
         const data = await loadJson(DATA_FILES[gameId]);
-        return renderJackets(data);
+        return renderJackets(data, gameId);
       }
       return renderGame(gameId);
     } catch (error) {
@@ -200,17 +194,17 @@
   }
 
   async function renderHome() {
-    setTheme('blue-archive');
+    setTheme(DEFAULT_GAME_ID);
     setHeader({ title: '캐릭터 아트 갤러리', subtitle: '공식 일러부터 팬아트까지' });
     const manifest = await loadJson('manifest.json');
     setStatus(manifest.generatedAt ? `갱신 ${formatDate(manifest.generatedAt)}` : '');
-    const cards = manifest.games.map((game) => `
+    const cards = manifest.games.map((game, index) => `
       <article class="game-card" data-game="${escapeAttr(game.id)}" tabindex="0" role="link">
         <div class="game-card-bg"></div>
         <div class="game-card-glow"></div>
         <div class="game-card-vignette"></div>
         <div class="game-card-art">
-          ${game.coverImage ? `<img src="${escapeAttr(game.coverImage)}" alt="${escapeAttr(game.name)}" loading="${game.id === 'blue-archive' ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(game.coverImage)}">` : '<span aria-hidden="true">✦</span>'}
+          ${game.coverImage ? `<img src="${escapeAttr(game.coverImage)}" alt="${escapeAttr(game.name)}" loading="${index === 0 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(game.coverImage)}">` : '<span aria-hidden="true">✦</span>'}
         </div>
         <div class="game-card-content">
           <h2>${escapeHtml(game.name)}</h2>
@@ -264,9 +258,10 @@
       </label>
     `);
 
-    const entry = gameId === 'sound-voltex'
+    const features = GAME_BY_ID.get(gameId)?.features || {};
+    const entry = features.jackets
       ? '<button class="feature-link" type="button" data-jackets-entry><span>모든 곡 자켓 보기</span><span aria-hidden="true">→</span></button>'
-      : ['blue-archive', 'eternal-return', 'genshin'].includes(gameId)
+      : features.skins
         ? `<button class="feature-link" type="button" data-skins-entry="${escapeAttr(gameId)}"><span>전체 스킨 최신순 보기</span><span aria-hidden="true">→</span></button>`
         : '';
 
@@ -314,7 +309,7 @@
           </div>
           <div class="info"><strong>${escapeHtml(displayName(character))}</strong><small>${escapeHtml(character.group || character.names?.en || '')}</small></div>
         </article>
-      `).join('') : `<div class="empty">${characters.length ? '검색 결과가 없어요.' : gameId === 'sound-voltex' ? 'SDVX 캐릭터 데이터가 준비되면 이 화면에 기존과 같은 목록으로 표시됩니다.' : '표시할 캐릭터가 없습니다.'}</div>`;
+      `).join('') : `<div class="empty">${characters.length ? '검색 결과가 없어요.' : escapeHtml(GAME_BY_ID.get(gameId)?.labels?.emptyList || '표시할 캐릭터가 없습니다.')}</div>`;
       grid.querySelectorAll('[data-id]').forEach((card) => {
         const go = () => navigate(`game/${gameId}/character/${encodeURIComponent(card.dataset.id)}`);
         card.addEventListener('click', go);
@@ -352,7 +347,7 @@
         update();
       });
     });
-    app.querySelector('[data-jackets-entry]')?.addEventListener('click', () => navigate('game/sound-voltex/jackets'));
+    app.querySelector('[data-jackets-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/jackets`));
     app.querySelector('[data-skins-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/skins`));
     update();
   }
@@ -405,23 +400,23 @@
       </nav>`;
   }
 
+  // 레지스트리의 sort.capability 가 충족되면 modes 의 첫 항목이, 아니면 fallbackModes 의
+  // 첫 항목이 기본값이 된다.
+  function sortModesFor(gameId, capabilities) {
+    const sort = GAME_BY_ID.get(gameId)?.sort;
+    if (!sort) return [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']];
+    const satisfied = !sort.capability || Boolean(capabilities[sort.capability]);
+    return (satisfied ? sort.modes : sort.fallbackModes || sort.modes);
+  }
+
   function defaultSort(gameId, capabilities) {
-    if (gameId === 'blue-archive' && capabilities.popularity) return 'popularity';
-    if (gameId === 'eternal-return' && capabilities.release) return 'release';
-    return 'source';
+    return sortModesFor(gameId, capabilities)[0][0];
   }
 
   function sortOptions(gameId, selected, capabilities) {
-    const modes = gameId === 'blue-archive'
-      ? capabilities.popularity
-        ? [['popularity', '인기순'], ['ko', '가나다순']]
-        : [['source', '기본순'], ['ko', '가나다순']]
-      : gameId === 'eternal-return'
-        ? capabilities.release
-          ? [['release', '출시순'], ['ko', '가나다순'], ['en', 'A–Z']]
-          : [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']]
-        : [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']];
-    return modes.map(([value, label]) => `<option value="${value}"${value === selected ? ' selected' : ''}>${label}</option>`).join('');
+    return sortModesFor(gameId, capabilities)
+      .map(([value, label]) => `<option value="${value}"${value === selected ? ' selected' : ''}>${label}</option>`)
+      .join('');
   }
 
   function sortCharacters(rows, mode, sourceIndex) {
@@ -470,7 +465,7 @@
         ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 데이터를 표시합니다.</div>'
         : data.error ? '<div class="error">일부 원본 데이터를 갱신하지 못했습니다. 마지막 생성 결과만 표시합니다.</div>' : ''}
       ${navBar}
-      <div class="section-title"><h2>${gameId === 'sound-voltex' ? '공식 이미지' : '스탠딩 · 의상'}</h2><span>${images.length}종</span></div>
+      <div class="section-title"><h2>${escapeHtml(GAME_BY_ID.get(gameId)?.labels?.detailSection || '스탠딩 · 의상')}</h2><span>${images.length}종</span></div>
       <section class="standing-grid">
         ${images.length ? images.map((image, index) => detailCard(image, index)).join('') : '<div class="empty">공식 이미지를 찾지 못했어요.</div>'}
       </section>
@@ -501,8 +496,8 @@
     `;
   }
 
-  function renderJackets(data) {
-    setTheme('sound-voltex');
+  function renderJackets(data, gameId) {
+    setTheme(gameId);
     const jackets = Array.isArray(data.jackets) ? data.jackets : [];
     const hasCategory = jackets.some((jacket) => jacket.category);
     const categories = JACKET_CATEGORIES.filter((value) => jackets.some((jacket) => jacket.category === value));
@@ -511,7 +506,7 @@
     let visibleRows = [];
 
     setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
-    setHeader({ title: '모든 곡 자켓', subtitle: `${jackets.length}곡`, back: 'game/sound-voltex' });
+    setHeader({ title: '모든 곡 자켓', subtitle: `${jackets.length}곡`, back: `game/${gameId}` });
     app.innerHTML = `
       ${data.stale
         ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 자켓 데이터를 표시합니다.</div>'
@@ -1235,7 +1230,7 @@
   }
 
   function renderNotFound() {
-    setTheme('blue-archive');
+    setTheme(DEFAULT_GAME_ID);
     setHeader({ title: '페이지를 찾을 수 없어요', subtitle: '', back: '' });
     setStatus('');
     app.innerHTML = '<div class="error">페이지를 찾을 수 없습니다.<br><button class="button" type="button" data-home>게임 목록으로</button></div>';
