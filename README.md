@@ -34,6 +34,11 @@ python3 -m http.server 8000 -d dist
 - Blue Archive: SchaleDB, Blue Utils 메모리얼 로비, 공식 X 및 공개 이미지 원본
 - Eternal Return: DAK.GG, Eternal Return Wiki, 공식 뉴스 이미지
 - Genshin Impact: Project Amber, genshin-db, Genshin Impact Wiki
+- Honkai: Star Rail: Project Amber
+- Azur Lane: AzurAPI, Azur Lane Wiki
+- Arknights: ArknightsGameData(YoStar), Aceship 이미지, ArknightsGameResource 아이콘
+- Last Origin: Last Origin Wiki
+- NIKKE: NIKKE Wiki
 - SOUND VOLTEX: SDVX Index
 - DJMAX RESPECT V: DJMAX Wiki, Danbooru 일반 등급 팬아트 및 각 이미지 원본 페이지
 

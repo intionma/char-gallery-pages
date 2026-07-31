@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import { filterLiveImages as filterLive, mapLimited } from './adapters/shared.mjs';
+import { gameById } from './games/registry.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -13,13 +14,7 @@ const BA_SWIMSUIT_TWEET_ID = '2081344804974403832';
 const BA_SWIMSUIT_TWEET = `https://x.com/Blue_ArchiveJP/status/${BA_SWIMSUIT_TWEET_ID}`;
 const SKIP_REMOTE = process.env.CG_SKIP_REMOTE === '1';
 
-const LOGOS = {
-  'blue-archive': 'https://static.wikia.nocookie.net/blue-archive/images/e/e6/Site-logo.png/revision/latest',
-  'eternal-return': 'https://static.wikia.nocookie.net/blacksurvivaleternalreturn_gamepedia_en/images/e/e6/Site-logo.png/revision/latest',
-  genshin: 'https://static.wikia.nocookie.net/gensin-impact/images/e/e6/Site-logo.png/revision/latest',
-  'sound-voltex': 'https://static.wikia.nocookie.net/sound-voltex/images/e/e6/Site-logo.png/revision/latest',
-  djmax: 'https://static.wikia.nocookie.net/djmax/images/e/e6/Site-logo.png/revision/latest',
-};
+// 로고는 레지스트리가 관리한다. 게임을 추가할 때 이 파일을 고칠 일이 없어야 한다.
 
 const ANNOUNCED_ART = new Map([
   ['ba-announced-makoto_swimsuit', {
@@ -353,7 +348,7 @@ async function restoreGameLogos() {
   const manifest = await readJson('manifest.json');
   manifest.games = (manifest.games || []).map((game) => ({
     ...game,
-    coverImage: LOGOS[game.id] || game.coverImage,
+    coverImage: gameById.get(game.id)?.logoImage || game.coverImage,
   }));
   const missing = (manifest.games || []).filter((game) => !game.coverImage);
   if (missing.length) throw new Error(`Missing game logos: ${missing.map((game) => game.id).join(', ')}`);
