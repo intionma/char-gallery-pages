@@ -196,6 +196,16 @@ export function normalizeTitle(value) {
   return String(value || '').replace(/_/g, ' ').toLowerCase();
 }
 
+/**
+ * 위키아 이미지 URL 을 축소본으로 바꾼다. 위키 기반 게임은 별도 썸네일이 없어서
+ * 목록에 원본 전신 일러(수백 KB)를 그대로 쓰면 한 화면에서 수십 MB를 받게 된다.
+ * 200px 기준으로 250KB → 14KB 수준으로 줄어든다.
+ */
+export function wikiThumb(url, width) {
+  if (!url || !/static\.wikia\.nocookie\.net/.test(url)) return url;
+  return url.replace(/\/revision\/latest/, `/revision/latest/scale-to-width-down/${width}`);
+}
+
 export function wikiPageUrl(host, title) {
   return `https://${host}/wiki/${encodeURIComponent(String(title).replace(/ /g, '_'))}`;
 }
