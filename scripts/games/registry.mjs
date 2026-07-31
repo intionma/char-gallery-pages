@@ -316,6 +316,42 @@ export const GAMES = [
       },
     },
   },
+  {
+    id: 'arknights',
+    name: '명일방주',
+    description: '여성 오퍼레이터 일러스트와 스킨',
+    dataFile: 'arknights.json',
+    dataDescription: 'ArknightsGameData 및 Aceship 기반 오퍼레이터 일러스트',
+    coverImage: 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/characters/char_002_amiya_2.png',
+    collection: 'characters',
+    features: { skins: true, jackets: false },
+    labels: {
+      detailSection: '스탠딩 · 의상',
+      emptyList: '표시할 캐릭터가 없습니다.',
+      skins: '기본 일러스트와 스킨을 오퍼레이터 순서로 한 번에 봅니다.',
+      skinsEntry: '전체 스킨 보기',
+    },
+    sort: { modes: [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']] },
+    // 핸드북 프로필의 [Gender] Female 로 자동 판별한다.
+    genderFilter: 'handbook',
+    theme: {
+      scheme: 'dark',
+      themeColor: '#101216',
+      tokens: {
+        bg: '16 18 22',
+        'bg-2': '22 25 30',
+        panel: '31 35 42',
+        line: '56 62 72',
+        accent: '255 204 68',
+        'accent-strong': '255 226 130',
+        'accent-soft': '124 196 236',
+        text: '234 237 243',
+        sub: '154 162 176',
+        halo: '255 176 60',
+        'danger-bg': '52 24 30',
+      },
+    },
+  },
 ];
 
 // 원본 CDN마다 Referer 요구가 정반대다. 기본은 no-referrer 이고, 여기 적힌 호스트만

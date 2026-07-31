@@ -7,6 +7,7 @@ import { GAMES, gameById } from './games/registry.mjs';
 import { wikiCategoryMembers } from './adapters/shared.mjs';
 import buildHonkaiStarRail from './adapters/honkai-star-rail.mjs';
 import buildAzurLane from './adapters/azur-lane.mjs';
+import buildArknights from './adapters/arknights.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
@@ -542,6 +543,7 @@ const BUILDERS = {
   // 신규 어댑터는 scripts/adapters/ 규약을 따르므로 game·generatedAt 을 여기서 붙인다.
   'honkai-star-rail': async () => ({ generatedAt, game: gameMeta('honkai-star-rail'), ...(await buildHonkaiStarRail()) }),
   'azur-lane': async () => ({ generatedAt, game: gameMeta('azur-lane'), ...(await buildAzurLane()) }),
+  arknights: async () => ({ generatedAt, game: gameMeta('arknights'), ...(await buildArknights()) }),
 };
 const builders = GAMES.map((game) => {
   const builder = BUILDERS[game.id];
