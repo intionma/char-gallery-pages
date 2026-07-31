@@ -37,6 +37,7 @@ python3 -m http.server 8000 -d dist
 - Honkai: Star Rail: Project Amber
 - Azur Lane: AzurAPI, Azur Lane Wiki
 - Arknights: ArknightsGameData(YoStar), Aceship 이미지, ArknightsGameResource 아이콘
+- Last Origin: Last Origin Wiki
 - SOUND VOLTEX: SDVX Index
 - DJMAX RESPECT V: DJMAX Wiki, Danbooru 일반 등급 팬아트 및 각 이미지 원본 페이지
 

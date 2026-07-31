@@ -160,6 +160,38 @@ export async function wikiPageContent(host, titles, { batch = 50 } = {}) {
   return byTitle;
 }
 
+/**
+ * 문서마다 붙어 있는 파일 목록을 가져온다. 위키는 내비게이션 아이콘까지 함께 주므로
+ * 호출한 쪽에서 이름 규칙으로 걸러야 한다.
+ */
+export async function wikiPageImages(host, titles, { batch = 20 } = {}) {
+  const byTitle = new Map();
+  for (let i = 0; i < titles.length; i += batch) {
+    // 여러 문서를 한 번에 물으면 결과가 잘린다. imcontinue 를 끝까지 따라가야
+    // 뒤쪽 문서의 파일 목록이 비지 않는다.
+    let imcontinue;
+    do {
+      const params = new URLSearchParams({
+        action: 'query', format: 'json', formatversion: '2', prop: 'images',
+        imlimit: '500', titles: titles.slice(i, i + batch).join('|'), origin: '*',
+      });
+      if (imcontinue) params.set('imcontinue', imcontinue);
+      const data = await fetchJson(`https://${host}/api.php?${params}`);
+      for (const page of data.query?.pages || []) {
+        if (page.missing) continue;
+        // 연속 조회는 이미 끝난 문서의 목록을 다시 주기도 한다. 중복을 걸러 쌓는다.
+        const key = normalizeTitle(page.title);
+        const prev = byTitle.get(key) || [];
+        const merged = new Set(prev);
+        for (const image of page.images || []) merged.add(image.title);
+        byTitle.set(key, [...merged]);
+      }
+      imcontinue = data.continue?.imcontinue;
+    } while (imcontinue);
+  }
+  return byTitle;
+}
+
 export function normalizeTitle(value) {
   return String(value || '').replace(/_/g, ' ').toLowerCase();
 }

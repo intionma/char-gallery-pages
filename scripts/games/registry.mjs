@@ -352,6 +352,42 @@ export const GAMES = [
       },
     },
   },
+  {
+    id: 'last-origin',
+    name: '라스트오리진',
+    description: '바이오로이드 일러스트와 스킨',
+    dataFile: 'last-origin.json',
+    dataDescription: 'Last Origin Wiki 기반 바이오로이드 일러스트',
+    coverImage: null,
+    collection: 'characters',
+    features: { skins: true, jackets: false },
+    labels: {
+      detailSection: '스탠딩 · 의상',
+      emptyList: '표시할 캐릭터가 없습니다.',
+      skins: '기본 일러스트와 스킨을 이름순으로 한 번에 봅니다.',
+      skinsEntry: '전체 스킨 보기',
+    },
+    sort: { modes: [['source', '기본순'], ['en', 'A–Z']] },
+    // 등장인물이 전부 여성형 바이오로이드라 필터가 필요 없다.
+    genderFilter: 'not-needed',
+    theme: {
+      scheme: 'dark',
+      themeColor: '#12100e',
+      tokens: {
+        bg: '18 16 14',
+        'bg-2': '25 22 19',
+        panel: '34 30 26',
+        line: '62 55 47',
+        accent: '230 138 74',
+        'accent-strong': '245 176 120',
+        'accent-soft': '196 166 122',
+        text: '241 235 226',
+        sub: '172 160 145',
+        halo: '250 200 110',
+        'danger-bg': '52 24 30',
+      },
+    },
+  },
 ];
 
 // 원본 CDN마다 Referer 요구가 정반대다. 기본은 no-referrer 이고, 여기 적힌 호스트만
