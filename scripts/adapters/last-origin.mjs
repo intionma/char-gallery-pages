@@ -5,6 +5,7 @@
 // 등장인물이 전부 여성형 바이오로이드라 성별 필터가 필요 없다.
 import {
   fetchJson, slug, mapLimited, wikiCategoryMembers, wikiPageImages, wikiImageInfo,
+  wikiThumb,
   normalizeTitle, wikiPageUrl,
 } from './shared.mjs';
 
@@ -66,6 +67,8 @@ export default async function buildLastOrigin() {
         return {
           file: entry.file,
           url: entry.meta.url,
+          // 목록·상세 카드는 축소본을 쓰고, 라이트박스만 원본을 연다.
+          thumbUrl: wikiThumb(entry.meta.url, 480),
           width: entry.meta.width,
           height: entry.meta.height,
           group: label,
@@ -88,7 +91,7 @@ export default async function buildLastOrigin() {
       id,
       names: names_,
       group: '바이오로이드',
-      profileImage: images[0].url,
+      profileImage: wikiThumb(images[0].url, 240),
       sourceUrl,
       images: images.map(({ file: _file, ...image }) => image),
     });
@@ -101,6 +104,7 @@ export default async function buildLastOrigin() {
         skinName: image.group,
         group: image.group,
         url: image.url,
+        thumbUrl: image.thumbUrl,
         sourceUrl,
         sourceType: image.sourceType,
         additionOrder: characters.length * 100 + index,

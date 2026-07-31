@@ -5,6 +5,7 @@
 // 니케가 전부 여성이라 성별 필터가 필요 없다.
 import {
   slug, wikiCategoryMembers, wikiPageImages, wikiImageInfo, normalizeTitle, wikiPageUrl,
+  wikiThumb,
 } from './shared.mjs';
 
 const HOST = 'nikke-goddess-of-victory-international.fandom.com';
@@ -67,6 +68,8 @@ export default async function buildNikke() {
     const names_ = { en: name };
     const images = entries.map((entry) => ({
       url: entry.meta.url,
+      // 목록·상세 카드는 축소본을 쓰고, 라이트박스만 원본을 연다.
+      thumbUrl: wikiThumb(entry.meta.url, 480),
       width: entry.meta.width,
       height: entry.meta.height,
       group: entry.costume,
@@ -79,7 +82,7 @@ export default async function buildNikke() {
       id,
       names: names_,
       group: '니케',
-      profileImage: images[0].url,
+      profileImage: wikiThumb(images[0].url, 240),
       sourceUrl,
       images,
     });
@@ -92,6 +95,7 @@ export default async function buildNikke() {
         skinName: entry.costume,
         group: entry.costume,
         url: entry.meta.url,
+        thumbUrl: wikiThumb(entry.meta.url, 480),
         sourceUrl,
         sourceType: entry.costume === '기본' ? 'official_standing' : 'official_skin',
         additionOrder: characters.length * 100 + index,
