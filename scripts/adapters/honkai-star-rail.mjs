@@ -97,6 +97,10 @@ export default async function buildHonkaiStarRail() {
       sourceUrl,
       // 초 단위 출시 시각을 그대로 정렬 키로 쓴다.
       releaseOrder: Number.isFinite(Number(avatar.release)) ? Number(avatar.release) : undefined,
+      // 전체 일러 뷰가 "최신 추가순"을 만들 때 쓰는 날짜. releaseOrder 와 같은 값이다.
+      releasedAt: Number(avatar.release) > 0
+        ? new Date(Number(avatar.release) * 1000).toISOString().slice(0, 10)
+        : undefined,
       images: [{
         url: full,
         thumbUrl: medium,

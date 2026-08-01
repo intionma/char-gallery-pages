@@ -24,6 +24,55 @@
     }
   }
 
+  // 검열판이 함께 실린 게임(라스트오리진)은 기본값이 검열판이고, 버튼으로 해제한다.
+  // 검열판이 없는 이미지는 애초에 검열 대상이 아니므로 그대로 보여준다.
+  function uncensored() {
+    return document.documentElement.dataset.uncensored === 'on';
+  }
+
+  function artUrl(image) {
+    if (!image) return '';
+    return (!uncensored() && image.safeUrl) || image.url;
+  }
+
+  function artThumb(image) {
+    if (!image) return '';
+    if (!uncensored() && image.safeUrl) return image.safeThumbUrl || image.safeUrl;
+    return image.thumbUrl || image.url;
+  }
+
+  function artProfile(character) {
+    if (!character) return '';
+    return (!uncensored() && character.safeProfileImage) || character.profileImage;
+  }
+
+  /** 데이터에 검열판이 하나라도 있으면 토글을 노출한다. */
+  function setCensorAvailability(available) {
+    censorToggle.hidden = !available;
+  }
+
+  function syncCensorButton() {
+    const on = uncensored();
+    censorToggle.setAttribute('aria-pressed', String(on));
+    const label = on ? '검열판으로 보기' : '검열 해제';
+    censorToggle.setAttribute('aria-label', label);
+    censorToggle.title = label;
+  }
+
+  function toggleCensor() {
+    const next = uncensored() ? 'off' : 'on';
+    if (next === 'on') document.documentElement.dataset.uncensored = 'on';
+    else delete document.documentElement.dataset.uncensored;
+    try {
+      localStorage.setItem('cg-uncensored', next);
+    } catch {
+      // Private browsing may make localStorage unavailable.
+    }
+    syncCensorButton();
+    renderRoute();
+    window.dispatchEvent(new CustomEvent('cg-censor-change'));
+  }
+
   const app = document.getElementById('app');
   const status = document.getElementById('status');
   const homeButton = document.getElementById('homeButton');
@@ -48,6 +97,8 @@
   const openSource = document.getElementById('openSource');
   const copyImageUrl = document.getElementById('copyImageUrl');
   const copyImageCrop = document.getElementById('copyImageCrop');
+  const lightboxDetail = document.getElementById('lightboxDetail');
+  const censorToggle = document.getElementById('censorToggle');
   const variantButtons = document.getElementById('variantButtons');
   const lightboxPrev = document.getElementById('lightboxPrev');
   const lightboxNext = document.getElementById('lightboxNext');
@@ -80,7 +131,9 @@
       navigate(characterNav.next);
     }
   });
+  censorToggle.addEventListener('click', toggleCensor);
   syncColorModeButton();
+  syncCensorButton();
 
   function navigate(path) {
     const next = path ? `#/${path.replace(/^\/+/, '')}` : '#/';
@@ -149,7 +202,10 @@
     routeActions.parentElement.classList.toggle('has-route-actions', Boolean(content));
   }
 
-  window.CharGalleryUI = { navigate, setTheme, setHeader, setStatus, setRouteActions, referrerPolicyFor };
+  window.CharGalleryUI = {
+    navigate, setTheme, setHeader, setStatus, setRouteActions, referrerPolicyFor,
+    artUrl, artThumb, artProfile, setCensorAvailability, uncensored,
+  };
 
   async function loadJson(name) {
     if (cache.has(name)) return cache.get(name);
@@ -170,6 +226,7 @@
     window.scrollTo({ top: 0, behavior: 'auto' });
     const parts = routeParts();
     characterNav = null;
+    setCensorAvailability(false);
     setRouteActions('');
     app.innerHTML = '<div class="skeleton"></div>';
     try {
@@ -181,7 +238,8 @@
       if (parts[2] === 'character' && parts[3]) return renderCharacter(gameId, parts[3]);
       if (GAME_BY_ID.get(gameId)?.features?.jackets && parts[2] === 'jackets') {
         const data = await loadJson(DATA_FILES[gameId]);
-        return renderJackets(data, gameId);
+        // parts[3] 이 있으면 그 자켓까지 펼쳐서 라이트박스로 연다 ("이 자켓으로 이동").
+        return renderJackets(data, gameId, parts[3]);
       }
       return renderGame(gameId);
     } catch (error) {
@@ -236,6 +294,8 @@
     const groups = [...new Set(characters.map((character) => character.group).filter(Boolean))];
     const sourceIndex = new Map(characters.map((character, index) => [character.id, index]));
     const capabilities = sortCapabilities(data, characters);
+    setCensorAvailability(characters.some((character) => character.safeProfileImage
+      || (character.images || []).some((image) => image.safeUrl)));
     let activeGroup = '';
     let query = '';
     const defaultMode = defaultSort(gameId, capabilities);
@@ -255,12 +315,17 @@
       </label>
     `);
 
+    // 두 뷰를 다 가진 게임(SDVX)이 있으므로 배타 선택이 아니라 둘 다 내건다.
     const features = GAME_BY_ID.get(gameId)?.features || {};
-    const entry = features.jackets
-      ? '<button class="feature-link" type="button" data-jackets-entry><span>모든 곡 자켓 보기</span><span aria-hidden="true">→</span></button>'
-      : features.skins
-        ? `<button class="feature-link" type="button" data-skins-entry="${escapeAttr(gameId)}"><span>${escapeHtml(GAME_BY_ID.get(gameId)?.labels?.skinsEntry || '전체 스킨 최신순 보기')}</span><span aria-hidden="true">→</span></button>`
-        : '';
+    const labels = GAME_BY_ID.get(gameId)?.labels || {};
+    const entry = [
+      features.jackets
+        ? '<button class="feature-link" type="button" data-jackets-entry><span>모든 곡 자켓 보기</span><span aria-hidden="true">→</span></button>'
+        : '',
+      features.skins
+        ? `<button class="feature-link" type="button" data-skins-entry="${escapeAttr(gameId)}"><span>${escapeHtml(labels.skinsEntry || '전체 스킨 최신순 보기')}</span><span aria-hidden="true">→</span></button>`
+        : '',
+    ].filter(Boolean).join('');
 
     app.innerHTML = `
       ${entry}
@@ -301,7 +366,7 @@
         <article class="character-card" data-id="${escapeAttr(character.id)}" tabindex="0" role="link" style="animation-delay:${Math.min(index, 20) * 18}ms">
           <div class="art">
             ${character.profileImage
-              ? `<img src="${escapeAttr(character.profileImage)}" alt="${escapeAttr(displayName(character))}" loading="${index < 24 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(character.profileImage)}">`
+              ? `<img src="${escapeAttr(artProfile(character))}" alt="${escapeAttr(displayName(character))}" loading="${index < 24 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(artProfile(character))}">`
               : `<div class="empty">${escapeHtml(displayName(character))}</div>`}
           </div>
           <div class="info"><strong>${escapeHtml(displayName(character))}</strong><small>${escapeHtml(character.group || character.names?.en || '')}</small></div>
@@ -453,6 +518,8 @@
     const images = Array.isArray(character.images) ? character.images.filter((image) => image.url) : [];
     const name = displayName(character);
     const english = character.names?.en && character.names.en !== name ? character.names.en : '';
+    setCensorAvailability((data.characters || []).some((entry) => entry.safeProfileImage
+      || (entry.images || []).some((image) => image.safeUrl)));
     const neighbors = characterNeighbors(gameId, data, characterId);
     const navBar = characterNavBar(gameId, neighbors);
     setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
@@ -469,7 +536,7 @@
       ${navBar}
     `;
     app.querySelectorAll('[data-image-index]').forEach((card) => {
-      card.addEventListener('click', () => imageViewer.open(images, Number(card.dataset.imageIndex)));
+      card.addEventListener('click', () => imageViewer.open(images, Number(card.dataset.imageIndex), { gameId, characterId }));
     });
     app.querySelectorAll('[data-character-nav]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -488,12 +555,12 @@
     return `
       <button class="standing-card${landscape ? ' landscape' : ''}" type="button" data-image-index="${index}" aria-label="${escapeAttr(`${label} 크게 보기`)}">
         <span class="badge">${escapeHtml(label)}</span>
-        <div class="art"><img src="${escapeAttr(image.thumbUrl || image.url)}" alt="${escapeAttr(label)}" loading="${index < 3 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(image.thumbUrl || image.url)}"></div>
+        <div class="art"><img src="${escapeAttr(artThumb(image))}" alt="${escapeAttr(label)}" loading="${index < 3 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(artThumb(image))}"></div>
       </button>
     `;
   }
 
-  function renderJackets(data, gameId) {
+  function renderJackets(data, gameId, focusJacketId = '') {
     setTheme(gameId);
     const jackets = Array.isArray(data.jackets) ? data.jackets : [];
     const hasCategory = jackets.some((jacket) => jacket.category);
@@ -501,6 +568,7 @@
     const hasPopularity = jackets.some((jacket) => jacket.popularity != null);
     let shown = PAGE_SIZE;
     let visibleRows = [];
+    let allRows = [];
 
     setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
     setHeader({ title: '모든 곡 자켓', subtitle: `${jackets.length}곡`, back: `game/${gameId}` });
@@ -561,13 +629,14 @@
         }
         return (b.releasedAt || '0000').localeCompare(a.releasedAt || '0000');
       });
+      allRows = rows;
       visibleRows = rows.slice(0, shown);
       count.textContent = `${rows.length}곡`;
       headerSubtitle.textContent = `${rows.length}곡`;
       headerSubtitle.hidden = false;
       grid.innerHTML = visibleRows.length ? visibleRows.map((jacket, index) => jacketCard(jacket, index, selectedLevel)).join('') : '<div class="empty">조건에 맞는 자켓이 없어요.</div>';
       grid.querySelectorAll('[data-image-index]').forEach((card) => {
-        card.addEventListener('click', () => imageViewer.open(visibleRows, Number(card.dataset.imageIndex)));
+        card.addEventListener('click', () => imageViewer.open(visibleRows, Number(card.dataset.imageIndex), { gameId }));
       });
       const remaining = rows.length - shown;
       more.hidden = remaining <= 0;
@@ -580,6 +649,20 @@
     sort.addEventListener('change', () => update(true));
     more.addEventListener('click', () => { shown += PAGE_SIZE; update(); });
     update();
+
+    // "이 자켓으로 이동"으로 들어온 경우. 목록은 60곡씩 끊어 그리므로 해당 곡이 나올
+    // 때까지 펼친 뒤 그 자리에서 라이트박스를 연다.
+    if (focusJacketId) {
+      const position = allRows.findIndex((jacket) => String(jacket.id) === String(focusJacketId));
+      if (position >= 0) {
+        if (position >= shown) {
+          shown = Math.ceil((position + 1) / PAGE_SIZE) * PAGE_SIZE;
+          update();
+        }
+        grid.querySelectorAll('.jacket-card')[position]?.scrollIntoView({ block: 'center' });
+        imageViewer.open(visibleRows, position, { gameId });
+      }
+    }
   }
 
   function jacketCard(jacket, index, selectedLevel) {
@@ -634,6 +717,8 @@
     let bodyStyle = null;
     let copyResetTimer = 0;
     let cropResetTimer = 0;
+    // 어느 게임의 어떤 화면에서 열렸는지. "이 캐릭터로 이동" 버튼의 목적지를 정한다.
+    let context = { gameId: '', characterId: '' };
     // 좁은 화면에서는 액션 바가 4칸이라 긴 라벨이 들어가지 않는다.
     const cropLabel = () => (window.matchMedia('(max-width: 639px)').matches ? '영역 복사' : '보이는 영역 복사');
     const CROP_HINT = '확대·이동한 상태로 화면에 보이는 부분만 이미지로 복사합니다';
@@ -643,10 +728,18 @@
       return Array.isArray(item?.variants) ? item.variants.filter((variant) => variant?.url) : [];
     }
 
+    /** 라이트박스가 실제로 여는 주소. 검열 설정을 반영한다. */
     function shownUrl() {
       const item = items[itemIndex];
       const variants = variantsFor(item);
-      return variants[variantIndex]?.url || item?.url || '';
+      const variant = variants[variantIndex];
+      return artUrl(variant) || artUrl(item) || '';
+    }
+
+    /** 주소 복사·원본 열기는 검열 설정과 무관하게 지금 보고 있는 이미지를 가리킨다. */
+    function sourcePageUrl() {
+      const item = items[itemIndex];
+      return item?.sourceUrl || shownUrl();
     }
 
     function characterName(item) {
@@ -948,6 +1041,50 @@
       updateVariantButtons();
     }
 
+    /**
+     * 지금 보고 있는 이미지의 "세부 항목"이 어디인지 정한다.
+     *
+     * 스킨·자켓 목록에서 연 이미지는 그 캐릭터의 상세로, 캐릭터 상세에서 연 자켓은
+     * 자켓 뷰의 해당 곡으로 보낸다. 이미 그 화면에 있으면 버튼을 숨긴다.
+     */
+    function detailTarget(item) {
+      if (!item || !context.gameId) return null;
+      const characterId = item.characterId || item.character?.id;
+      if (characterId && characterId !== context.characterId) {
+        return {
+          path: `game/${context.gameId}/character/${encodeURIComponent(characterId)}`,
+          label: '이 캐릭터로 이동',
+        };
+      }
+      if (item.jacketId && GAME_BY_ID.get(context.gameId)?.features?.jackets) {
+        return {
+          path: `game/${context.gameId}/jackets/${encodeURIComponent(item.jacketId)}`,
+          label: '이 자켓으로 이동',
+        };
+      }
+      return null;
+    }
+
+    function updateDetailButton() {
+      const target = detailTarget(items[itemIndex]);
+      lightboxDetail.hidden = !target;
+      if (target) lightboxDetail.textContent = `${target.label} →`;
+    }
+
+    function goToDetail() {
+      const target = detailTarget(items[itemIndex]);
+      if (!target) return;
+      // close() 는 라이트박스가 넣어 둔 히스토리 항목을 history.back() 으로 빼는데,
+      // 이게 비동기라 곧바로 hash 를 바꾸면 되돌려진다. 실제로 빠진 뒤에 이동한다.
+      if (historyEntryActive) {
+        window.addEventListener('popstate', () => navigate(target.path), { once: true });
+        close();
+        return;
+      }
+      close();
+      navigate(target.path);
+    }
+
     function updateNavigation() {
       const canNavigate = items.length > 1 || variantsFor().length > 1;
       [lightboxPrev, lightboxNext, lightboxPrevMobile, lightboxNextMobile].forEach((button) => {
@@ -957,12 +1094,12 @@
 
     function preloadAround() {
       if (!items.length) return;
-      const urls = new Set(variantsFor().map((variant) => variant.url));
+      const urls = new Set(variantsFor().map((variant) => artUrl(variant)));
       const previous = items[(itemIndex - 1 + items.length) % items.length];
       const next = items[(itemIndex + 1) % items.length];
       [previous, next].forEach((item) => {
         const variants = variantsFor(item);
-        const url = variants[0]?.url || item?.url;
+        const url = artUrl(variants[0]) || artUrl(item);
         if (url) urls.add(url);
       });
       urls.delete(shownUrl());
@@ -988,6 +1125,7 @@
       lightboxCounterMobile.textContent = count;
       renderVariants();
       updateNavigation();
+      updateDetailButton();
       showImage();
       preloadAround();
     }
@@ -1113,8 +1251,9 @@
       copyResetTimer = window.setTimeout(resetCopyButton, 1600);
     }
 
-    function open(nextItems, nextIndex = 0) {
+    function open(nextItems, nextIndex = 0, nextContext = {}) {
       if (!Array.isArray(nextItems) || !nextItems.length) return;
+      context = { gameId: nextContext.gameId || '', characterId: nextContext.characterId || '' };
       items = nextItems;
       itemIndex = Math.min(Math.max(Number(nextIndex) || 0, 0), items.length - 1);
       variantIndex = 0;
@@ -1143,6 +1282,7 @@
       itemIndex = 0;
       variantIndex = 0;
       lightboxImage.removeAttribute('src');
+      lightboxDetail.hidden = true;
       if (historyEntryActive && !fromHistory) {
         historyEntryActive = false;
         window.history.back();
@@ -1160,6 +1300,7 @@
     lightboxNextMobile.addEventListener('click', () => move(1));
     copyImageUrl.addEventListener('click', copyCurrentUrl);
     copyImageCrop.addEventListener('click', copyVisibleCrop);
+    lightboxDetail.addEventListener('click', goToDetail);
     lightboxImage.addEventListener('load', markImageLoaded);
     lightboxImage.addEventListener('error', markImageFailed);
     lightbox.addEventListener('cancel', (event) => {

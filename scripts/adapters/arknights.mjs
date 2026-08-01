@@ -2,14 +2,14 @@
 //
 // 공식 데이터에 성별 필드는 없지만 핸드북 프로필 본문에 `[Gender] Female` 이 들어 있어
 // 자동 판별이 된다 (registry 의 genderFilter: 'handbook').
-import { fetchJson, slug, filterLiveImages, mapLimited, isMissingUrl } from './shared.mjs';
+import { fetchJson, slug, mapLimited, isMissingUrl, additionOrderOf } from './shared.mjs';
 
 const GAME_DATA = 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/main';
 // 전신 일러는 Aceship 이 화질이 가장 좋지만 최신 오퍼레이터가 빠져 있다(표본 14% 누락).
 // 아이콘은 커버리지가 완전한 ArknightsGameResource 를 쓰고, 전신은 Aceship 을 쓰되
 // 실제로 없는 것은 빌드에서 걸러낸다.
 const IMAGES = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main';
-const AVATARS = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/avatar';
+const RESOURCE = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main';
 
 // 'Lady' 는 여성으로 본다. 'Conviction'·'Unknown' 같은 장난·미상 값은 제외한다.
 const FEMALE_VALUES = new Set(['female', 'lady']);
@@ -49,8 +49,17 @@ function skinIdOf(portraitId) {
 }
 
 /** portraitId 에는 '#' 과 '+' 가 들어간다. 경로에 그대로 못 쓰므로 인코딩한다. */
-function portraitUrl(portraitId) {
+function acePortrait(portraitId) {
   return `${IMAGES}/characters/${encodeURIComponent(portraitId)}.png`;
+}
+
+/**
+ * 대체 저장소의 소형 일러(90KB 급). 커버리지가 완전해서 두 가지로 쓴다.
+ *  1) Aceship 에 아직 없는 최신 오퍼레이터의 대체본
+ *  2) 목록·상세 카드 썸네일 (Aceship 원본은 1~5MB 라 카드에 직접 쓰기 어렵다)
+ */
+function resourcePortrait(portraitId) {
+  return `${RESOURCE}/portrait/${encodeURIComponent(portraitId)}.png`;
 }
 
 export default async function buildArknights() {
@@ -77,6 +86,11 @@ export default async function buildArknights() {
       name: isDefault ? defaultSkinLabel(portraitId) : skin.displaySkin.skinName,
       isDefault,
       sortOrder: Number(skin.displaySkin?.sortId ?? 0),
+      // displaySkin.getTime 은 스킨 실장 시각(epoch 초)이다. 유상·이벤트 스킨에만
+      // 들어 있고 기본 아트는 0 이라, 있을 때만 실제 날짜로 쓴다.
+      releasedAt: Number(skin.displaySkin?.getTime) > 0
+        ? new Date(Number(skin.displaySkin.getTime) * 1000).toISOString().slice(0, 10)
+        : undefined,
     });
   }
 
@@ -99,10 +113,12 @@ export default async function buildArknights() {
       id,
       names,
       group: PROFESSION_KO[entry.profession] || entry.profession || '기타',
-      profileImage: `${AVATARS}/${encodeURIComponent(charId)}.png`,
+      profileImage: `${RESOURCE}/avatar/${encodeURIComponent(charId)}.png`,
       sourceUrl,
       images: list.map((skin) => ({
-        url: portraitUrl(skin.portraitId),
+        url: acePortrait(skin.portraitId),
+        thumbUrl: resourcePortrait(skin.portraitId),
+        portraitId: skin.portraitId,
         group: skin.name,
         type: skin.isDefault ? '기본' : '의상',
         sourceType: skin.isDefault ? 'official_standing' : 'official_skin',
@@ -117,31 +133,65 @@ export default async function buildArknights() {
         character: { id, names },
         skinName: skin.name,
         group: skin.name,
-        url: portraitUrl(skin.portraitId),
+        url: acePortrait(skin.portraitId),
+        thumbUrl: resourcePortrait(skin.portraitId),
+        portraitId: skin.portraitId,
         sourceUrl,
         sourceType: skin.isDefault ? 'official_standing' : 'official_skin',
-        additionOrder: skin.sortOrder * 1000 + index,
+        ...(skin.releasedAt ? { releasedAt: skin.releasedAt } : {}),
+        additionOrder: additionOrderOf(skin.releasedAt, skin.sortOrder * 1000 + index),
       });
     });
   }
 
-  // Aceship 에 없는 전신 일러를 걷어내고, 남은 이미지가 없는 오퍼레이터는 뺀다.
-  const liveUrls = new Set();
-  const allImages = characters.flatMap((character) => character.images);
-  const live = await filterLiveImages(allImages, 'Arknights portraits');
-  for (const image of live) liveUrls.add(image.url);
-  for (const character of characters) {
-    character.images = character.images.filter((image) => liveUrls.has(image.url));
-  }
-  const kept = characters.filter((character) => character.images.length);
-  const droppedCharacters = characters.length - kept.length;
-  if (droppedCharacters) console.log(`Arknights: dropped ${droppedCharacters} operator(s) with no available art`);
-  characters.length = 0;
-  characters.push(...kept);
+  // 두 소스를 모두 확인한다.
+  //  - Aceship: 화질이 좋지만 최신 오퍼레이터가 빠져 있다
+  //  - ArknightsGameResource: 소형이지만 커버리지가 넓다. 썸네일 겸 대체본으로 쓴다
+  // 대체본에도 없는 스킨이 있으므로(ambienceSynesthesia 계열) 썸네일도 확인해야 한다.
+  const allImages = [...characters.flatMap((character) => character.images), ...skins];
+  const aceUrls = [...new Set(allImages.map((image) => image.url))];
+  const resourceUrls = [...new Set(allImages.map((image) => image.thumbUrl))];
+  const [aceMissing, resourceMissing] = await Promise.all([
+    mapLimited(aceUrls, 6, (url) => isMissingUrl(url)),
+    mapLimited(resourceUrls, 6, (url) => isMissingUrl(url)),
+  ]);
+  const missingAce = new Set(aceUrls.filter((_, index) => aceMissing[index]));
+  const missingResource = new Set(resourceUrls.filter((_, index) => resourceMissing[index]));
 
-  const keptSkins = skins.filter((skin) => liveUrls.has(skin.url));
+  let swapped = 0;
+  let thumbless = 0;
+  let removed = 0;
+  const resolve = (image) => {
+    const fallback = image.thumbUrl;
+    // 썸네일이 없으면 필드를 빼서 프런트엔드가 원본으로 되돌아가게 한다.
+    if (missingResource.has(fallback)) {
+      delete image.thumbUrl;
+      thumbless += 1;
+    }
+    if (!missingAce.has(image.url)) return true;
+    // 전신이 없으면 대체본을 본문으로 승격한다. 그것도 없으면 이 이미지는 뺀다.
+    if (missingResource.has(fallback)) return false;
+    image.url = fallback;
+    delete image.thumbUrl;
+    swapped += 1;
+    return true;
+  };
+
+  for (const character of characters) {
+    const before = character.images.length;
+    character.images = character.images.filter(resolve);
+    removed += before - character.images.length;
+  }
+  const keptSkins = skins.filter(resolve);
   skins.length = 0;
   skins.push(...keptSkins);
+  for (const image of [...characters.flatMap((c) => c.images), ...skins]) delete image.portraitId;
+
+  const kept = characters.filter((character) => character.images.length);
+  const droppedCharacters = characters.length - kept.length;
+  console.log(`Arknights art: ${swapped} swapped to the fallback source, ${thumbless} without a thumbnail, ${removed} removed, ${droppedCharacters} operator(s) dropped`);
+  characters.length = 0;
+  characters.push(...kept);
 
   if (characters.length < 150) {
     throw new Error(`Arknights roster is unexpectedly small (${characters.length})`);

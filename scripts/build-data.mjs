@@ -22,6 +22,29 @@ const publishedCache = new Map();
 await fs.mkdir(outDir, { recursive: true });
 
 // 게임 메타는 레지스트리가 단일 기준이다. 빌더마다 리터럴을 두면 이름·설명이 어긋난다.
+/**
+ * 표시 이름이 겹치는 캐릭터에 그룹(원소·속성)을 덧붙여 목록에서 구분되게 한다.
+ * 그래도 겹치면 영문명을 덧붙인다.
+ */
+function disambiguateByGroup(characters) {
+  const counts = new Map();
+  const labelOf = (character) => character.names.ko || character.names.en;
+  for (const character of characters) {
+    counts.set(labelOf(character), (counts.get(labelOf(character)) || 0) + 1);
+  }
+  for (const character of characters) {
+    const label = labelOf(character);
+    if ((counts.get(label) || 0) < 2) continue;
+    const suffix = ` · ${character.group}`;
+    const collides = characters.filter((other) => labelOf(other) === label
+      && `${label} · ${other.group}` === `${label}${suffix}`).length > 1;
+    const tail = collides ? ` (${character.names.en})` : suffix;
+    if (character.names.ko) character.names.ko += tail;
+    else character.names.en += tail;
+  }
+  return characters;
+}
+
 function gameMeta(gameId) {
   const game = gameById.get(gameId);
   if (!game) throw new Error(`unknown game id: ${gameId}`);
@@ -126,9 +149,17 @@ async function enrichSoundVoltex(data) {
     jackets.map((jacket) => [songKey(jacket.title || jacket.group), jacket]),
   );
   const linkedCharacters = new Map();
+  const koCounts = new Map();
+  for (const entry of links.characters || []) {
+    const label = entry.ko || entry.name;
+    koCounts.set(label, (koCounts.get(label) || 0) + 1);
+  }
   const characters = (links.characters || []).map((entry) => {
     const id = slug('sdvx', entry.name);
-    const names = { en: entry.name, ko: entry.ko || undefined, ja: entry.ja || undefined };
+    // 자매 캐릭터가 하나의 한국어 표기를 공유하는 경우가 있어 영문명으로 구분한다.
+    const label = entry.ko || entry.name;
+    const ko = entry.ko && koCounts.get(label) > 1 ? `${entry.ko} (${entry.name})` : entry.ko || undefined;
+    const names = { en: entry.name, ko, ja: entry.ja || undefined };
     const images = (entry.songs || []).flatMap((key) => {
       const jacket = jacketsBySong.get(key);
       if (!jacket) return [];
@@ -144,6 +175,8 @@ async function enrichSoundVoltex(data) {
         sourceUrl: jacket.sourceUrl,
         variants: jacket.variants,
         releasedAt: jacket.releasedAt,
+        // 라이트박스의 "이 자켓으로 이동"이 자켓 뷰의 어느 곡인지 찾을 때 쓴다.
+        jacketId: jacket.id,
       }];
     });
     return {
@@ -389,6 +422,8 @@ async function buildGenshin() {
     console.warn(`Genshin outfit enrichment skipped: ${error.message}`);
   }
 
+  // 여행자는 원소별로 6명이 같은 이름을 쓴다. 목록에서 구분되도록 원소를 덧붙인다.
+  disambiguateByGroup(characters);
   characters.sort((a, b) => a.group.localeCompare(b.group, 'ko') || (a.names.ko || a.names.en).localeCompare(b.names.ko || b.names.en, 'ko'));
   return { generatedAt, game: gameMeta('genshin'), characters };
 }

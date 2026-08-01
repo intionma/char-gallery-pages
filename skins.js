@@ -10,6 +10,11 @@
       gameName: game.name,
       dataFile: game.dataFile,
       description: game.labels?.skins || '',
+      // 게임마다 "스킨"이라 부를 수 없는 것들이 있다(자켓·공식 일러). 화면 문구는 레지스트리가 정한다.
+      title: game.labels?.skinsTitle || '전체 스킨',
+      entryLabel: game.labels?.skinsEntry || '전체 스킨 최신순 보기',
+      // additionOrder 의 근거가 게임마다 달라서 정렬 이름도 게임이 정한다.
+      orderLabel: game.labels?.skinsOrder || '추가순',
     }))
     .map((catalog) => ({
     ...catalog,
@@ -75,7 +80,7 @@
         <button class="skin-art" type="button" aria-label="${escapeHtml(`${displayName(skin)} ${skin.skinName} 크게 보기`)}">
           ${badge ? `<span class="skin-badge${skin.upcoming ? ' upcoming' : ''}">${escapeHtml(badge)}</span>` : ''}
           ${skin.announcementOnly ? '<span class="skin-waiting">공식 발표됨 · 전신 데이터 대기</span>' : ''}
-          <img src="${escapeHtml(skin.thumbUrl || skin.url)}" alt="${escapeHtml(`${displayName(skin)} ${skin.skinName}`)}" loading="${index < 12 ? 'eager' : 'lazy'}" referrerpolicy="${ui.referrerPolicyFor(skin.thumbUrl || skin.url)}">
+          <img src="${escapeHtml(ui.artThumb(skin))}" alt="${escapeHtml(`${displayName(skin)} ${skin.skinName}`)}" loading="${index < 12 ? 'eager' : 'lazy'}" referrerpolicy="${ui.referrerPolicyFor(ui.artThumb(skin))}">
         </button>
         <div class="skin-info">
           <strong>${escapeHtml(skin.skinName)}</strong>
@@ -87,7 +92,7 @@
   async function renderSkins(catalog) {
     const token = ++renderToken;
     ui?.setTheme?.(catalog.gameId);
-    ui?.setHeader?.({ title: `${catalog.gameName} · 전체 스킨`, subtitle: '불러오는 중…', back: catalog.gameRoute });
+    ui?.setHeader?.({ title: `${catalog.gameName} · ${catalog.title}`, subtitle: '불러오는 중…', back: catalog.gameRoute });
     ui?.setRouteActions?.('');
     app.innerHTML = `<section class="skins-view" data-skins-view="${escapeHtml(catalog.gameId)}"><div class="skeleton"></div></section>`;
     try {
@@ -97,6 +102,7 @@
       if (token !== renderToken || skinCatalogForRoute()?.gameId !== catalog.gameId) return;
       const skins = Array.isArray(data.skins) ? data.skins : [];
       if (!skins.length) throw new Error('스킨 데이터가 없습니다.');
+      ui?.setCensorAvailability?.(skins.some((skin) => skin.safeUrl));
       const generated = data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '';
       if (ui?.setStatus) ui.setStatus(generated);
       else status.textContent = generated;
@@ -105,9 +111,9 @@
           ${data.stale ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 스킨 데이터를 표시합니다.</div>' : ''}
           <div class="toolbar skin-toolbar">
             <input id="skinSearch" type="search" placeholder="스킨 또는 캐릭터 검색" autocomplete="off">
-            <select id="skinSort" aria-label="정렬"><option value="newest">최신 추가순 ↓</option><option value="oldest">오래된 추가순 ↑</option><option value="name">이름순</option></select>
+            <select id="skinSort" aria-label="정렬"><option value="newest">최신 ${escapeHtml(catalog.orderLabel)} ↓</option><option value="oldest">오래된 ${escapeHtml(catalog.orderLabel)} ↑</option><option value="name">이름순</option></select>
           </div>
-          <div class="section-title"><h2>전체 스킨</h2><span id="skinCount"></span></div>
+          <div class="section-title"><h2>${escapeHtml(catalog.title)}</h2><span id="skinCount"></span></div>
           <section id="skinGrid" class="skin-grid"></section>
           <button id="skinMore" class="button skin-more" type="button" hidden></button>
         </section>`;
@@ -142,7 +148,7 @@
           return byOrder || String(a.id).localeCompare(String(b.id));
         });
         count.textContent = `${visible.length}종`;
-        ui?.setHeader?.({ title: `${catalog.gameName} · 전체 스킨`, subtitle: `${visible.length}종`, back: catalog.gameRoute });
+        ui?.setHeader?.({ title: `${catalog.gameName} · ${catalog.title}`, subtitle: `${visible.length}종`, back: catalog.gameRoute });
         grid.innerHTML = visible.slice(0, shown).map(card).join('');
         const remaining = visible.length - shown;
         more.hidden = remaining <= 0;
@@ -162,14 +168,14 @@
         const skin = article ? byId.get(article.dataset.skinId) : null;
         if (skin) {
           const index = visible.findIndex((item) => item.id === skin.id);
-          window.CharGalleryViewer?.open(visible, index);
+          window.CharGalleryViewer?.open(visible, index, { gameId: catalog.gameId });
         }
       });
       update();
     } catch (error) {
       if (token !== renderToken || skinCatalogForRoute()?.gameId !== catalog.gameId) return;
       app.innerHTML = `<section class="skins-view" data-skins-view="${escapeHtml(catalog.gameId)}"><div class="error">스킨 목록을 불러오지 못했어요.<br><small>${escapeHtml(error.message || String(error))}</small><br><button class="button" type="button" data-skins-retry>다시 시도</button></div></section>`;
-      ui?.setHeader?.({ title: `${catalog.gameName} · 전체 스킨`, subtitle: '불러오기 실패', back: catalog.gameRoute });
+      ui?.setHeader?.({ title: `${catalog.gameName} · ${catalog.title}`, subtitle: '불러오기 실패', back: catalog.gameRoute });
       if (ui?.setStatus) ui.setStatus('스킨 데이터 로드 실패');
       else status.textContent = '스킨 데이터 로드 실패';
       app.querySelector('[data-skins-retry]')?.addEventListener('click', () => renderSkins(catalog));
@@ -185,7 +191,7 @@
     button.type = 'button';
     button.dataset.skinsEntry = catalog.gameId;
     button.className = 'feature-link';
-    button.innerHTML = '<span>전체 스킨 최신순 보기</span><span aria-hidden="true">→</span>';
+    button.innerHTML = `<span>${escapeHtml(catalog.entryLabel)}</span><span aria-hidden="true">→</span>`;
     button.addEventListener('click', () => navigate(catalog.route));
     if (first) app.insertBefore(button, first);
     else app.appendChild(button);
@@ -216,6 +222,12 @@
     });
   }
 
+  // 검열 토글은 app.js 가 처리하지만 전체 스킨 뷰는 app.js 의 renderRoute 가 건너뛴다.
+  // 이벤트를 받아 여기서 다시 그린다.
+  window.addEventListener('cg-censor-change', () => {
+    const catalog = skinCatalogForRoute();
+    if (catalog) renderSkins(catalog);
+  });
   window.addEventListener('hashchange', syncRoute, { capture: true });
   new MutationObserver(scheduleSync).observe(app, { childList: true, subtree: true });
   syncRoute();

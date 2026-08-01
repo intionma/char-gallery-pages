@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
-import { filterLiveImages as filterLive, mapLimited } from './adapters/shared.mjs';
-import { gameById } from './games/registry.mjs';
+import { filterLiveImages as filterLive, mapLimited, additionOrderOf } from './adapters/shared.mjs';
+import { GAMES, gameById } from './games/registry.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -244,6 +244,8 @@ function postToImage(post) {
     sourceType: 'fanart',
     sourceUrl,
     artist: post.tag_string_artist?.split(' ').join(', ') || undefined,
+    // 전체 일러 뷰의 "최신 추가순"이 기댈 유일한 실제 시각이다.
+    releasedAt: /^\d{4}-\d{2}-\d{2}/.test(post.created_at || '') ? post.created_at.slice(0, 10) : undefined,
     score: post.score,
   };
 }
@@ -344,6 +346,145 @@ async function pruneGenshinDeadArt() {
   console.log(`Genshin art verified: ${data.characters.length}/${before} characters kept${dropped ? ` (${dropped} dropped)` : ''}`);
 }
 
+/**
+ * 모든 게임에 공통으로 도는 정리 단계.
+ *  - 캐릭터가 없는 스킨은 전체 스킨 뷰에서 눌러도 404 로 가므로 뺀다.
+ *  - 이미지가 하나도 없는 캐릭터는 목록에 빈 카드로 남으므로 뺀다.
+ * 소스가 서로 다른 경로로 만들어지는 게임(블루 아카이브·SDVX)에서 실제로 발생했다.
+ */
+async function pruneDanglingReferences() {
+  for (const game of GAMES) {
+    let data;
+    try {
+      data = await readJson(game.dataFile);
+    } catch {
+      continue;
+    }
+    if (data.error) continue;
+    const characters = Array.isArray(data.characters) ? data.characters : [];
+    const skins = Array.isArray(data.skins) ? data.skins : [];
+
+    const withArt = characters.filter((character) => (character.images || []).length);
+    const droppedCharacters = characters.length - withArt.length;
+
+    const ids = new Set(withArt.map((character) => character.id));
+    const linkedSkins = skins.filter((skin) => !skin.characterId || ids.has(skin.characterId));
+    const droppedSkins = skins.length - linkedSkins.length;
+
+    if (!droppedCharacters && !droppedSkins) continue;
+
+    // 자켓 게임은 캐릭터가 부가 정보라 목록 건수를 매니페스트가 세지 않는다.
+    if (characters.length) data.characters = withArt;
+    if (skins.length) data.skins = linkedSkins;
+    await writeJson(game.dataFile, data);
+
+    if (game.collection === 'characters' && droppedCharacters) {
+      const manifest = await readJson('manifest.json');
+      const result = (manifest.results || []).find((entry) => entry.name === game.dataFile);
+      if (result) result.count = withArt.length;
+      await writeJson('manifest.json', manifest);
+    }
+    console.log(`${game.id}: pruned ${droppedCharacters} character(s) without art, ${droppedSkins} dangling skin(s)`);
+  }
+}
+
+/**
+ * 전체 스킨 뷰가 켜져 있는데 스킨 목록이 없는 게임은 캐릭터 이미지에서 만들어 준다.
+ *
+ * DJMAX·스타레일·SDVX 처럼 원본에 "스킨" 개념이 없는 게임도 같은 화면을 갖게 하는 게
+ * 목적이다. 어댑터가 이미 스킨을 만들어 두면 손대지 않는다.
+ */
+async function ensureSkinCatalogs() {
+  for (const game of GAMES) {
+    if (!game.features?.skins) continue;
+    const data = await readJson(game.dataFile);
+    if (Array.isArray(data.skins) && data.skins.length) continue;
+
+    const skins = [];
+    (data.characters || []).forEach((character, characterIndex) => {
+      const names = character.names;
+      (character.images || []).forEach((image, index) => {
+        if (!image.url) return;
+        const label = image.group || image.type || '기본';
+        skins.push({
+          id: slug(`${game.id}-art`, `${character.id}-${index}`),
+          characterId: character.id,
+          character: { id: character.id, names },
+          // 팬아트는 라벨이 전부 '팬아트'라 카드가 구분되지 않는다. 작가명을 붙인다.
+          skinName: image.sourceType === 'fanart' && image.artist ? `${label} · ${image.artist}` : label,
+          group: label,
+          url: image.url,
+          ...(image.thumbUrl ? { thumbUrl: image.thumbUrl } : {}),
+          ...(image.artist ? { artist: image.artist } : {}),
+          ...(image.variants ? { variants: image.variants } : {}),
+          ...(image.releasedAt || character.releasedAt
+            ? { releasedAt: image.releasedAt || character.releasedAt }
+            : {}),
+          sourceUrl: image.sourceUrl || character.sourceUrl,
+          sourceType: image.sourceType || 'official_misc',
+          additionOrder: additionOrderOf(
+            image.releasedAt || character.releasedAt,
+            characterIndex * 100 + index,
+          ),
+        });
+      });
+    });
+
+    if (!skins.length) throw new Error(`${game.id}: 전체 스킨 뷰를 켰지만 만들 이미지가 없습니다`);
+    skins.sort((a, b) => b.additionOrder - a.additionOrder || String(a.id).localeCompare(String(b.id)));
+    data.skins = skins;
+    await writeJson(game.dataFile, data);
+    console.log(`${game.id}: derived ${skins.length} skin(s) from character art`);
+  }
+}
+
+/**
+ * "최신 추가순"이 실제로 최신순이 되게 한다.
+ *
+ * 원본이 출시일을 주지 않는 게임(벽람항로 등)은 정렬 키가 원본 나열 순서일 뿐이라
+ * 새 항목이 위로 오지 않는다. 이미 배포된 데이터에 있던 항목은 그때의 키를 그대로
+ * 유지하고, 처음 보는 항목에만 지금 시각을 준다. 그러면 나열 순서를 기준선으로 삼되
+ * 새로 추가된 것은 항상 맨 위로 온다.
+ *
+ * 최초 배포이거나 원격을 못 읽으면 아무것도 바꾸지 않는다. 그러지 않으면 전체가
+ * "방금 추가됨"이 되어 정렬이 통째로 무의미해진다.
+ */
+async function applyFirstSeenSkinOrder() {
+  if (SKIP_REMOTE) return;
+  const firstSeenAt = Date.now();
+  for (const game of GAMES) {
+    if (!game.features?.skins) continue;
+    const data = await readJson(game.dataFile);
+    const skins = Array.isArray(data.skins) ? data.skins : [];
+    if (!skins.length) continue;
+
+    let published;
+    try {
+      published = await fetchJson(`https://intionma.github.io/char-gallery-pages/data/${game.dataFile}`);
+    } catch (error) {
+      console.warn(`${game.id}: previous skin order unavailable (${error.message})`);
+      continue;
+    }
+    const orders = new Map((published.skins || [])
+      .filter((skin) => Number.isFinite(Number(skin.additionOrder)))
+      .map((skin) => [skin.id, Number(skin.additionOrder)]));
+    if (!orders.size) continue;
+
+    let added = 0;
+    for (const skin of skins) {
+      // 원본이 실제 날짜를 준 항목은 그 날짜가 진실이다. 최초 관측 시각은 어디까지나
+      // 날짜를 모르는 항목의 대체값이지, 아는 날짜를 덮어쓸 근거가 아니다.
+      if (skin.releasedAt) continue;
+      const seen = orders.get(skin.id);
+      if (seen == null) added += 1;
+      skin.additionOrder = Math.max(Number(skin.additionOrder) || 0, seen ?? firstSeenAt);
+    }
+    skins.sort((a, b) => b.additionOrder - a.additionOrder || String(a.id).localeCompare(String(b.id)));
+    await writeJson(game.dataFile, data);
+    if (added) console.log(`${game.id}: ${added} newly added skin(s) moved to the top`);
+  }
+}
+
 async function restoreGameLogos() {
   const manifest = await readJson('manifest.json');
   manifest.games = (manifest.games || []).map((game) => ({
@@ -359,4 +500,8 @@ async function restoreGameLogos() {
 await enrichBlueArchive();
 await enrichDjmax();
 await pruneGenshinDeadArt();
+await pruneDanglingReferences();
+// 스킨 목록을 채운 뒤에 정렬 키를 잡아야 파생 스킨도 같은 규칙을 따른다.
+await ensureSkinCatalogs();
+await applyFirstSeenSkinOrder();
 await restoreGameLogos();
