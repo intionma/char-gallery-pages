@@ -134,6 +134,18 @@ for (const [gameId, expectation] of Object.entries(expectations)) {
     if (skin.thumbUrl) httpsUrl(gameId, `skin ${skin.id} thumbUrl`, skin.thumbUrl);
     if (skin.safeUrl) httpsUrl(gameId, `skin ${skin.id} safeUrl`, skin.safeUrl);
     if (skin.safeThumbUrl) httpsUrl(gameId, `skin ${skin.id} safeThumbUrl`, skin.safeThumbUrl);
+    // 한 스킨에 여러 장의 아트가 딸린 경우(컨셉아트·삼면도). 첫 변형이 라이트박스가 여는 그림이라
+    // 대표 주소와 어긋나면 카드와 다른 그림이 열린다.
+    for (const [index, variant] of (skin.variants || []).entries()) {
+      if (!variant.difficulty) fail(gameId, `skin ${skin.id} has an unlabeled view`);
+      httpsUrl(gameId, `skin ${skin.id} view ${index}`, variant.url);
+    }
+    if (skin.variants?.length === 1) {
+      fail(gameId, `skin ${skin.id} has a single view (the switcher would be pointless)`);
+    }
+    if (skin.variants?.length && skin.variants[0].url !== skin.url) {
+      fail(gameId, `skin ${skin.id} does not use its first view as the cover`);
+    }
   }
   // 전체 스킨 뷰는 캐릭터 상세로 되돌아가는 버튼을 스킨의 characterId 로 만든다.
   // 이름이 겹쳐 보이는 문제와 별개로, 스킨 쪽 이름 사본이 비면 카드가 id 를 노출한다.

@@ -702,8 +702,12 @@
       VVD: '#ff5fa2',
       XCD: '#3d7bff',
       기본: '#9aa4b2',
+      // 한 스킨에 딸린 여러 장의 아트(이터널 리턴 로드맵·티저)를 넘겨볼 때 쓰는 라벨.
+      일러스트: '#7fd4ff',
+      컨셉아트: '#ffc46b',
+      삼면도: '#b79bff',
     };
-    const LIGHT_VARIANTS = new Set(['MXM', '기본']);
+    const LIGHT_VARIANTS = new Set(['MXM', '기본', '일러스트', '컨셉아트', '삼면도']);
     const pointers = new Map();
     let items = [];
     let itemIndex = 0;
@@ -772,7 +776,11 @@
 
     function sourceLabel(item) {
       if (SOURCE_LABELS[item?.sourceType]) return SOURCE_LABELS[item.sourceType];
-      if (variantsFor(item).length) return 'SOUND VOLTEX · 자켓';
+      // variants 는 자켓 전용이 아니다. 스킨 한 건에 딸린 컨셉아트·삼면도도 같은 장치를 쓴다.
+      // 자켓이라고 부를 수 있는 건 자켓 뷰를 가진 게임에서 연 이미지뿐이다.
+      if (GAME_BY_ID.get(context.gameId)?.features?.jackets && variantsFor(item).length) {
+        return 'SOUND VOLTEX · 자켓';
+      }
       if (item?.type === '기본') return SOURCE_LABELS.official_standing;
       if (item?.type === '의상') return SOURCE_LABELS.official_skin;
       return '공식 이미지';

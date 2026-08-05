@@ -26,23 +26,52 @@
 
 export const USER_AGENT = 'char-gallery-pages/1.0 (+https://github.com/intionma/char-gallery-pages)';
 
+/**
+ * 일시적인 거절(429 레이트리밋, 5xx)만 지수 백오프로 다시 시도한다.
+ *
+ * 위키 API 는 문서를 수백 건씩 훑기 때문에 429 를 자주 돌려준다. 여기서 한 번
+ * 실패하면 어댑터 전체가 예외로 끝나고 그 게임이 스냅샷 폴백으로 떨어진다.
+ * 404 처럼 다시 걸어도 결과가 같은 응답은 그대로 던진다.
+ */
+const RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
+
+async function fetchRetrying(url, options, accept) {
+  const attempts = options.attempts ?? 4;
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  let lastError;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    let retryAfterMs = 1000 * 2 ** attempt;
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: { Accept: accept, 'User-Agent': USER_AGENT, ...(options.headers || {}) },
+        signal: AbortSignal.timeout(options.timeout || 60000),
+      });
+      if (response.ok) return response;
+
+      lastError = new Error(`${response.status} ${response.statusText}: ${url}`);
+      // 404 처럼 다시 걸어도 답이 같은 응답은 즉시 포기한다.
+      if (!RETRY_STATUSES.has(response.status)) throw lastError;
+      const retryAfter = Number(response.headers.get('retry-after'));
+      if (Number.isFinite(retryAfter) && retryAfter > 0) retryAfterMs = Math.min(retryAfter * 1000, 30000);
+    } catch (error) {
+      if (error === lastError && !RETRY_STATUSES.has(Number(String(error.message).slice(0, 3)))) throw error;
+      // 네트워크 오류·타임아웃도 다시 시도할 값어치가 있다.
+      lastError = error;
+    }
+    if (attempt < attempts - 1) await wait(retryAfterMs);
+  }
+  throw lastError;
+}
+
 export async function fetchJson(url, options = {}) {
-  const response = await fetch(url, {
-    ...options,
-    headers: { Accept: 'application/json,*/*', 'User-Agent': USER_AGENT, ...(options.headers || {}) },
-    signal: AbortSignal.timeout(options.timeout || 60000),
-  });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${url}`);
+  const response = await fetchRetrying(url, options, 'application/json,*/*');
   return response.json();
 }
 
 export async function fetchText(url, options = {}) {
-  const response = await fetch(url, {
-    ...options,
-    headers: { Accept: 'text/html,application/javascript,*/*', 'User-Agent': USER_AGENT, ...(options.headers || {}) },
-    signal: AbortSignal.timeout(options.timeout || 60000),
-  });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${url}`);
+  const response = await fetchRetrying(url, options, 'text/html,application/javascript,*/*');
   return response.text();
 }
 
