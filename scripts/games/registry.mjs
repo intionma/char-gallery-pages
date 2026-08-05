@@ -94,12 +94,15 @@ export const GAMES = [
     dataDescription: 'DAK.GG 및 공식 위키 기반 스탠딩과 스킨',
     coverImage: 'https://cdn.dak.gg/assets/er/game-assets/11.7.0/ui/characterfullsize/CharFull_Jackie_S000.png',
     collection: 'characters',
-    features: { skins: true, jackets: false },
+    features: { skins: true, jackets: false, wallpapers: true },
     labels: {
       detailSection: '스탠딩 · 의상',
       emptyList: '표시할 캐릭터가 없습니다.',
       skins: '기본 스탠딩과 스킨을 출시·추가 최신순으로 한 번에 봅니다.',
       skinsOrder: '추가순',
+      wallpapersTitle: '시즌 배경화면',
+      wallpapersEntry: '시즌 배경화면 보기',
+      wallpapers: '공식 팬키트의 시즌별 배경화면을 최신 시즌순으로 봅니다.',
     },
     sort: {
       capability: 'release',

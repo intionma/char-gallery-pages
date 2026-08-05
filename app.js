@@ -236,6 +236,10 @@
       if (!DATA_FILES[gameId]) return renderNotFound();
       if (parts[2] === 'skins') return;
       if (parts[2] === 'character' && parts[3]) return renderCharacter(gameId, parts[3]);
+      if (GAME_BY_ID.get(gameId)?.features?.wallpapers && parts[2] === 'wallpapers') {
+        const data = await loadJson(DATA_FILES[gameId]);
+        return renderWallpapers(data, gameId);
+      }
       if (GAME_BY_ID.get(gameId)?.features?.jackets && parts[2] === 'jackets') {
         const data = await loadJson(DATA_FILES[gameId]);
         // parts[3] 이 있으면 그 자켓까지 펼쳐서 라이트박스로 연다 ("이 자켓으로 이동").
@@ -325,6 +329,9 @@
       features.skins
         ? `<button class="feature-link" type="button" data-skins-entry="${escapeAttr(gameId)}"><span>${escapeHtml(labels.skinsEntry || '전체 스킨 최신순 보기')}</span><span aria-hidden="true">→</span></button>`
         : '',
+      features.wallpapers
+        ? `<button class="feature-link" type="button" data-wallpapers-entry><span>${escapeHtml(labels.wallpapersEntry || '배경화면 보기')}</span><span aria-hidden="true">→</span></button>`
+        : '',
     ].filter(Boolean).join('');
 
     app.innerHTML = `
@@ -411,6 +418,7 @@
     });
     app.querySelector('[data-jackets-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/jackets`));
     app.querySelector('[data-skins-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/skins`));
+    app.querySelector('[data-wallpapers-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/wallpapers`));
     update();
   }
 
@@ -663,6 +671,44 @@
         imageViewer.open(visibleRows, position, { gameId });
       }
     }
+  }
+
+  /**
+   * 시즌 배경화면 뷰. 캐릭터가 아니라 시즌 단위라 목록·정렬 장치가 필요 없고,
+   * 카드는 가로가 긴 4K 이미지라 자켓 그리드와 다른 비율을 쓴다.
+   */
+  function renderWallpapers(data, gameId) {
+    setTheme(gameId);
+    const labels = GAME_BY_ID.get(gameId)?.labels || {};
+    const title = labels.wallpapersTitle || '배경화면';
+    const wallpapers = Array.isArray(data.wallpapers) ? data.wallpapers : [];
+
+    setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
+    setHeader({ title, subtitle: `${wallpapers.length}종`, back: `game/${gameId}` });
+    app.innerHTML = `
+      ${labels.wallpapers ? `<p class="view-note">${escapeHtml(labels.wallpapers)}</p>` : ''}
+      <div class="section-title"><h2>${escapeHtml(title)}</h2><span>${wallpapers.length}종</span></div>
+      <section class="wallpaper-grid">
+        ${wallpapers.length ? wallpapers.map((wallpaper, index) => `
+          <article class="wallpaper-card">
+            <button class="art" type="button" data-image-index="${index}" aria-label="${escapeAttr(`${wallpaper.title} 크게 보기`)}">
+              ${wallpaper.width && wallpaper.height ? `<span class="badge">${escapeHtml(wallpaper.width)}×${escapeHtml(wallpaper.height)}</span>` : ''}
+              <img src="${escapeAttr(wallpaper.thumbUrl || wallpaper.url)}" alt="${escapeAttr(wallpaper.title)}" loading="${index < 6 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(wallpaper.thumbUrl || wallpaper.url)}">
+            </button>
+            <div class="info"><strong>${escapeHtml(wallpaper.title)}</strong></div>
+          </article>
+        `).join('') : '<div class="empty">배경화면 데이터가 없습니다.</div>'}
+      </section>
+    `;
+    // 라이트박스는 축소본이 아니라 원본 4K를 연다.
+    const items = wallpapers.map((wallpaper) => ({
+      ...wallpaper,
+      viewerTitle: wallpaper.title,
+      viewerMeta: [wallpaper.season, wallpaper.width && `${wallpaper.width}×${wallpaper.height}`].filter(Boolean).join(' · '),
+    }));
+    app.querySelectorAll('[data-image-index]').forEach((card) => {
+      card.addEventListener('click', () => imageViewer.open(items, Number(card.dataset.imageIndex), { gameId }));
+    });
   }
 
   function jacketCard(jacket, index, selectedLevel) {

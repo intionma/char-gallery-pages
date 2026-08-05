@@ -431,6 +431,56 @@ async function buildGenshin() {
 // 구현은 어댑터 공용 모듈에 한 벌만 둔다. 신규 위키 기반 게임도 같은 것을 쓴다.
 const wikiCategory = wikiCategoryMembers;
 
+/**
+ * 아직 출시되지 않아 DAK 에도 위키에도 없는 실험체.
+ *
+ * 시즌 로드맵·티저에만 공개돼 있어 이 목록이 유일한 출처다. 출시되면 DAK 에서
+ * 같은 id 로 잡히므로, 그때 이 파일에서 지우면 자동으로 정식 데이터가 이긴다.
+ */
+async function upcomingEternalReturn() {
+  const file = path.resolve(__dirname, 'data/er-upcoming-characters.json');
+  const seeds = JSON.parse(await fs.readFile(file, 'utf8'));
+  return seeds.map((seed) => ({
+    id: slug('er', seed.name),
+    names: { en: seed.name, ko: seed.ko },
+    group: '실험체',
+    profileImage: seed.profileImage,
+    sourceUrl: seed.sourceUrl,
+    images: [{
+      url: seed.profileImage,
+      group: '기본',
+      type: '기본',
+      sourceUrl: seed.sourceUrl,
+    }],
+    releasedAt: seed.releasedAt,
+    upcoming: true,
+    releaseSequence: Number.MAX_SAFE_INTEGER,
+  }));
+}
+
+/**
+ * 시즌 배경화면. 공식 팬키트(구글 드라이브 공개 폴더)가 출처다.
+ *
+ * 드라이브 이미지 CDN 은 `=w<px>` 로 축소본, `=s0` 로 원본을 준다. 4K 원본을
+ * 목록에 그대로 걸면 한 화면에 수십 MB 라 카드에는 축소본을 쓴다.
+ */
+async function eternalReturnWallpapers() {
+  const file = path.resolve(__dirname, 'data/er-wallpapers.json');
+  const seeds = JSON.parse(await fs.readFile(file, 'utf8'));
+  return seeds
+    .filter((seed) => seed.driveId)
+    .map((seed) => ({
+      id: slug('er-wallpaper', seed.season || seed.title),
+      title: seed.title,
+      season: seed.season,
+      width: seed.width,
+      height: seed.height,
+      url: `https://lh3.googleusercontent.com/d/${seed.driveId}=s0`,
+      thumbUrl: `https://lh3.googleusercontent.com/d/${seed.driveId}=w640`,
+      sourceUrl: seed.sourceUrl,
+    }));
+}
+
 async function buildEternalReturn() {
   const host = 'eternalreturn.fandom.com';
   let female = new Set();
@@ -499,7 +549,7 @@ async function buildEternalReturn() {
       releasedAt: released ? new Date(released).toISOString().slice(0, 10) : undefined,
       releaseSequence: Number(dak.id) || 0,
     }];
-  }).sort((a, b) => {
+  }).concat(await upcomingEternalReturn()).sort((a, b) => {
     const aTime = Date.parse(a.releasedAt || '') || 0;
     const bTime = Date.parse(b.releasedAt || '') || 0;
     return bTime - aTime
@@ -512,6 +562,7 @@ async function buildEternalReturn() {
     generatedAt,
     game: gameMeta('eternal-return'),
     characters,
+    wallpapers: await eternalReturnWallpapers(),
     sortMetadata: {
       release: {
         available: matched > 0,

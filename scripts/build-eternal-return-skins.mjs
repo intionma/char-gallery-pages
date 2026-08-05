@@ -47,19 +47,33 @@ if (brokenSeeds.length) {
     brokenSeeds.map((skin) => `${skin.character || '?'}/${skin.group || '?'}`).join(', ')}`);
 }
 
+// 공식 팬키트(구글 드라이브 공개 폴더)의 전신·반신·컨셉 아트.
+// 드라이브 파일 ID 는 lh3 직링으로 열 수 있어 서버 없이도 <img> 에 걸린다.
+const FANKIT_ART = JSON.parse(
+  await fs.readFile(path.join(here, 'data/er-fankit-art.json'), 'utf8'),
+);
+const driveUrl = (id) => (id ? `https://lh3.googleusercontent.com/d/${id}` : undefined);
+const fankitByKey = new Map(
+  FANKIT_ART.map((art) => [`${norm(art.character)}:${norm(art.group)}`, art]),
+);
+
 /**
  * 스킨 한 건이 가진 여러 장의 아트를 라이트박스 변형 목록으로 만든다.
  *
- * 로드맵·티저는 스킨마다 키아트와 함께 컨셉아트·삼면도를 같이 공개한다.
- * 카드 한 장 안에서 넘겨볼 수 있게 SDVX 난이도 스위처와 같은 variants 를 쓴다.
+ * 로드맵·티저는 스킨마다 키아트와 함께 컨셉아트·삼면도를 공개하고, 공식 팬키트는
+ * 같은 스킨의 전신·반신·컨셉을 따로 배포한다. 카드 한 장 안에서 넘겨볼 수 있게
+ * SDVX 난이도 스위처와 같은 variants 를 쓴다.
  * 대표 이미지와 주소가 같은 뷰는 같은 그림이 두 번 나오므로 뺀다.
  */
-function skinViews(verified, mainUrl) {
-  if (!verified) return undefined;
+function skinViews(verified, mainUrl, fankit) {
+  if (!verified && !fankit) return undefined;
   const views = [
     ['일러스트', mainUrl],
-    ['컨셉아트', verified.conceptUrl],
-    ['삼면도', verified.sheetUrl],
+    ['컨셉아트', verified?.conceptUrl],
+    ['삼면도', verified?.sheetUrl],
+    ['팬키트 전신', driveUrl(fankit?.fullId)],
+    ['팬키트 반신', driveUrl(fankit?.halfId)],
+    ['팬키트 컨셉', driveUrl(fankit?.conceptId)],
   ];
   const seenUrls = new Set();
   const variants = [];
@@ -73,6 +87,22 @@ function skinViews(verified, mainUrl) {
 
 function norm(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * 스킨 id 의 뒷부분을 만든다.
+ *
+ * norm 은 ASCII 영숫자만 남기므로 한글 스킨명은 통째로 빈 문자열이 된다.
+ * 시즌 12 스킨은 이름이 전부 한글이라 그대로 두면 같은 캐릭터의 스킨끼리,
+ * 심하면 기본 스킨과도 id 가 겹친다. 비면 짧은 해시로 대신한다.
+ */
+function skinIdSuffix(group, baseSkin = false) {
+  if (baseSkin || group === '기본') return 'base';
+  const normalized = norm(group);
+  if (normalized) return normalized;
+  let hash = 0;
+  for (const ch of String(group)) hash = (hash * 31 + ch.codePointAt(0)) >>> 0;
+  return `k${hash.toString(36)}`;
 }
 
 function dateOrder(date) {
@@ -201,16 +231,17 @@ pageData.characters.forEach((character, characterIndex) => {
     const skinName = baseSkin ? '기본' : image.group || '의상';
     const key = `${norm(en)}:${baseSkin ? '__base__' : norm(skinName)}`;
     const rawName = dakRawName.get(key) || (baseSkin ? en : `${skinName} ${en}`.trim());
-    const verified = baseSkin ? undefined : verifiedByKey.get(`${norm(en)}:${norm(skinName)}`);
+    const verified = verifiedByKey.get(`${norm(en)}:${norm(skinName)}`);
     const seededDate = releaseDate(en, skinName, baseSkin);
     const seededOrder = seededDate ? dateOrder(seededDate) : undefined;
     const verifiedOrder = verified ? dateFromUrl(verified.mainUrl) : undefined;
     const wikiOrder = uploadDates.get(norm(rawName));
     const fallbackOrder = dakOrder.get(key) ?? 1_000_000 + characterIndex * 100 + skinIndex;
-    const id = `er-skin-${norm(character.id)}-${baseSkin ? 'base' : norm(skinName)}`;
+    const id = `er-skin-${norm(character.id)}-${skinIdSuffix(skinName, baseSkin)}`;
     if (seen.has(id)) return;
     seen.add(id);
-    const variants = skinViews(verified, verified?.mainUrl || image.url);
+    const fankit = fankitByKey.get(`${norm(en)}:${norm(skinName)}`);
+    const variants = skinViews(verified, verified?.mainUrl || image.url, fankit);
     // 캐릭터 상세도 같은 아트를 봐야 한다. 전체 스킨 뷰와 그림이 어긋나면 안 된다.
     if (verified?.forceMain) image.url = verified.mainUrl;
     if (variants) image.variants = variants;
@@ -233,11 +264,11 @@ pageData.characters.forEach((character, characterIndex) => {
 for (const verified of VERIFIED_SKINS) {
   const character = pageData.characters.find((item) => norm(item.names?.en) === norm(verified.character));
   if (!character) continue;
-  const id = `er-skin-${norm(character.id)}-${norm(verified.group)}`;
+  const id = `er-skin-${norm(character.id)}-${skinIdSuffix(verified.group)}`;
   if (seen.has(id)) continue;
   seen.add(id);
   const seededDate = releaseDate(verified.character, verified.group, false) || verified.releasedAt;
-  const variants = skinViews(verified, verified.mainUrl);
+  const variants = skinViews(verified, verified.mainUrl, fankitByKey.get(`${norm(verified.character)}:${norm(verified.group)}`));
   skins.push({
     id,
     characterId: character.id,
