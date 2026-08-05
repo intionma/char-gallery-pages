@@ -54,13 +54,29 @@ async function listFolder(folderId) {
   // 항목 경계로 잘라 읽는다. 중첩 태그를 정규식으로 세는 것보다 훨씬 덜 부서진다.
   for (const block of page.split('<div class="flip-entry"').slice(1)) {
     const id = block.match(ID)?.[1];
-    const name = block.match(TITLE)?.[1]?.trim();
+    const name = decodeEntities(block.match(TITLE)?.[1] || '').trim();
     if (!id || !name || seen.has(id)) continue;
     seen.add(id);
     out.push({ name, id, isFolder: block.match(HREF)?.[1] === 'drive/folders' });
   }
   return out;
 }
+
+// 드라이브 페이지는 이름을 HTML 이스케이프해서 넣는다. 그대로 두면 'Debi &amp; Marlene' 같은
+// 이름이 게임 쪽 'Debi & Marlene' 과 영영 매칭되지 않는다.
+const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+const decodeEntities = (value) => String(value).replace(
+  /&(#x[0-9a-f]+|#\d+|[a-z]+);/gi,
+  (match, body) => {
+    if (body[0] === '#') {
+      const code = body[1] === 'x' || body[1] === 'X'
+        ? Number.parseInt(body.slice(2), 16)
+        : Number.parseInt(body.slice(1), 10);
+      return Number.isFinite(code) ? String.fromCodePoint(code) : match;
+    }
+    return ENTITIES[body.toLowerCase()] ?? match;
+  },
+);
 
 const stripIndex = (name) => name.replace(/^\d+\.\s*/, '').trim();
 const slotOf = (fileName) => fileName.match(/_(?:Full|Half|Mini)_(\d+)\./i)?.[1]
