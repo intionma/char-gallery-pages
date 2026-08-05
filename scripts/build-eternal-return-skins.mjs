@@ -54,7 +54,7 @@ const FANKIT_ART = JSON.parse(
 );
 const driveUrl = (id) => (id ? `https://lh3.googleusercontent.com/d/${id}` : undefined);
 const fankitByKey = new Map(
-  FANKIT_ART.map((art) => [`${norm(art.character)}:${norm(art.group)}`, art]),
+  FANKIT_ART.map((art) => [`${normKey(art.character)}:${normKey(art.group)}`, art]),
 );
 
 /**
@@ -87,6 +87,18 @@ function skinViews(verified, mainUrl, fankit) {
 
 function norm(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * 이름을 짝지을 때 쓰는 키. norm 과 달리 한글을 남긴다.
+ *
+ * norm 은 ASCII 영숫자만 남기므로 한글 스킨명은 통째로 빈 문자열이 된다. 그러면
+ * '비형 컨셉아트' 같은 검증 항목이 그 캐릭터의 '기본' 스킨과 같은 키가 되어,
+ * forceMain 이 실제 스탠딩을 컨셉아트로 덮어썼다. 매칭에는 반드시 이쪽을 쓴다.
+ * (id 를 만들 때는 URL 안전한 ASCII 가 필요하므로 skinIdSuffix 를 쓴다.)
+ */
+function normKey(value) {
+  return String(value || '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
 }
 
 /**
@@ -190,7 +202,7 @@ const previous = await previousAdditionOrders();
 const firstSeenAt = Date.parse(pageData.generatedAt) || Date.now();
 
 const verifiedByKey = new Map(
-  VERIFIED_SKINS.map((skin) => [`${norm(skin.character)}:${norm(skin.group)}`, skin]),
+  VERIFIED_SKINS.map((skin) => [`${normKey(skin.character)}:${normKey(skin.group)}`, skin]),
 );
 const dakOrder = new Map();
 const dakRawName = new Map();
@@ -221,6 +233,7 @@ const rawNames = pageData.characters.flatMap((character) => {
 const uploadDates = await wikiUploadDates(rawNames);
 const skins = [];
 const seen = new Set();
+const overwrittenBases = [];
 
 pageData.characters.forEach((character, characterIndex) => {
   const en = character.names?.en || character.names?.ko || character.id;
@@ -231,7 +244,7 @@ pageData.characters.forEach((character, characterIndex) => {
     const skinName = baseSkin ? '기본' : image.group || '의상';
     const key = `${norm(en)}:${baseSkin ? '__base__' : norm(skinName)}`;
     const rawName = dakRawName.get(key) || (baseSkin ? en : `${skinName} ${en}`.trim());
-    const verified = verifiedByKey.get(`${norm(en)}:${norm(skinName)}`);
+    const verified = verifiedByKey.get(`${normKey(en)}:${normKey(skinName)}`);
     const seededDate = releaseDate(en, skinName, baseSkin);
     const seededOrder = seededDate ? dateOrder(seededDate) : undefined;
     const verifiedOrder = verified ? dateFromUrl(verified.mainUrl) : undefined;
@@ -240,10 +253,15 @@ pageData.characters.forEach((character, characterIndex) => {
     const id = `er-skin-${norm(character.id)}-${skinIdSuffix(skinName, baseSkin)}`;
     if (seen.has(id)) return;
     seen.add(id);
-    const fankit = fankitByKey.get(`${norm(en)}:${norm(skinName)}`);
+    const fankit = fankitByKey.get(`${normKey(en)}:${normKey(skinName)}`);
     const variants = skinViews(verified, verified?.mainUrl || image.url, fankit);
     // 캐릭터 상세도 같은 아트를 봐야 한다. 전체 스킨 뷰와 그림이 어긋나면 안 된다.
-    if (verified?.forceMain) image.url = verified.mainUrl;
+    // 기본 스탠딩을 덮는 건 원본에 아직 그 캐릭터가 없을 때뿐이라야 한다. 잘못 짝지어지면
+    // 실제 스탠딩이 컨셉아트로 바뀌어 버리므로 몇 건을 덮었는지 남긴다.
+    if (verified?.forceMain && verified.mainUrl !== image.url) {
+      if (baseSkin) overwrittenBases.push(`${en} ← ${verified.group}`);
+      image.url = verified.mainUrl;
+    }
     if (variants) image.variants = variants;
     skins.push({
       id,
@@ -268,7 +286,17 @@ for (const verified of VERIFIED_SKINS) {
   if (seen.has(id)) continue;
   seen.add(id);
   const seededDate = releaseDate(verified.character, verified.group, false) || verified.releasedAt;
-  const variants = skinViews(verified, verified.mainUrl, fankitByKey.get(`${norm(verified.character)}:${norm(verified.group)}`));
+  const variants = skinViews(verified, verified.mainUrl, fankitByKey.get(`${normKey(verified.character)}:${normKey(verified.group)}`));
+  // 원본에 아직 없는 스킨이라 캐릭터 이미지 목록에도 없다. 여기서 넣지 않으면
+  // 전체 스킨 뷰에는 뜨는데 캐릭터 상세에는 없는 상태가 된다.
+  character.images.push({
+    url: verified.mainUrl,
+    group: verified.group,
+    type: '의상',
+    sourceType: 'official_skin',
+    sourceUrl: verified.sourceUrl,
+    ...(variants ? { variants } : {}),
+  });
   skins.push({
     id,
     characterId: character.id,
@@ -298,3 +326,6 @@ if (skins.some((skin) => !Number.isFinite(Number(skin.additionOrder)))) {
 pageData.skins = skins;
 await fs.writeFile(file, JSON.stringify(pageData), 'utf8');
 console.log(`Eternal Return skins generated: ${skins.length}`);
+if (overwrittenBases.length) {
+  console.log(`  기본 스탠딩을 검증 아트로 덮음: ${overwrittenBases.join(', ')}`);
+}
