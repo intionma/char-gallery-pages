@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const here = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const fileArg = args.find((arg) => !arg.startsWith('--')) || 'dist/data/eternal-return.json';
 const file = path.resolve(root, fileArg);
@@ -33,24 +34,42 @@ const RELEASE_DATES = new Map([
   ['rozzi:lumiadrift', '2026-07-28'],
 ]);
 
-const VERIFIED_SKINS = [
-  ['Haze', 'Royal Bunny', 'https://cdn.playeternalreturn.com/2026%2F01%2F21%2F1768966543937-Full_Haze_06.png', 'https://playeternalreturn.com/posts/news/3305?hl=en-US'],
-  ['Justyna', 'Lucky Bunny', 'https://cdn.playeternalreturn.com/2026%2F01%2F28%2F1769569679441-Full_Justyna_02.png', 'https://playeternalreturn.com/posts/news/3327?hl=en-US'],
-  ['Chiara', 'Gloomy Bunny', 'https://cdn.playeternalreturn.com/2026%2F01%2F28%2F1769588363985-image.webp', 'https://playeternalreturn.com/posts/news/3327?hl=en-US'],
-  ['Mai', 'Fashionista Bunny', 'https://cdn.playeternalreturn.com/2026%2F01%2F28%2F1769569788200-Full_Mai_05.png', 'https://playeternalreturn.com/posts/news/3327?hl=en-US'],
-  ['Abigail', 'Tropical Dimension', 'https://cdn.playeternalreturn.com/2025%2F08%2F06%2F1754459544423-Full_Abigail_03.png', 'https://playeternalreturn.com/posts/news/2915'],
-  ['Leni', 'Daisybear Maid', 'https://cdn.playeternalreturn.com/2026%2F04%2F29%2F1777441917625-Full_Leni_003.png', 'https://playeternalreturn.com/posts/news/3530?hl=en-US'],
-  ['Vanya', 'Birdie Maid', 'https://cdn.playeternalreturn.com/2026%2F04%2F29%2F1777441966716-Full_Vanya_04.png', 'https://playeternalreturn.com/posts/news/3530?hl=en-US'],
-  ['Tia', 'Chipsneaky Maid', 'https://cdn.playeternalreturn.com/2026%2F04%2F29%2F1777441978717-Full_Tia_005.png', 'https://playeternalreturn.com/posts/news/3530?hl=en-US'],
-  ['Hyejin', 'Pinkitty Maid', 'https://cdn.playeternalreturn.com/2026%2F04%2F29%2F1777441956597-Full_Hyejin_006.png', 'https://playeternalreturn.com/posts/news/3530?hl=en-US'],
-  ['Jenny', 'Unemployed Icon', 'https://cdn.playeternalreturn.com/2026%2F05%2F13%2F1778650376598-Full_Jenny_04.png', 'https://playeternalreturn.com/posts/news/3572?hl=en-US'],
-  ['Irem', 'Festive Neko', 'https://cdn.playeternalreturn.com/2026%2F05%2F27%2F1779859619042-Full_Irem_03.png', 'https://playeternalreturn.com/posts/news/3606?hl=en-US'],
-  ['Celine', 'Berryblast Maid', 'https://cdn.playeternalreturn.com/2026%2F05%2F27%2F1779859660284-Full_Celine_05.png', 'https://playeternalreturn.com/posts/news/3606?hl=en-US'],
-  ['Coraline', 'Lovely', 'https://cdn.playeternalreturn.com/2026%2F06%2F24%2F1782279219328-Full_Coraline_01.png', 'https://playeternalreturn.com/posts/news/3657?hl=en-US'],
-  ['Rio', '3rd Anniversary', 'https://cdn.playeternalreturn.com/2026%2F07%2F08%2F1783487209177-Full_Rio_07.png', 'https://playeternalreturn.com/posts/news/3690?hl=en-US'],
-  ['Hart', '3rd Anniversary', 'https://cdn.playeternalreturn.com/2026%2F07%2F08%2F1783487259465-Full_Hart_06.png', 'https://playeternalreturn.com/posts/news/3690?hl=en-US'],
-  ['Bianca', 'Eternal Wraith', 'https://cdn.playeternalreturn.com/2026%2F06%2F29%2F1782717293079-Full_Bianca_05.png', 'https://playeternalreturn.com/posts/news/3671?hl=en-US'],
-].map(([character, group, mainUrl, sourceUrl]) => ({ character, group, mainUrl, sourceUrl }));
+// 공식 뉴스·티저에서 확인한 스킨. 위키/DAK 이 아직 못 따라온 최신 스킨과,
+// 스킨 하나에 딸린 컨셉아트·삼면도를 함께 담는다.
+// 데이터는 scripts/data/er-verified-skins.json 이 단일 기준이다.
+const VERIFIED_SKINS = JSON.parse(
+  await fs.readFile(path.join(here, 'data/er-verified-skins.json'), 'utf8'),
+);
+// 대표 이미지가 없으면 카드가 빈 채로 나간다. 데이터를 손댈 때 조용히 깨지지 않게 여기서 막는다.
+const brokenSeeds = VERIFIED_SKINS.filter((skin) => !skin.character || !skin.group || !skin.mainUrl);
+if (brokenSeeds.length) {
+  throw new Error(`ER verified skins missing character/group/mainUrl: ${
+    brokenSeeds.map((skin) => `${skin.character || '?'}/${skin.group || '?'}`).join(', ')}`);
+}
+
+/**
+ * 스킨 한 건이 가진 여러 장의 아트를 라이트박스 변형 목록으로 만든다.
+ *
+ * 로드맵·티저는 스킨마다 키아트와 함께 컨셉아트·삼면도를 같이 공개한다.
+ * 카드 한 장 안에서 넘겨볼 수 있게 SDVX 난이도 스위처와 같은 variants 를 쓴다.
+ * 대표 이미지와 주소가 같은 뷰는 같은 그림이 두 번 나오므로 뺀다.
+ */
+function skinViews(verified, mainUrl) {
+  if (!verified) return undefined;
+  const views = [
+    ['일러스트', mainUrl],
+    ['컨셉아트', verified.conceptUrl],
+    ['삼면도', verified.sheetUrl],
+  ];
+  const seenUrls = new Set();
+  const variants = [];
+  for (const [difficulty, url] of views) {
+    if (!url || seenUrls.has(url)) continue;
+    seenUrls.add(url);
+    variants.push({ difficulty, url });
+  }
+  return variants.length > 1 ? variants : undefined;
+}
 
 function norm(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -191,6 +210,10 @@ pageData.characters.forEach((character, characterIndex) => {
     const id = `er-skin-${norm(character.id)}-${baseSkin ? 'base' : norm(skinName)}`;
     if (seen.has(id)) return;
     seen.add(id);
+    const variants = skinViews(verified, verified?.mainUrl || image.url);
+    // 캐릭터 상세도 같은 아트를 봐야 한다. 전체 스킨 뷰와 그림이 어긋나면 안 된다.
+    if (verified?.forceMain) image.url = verified.mainUrl;
+    if (variants) image.variants = variants;
     skins.push({
       id,
       characterId: character.id,
@@ -200,7 +223,8 @@ pageData.characters.forEach((character, characterIndex) => {
       url: verified?.mainUrl || image.url,
       sourceUrl: verified?.sourceUrl || image.sourceUrl || character.sourceUrl,
       sourceType: baseSkin ? 'official_standing' : 'official_skin',
-      releasedAt: seededDate,
+      releasedAt: seededDate || verified?.releasedAt,
+      ...(variants ? { variants } : {}),
       additionOrder: seededOrder ?? verifiedOrder ?? wikiOrder ?? fallbackOrder,
     });
   });
@@ -212,7 +236,8 @@ for (const verified of VERIFIED_SKINS) {
   const id = `er-skin-${norm(character.id)}-${norm(verified.group)}`;
   if (seen.has(id)) continue;
   seen.add(id);
-  const seededDate = releaseDate(verified.character, verified.group, false);
+  const seededDate = releaseDate(verified.character, verified.group, false) || verified.releasedAt;
+  const variants = skinViews(verified, verified.mainUrl);
   skins.push({
     id,
     characterId: character.id,
@@ -223,6 +248,7 @@ for (const verified of VERIFIED_SKINS) {
     sourceUrl: verified.sourceUrl,
     sourceType: 'official_skin',
     releasedAt: seededDate,
+    ...(variants ? { variants } : {}),
     additionOrder: seededDate ? dateOrder(seededDate) : dateFromUrl(verified.mainUrl) ?? 1_000_000,
   });
 }
