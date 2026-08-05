@@ -53,8 +53,15 @@ const FANKIT_ART = JSON.parse(
   await fs.readFile(path.join(here, 'data/er-fankit-art.json'), 'utf8'),
 );
 const driveUrl = (id) => (id ? `https://lh3.googleusercontent.com/d/${id}` : undefined);
+// 팬키트 폴더명에 오타가 있는 것들. 원본이 고쳐지면 이 줄을 지우면 된다.
+const FANKIT_ALIASES = new Map([
+  ['blair:fealessrace', 'blair:fearlessrace'],
+]);
 const fankitByKey = new Map(
-  FANKIT_ART.map((art) => [`${normKey(art.character)}:${normKey(art.group)}`, art]),
+  FANKIT_ART.map((art) => {
+    const key = `${normKey(art.character)}:${normKey(art.group)}`;
+    return [FANKIT_ALIASES.get(key) || key, art];
+  }),
 );
 
 /**
