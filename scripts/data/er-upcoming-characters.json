@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Lucia",
+    "ko": "루치아",
+    "profileImage": "https://cdn.playeternalreturn.com/event/season12/teaser/KasbXs/pop_ch10.png",
+    "sourceUrl": "https://event.playeternalreturn.com/S12_Sailing/Roadmap?hl=ko-KR",
+    "releasedAt": "2026-08-20",
+    "note": "시즌 12 신규 실험체"
+  },
+  {
+    "name": "Seres",
+    "ko": "세레스",
+    "profileImage": "https://cdn.playeternalreturn.com/event/season12/teaser/KasbXs/pop_ch11.png",
+    "sourceUrl": "https://event.playeternalreturn.com/S12_Sailing/Roadmap?hl=ko-KR",
+    "releasedAt": "2026-10-01",
+    "note": "시즌 12 신규 실험체"
+  }
+]

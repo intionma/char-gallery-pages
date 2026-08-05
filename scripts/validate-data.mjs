@@ -154,6 +154,20 @@ for (const [gameId, expectation] of Object.entries(expectations)) {
     fail(gameId, `${namelessSkins.length} skin(s) carry no character name (e.g. ${namelessSkins[0].id})`);
   }
 
+  // 배경화면 뷰를 켠 게임은 목록이 비면 빈 화면이 나간다.
+  const wallpapers = Array.isArray(data.wallpapers) ? data.wallpapers : [];
+  if (GAMES.find((game) => game.id === gameId)?.features?.wallpapers && !wallpapers.length) {
+    fail(gameId, 'wallpapers is empty');
+  }
+  uniqueIds(gameId, 'wallpapers', wallpapers);
+  for (const wallpaper of wallpapers) {
+    if (!wallpaper.title) fail(gameId, `wallpaper ${wallpaper.id} has no title`);
+    httpsUrl(gameId, `wallpaper ${wallpaper.id} url`, wallpaper.url);
+    // 카드는 축소본을 건다. 원본 4K 를 그대로 걸면 한 화면에 수십 MB 다.
+    if (wallpaper.thumbUrl) httpsUrl(gameId, `wallpaper ${wallpaper.id} thumbUrl`, wallpaper.thumbUrl);
+    else fail(gameId, `wallpaper ${wallpaper.id} has no thumbUrl`);
+  }
+
   if (gameId === 'blue-archive') {
     const popularity = data.sortMetadata?.popularity;
     if (!popularity || typeof popularity.available !== 'boolean') {

@@ -1,0 +1,1400 @@
+[
+ {
+  "character": "Adela",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1JXmO3AKMzMidxaR0cgLDTIu-itLysgAg",
+  "halfId": "1JSFLi_Ey66hv75VPhNWIoAePE5_T5jmq",
+  "conceptId": "1PSV80qvycm-BGz7-hcNMZWjtXZcakB3j"
+ },
+ {
+  "character": "Adela",
+  "skinName": "White Queen Adela",
+  "group": "White Queen",
+  "slot": "01",
+  "fullId": "1UU4f6zJ3m8G9DjXL3o7EZCCRsnrVU_Gu",
+  "halfId": "1UTu7CyOPr10412Hw1vZLaW8OQler1dtZ"
+ },
+ {
+  "character": "Adela",
+  "skinName": "Dream Crush Adela",
+  "group": "Dream Crush",
+  "slot": "02",
+  "fullId": "1CDOiftj4_SLXzCfqWMzH0UX-haz2sz3V",
+  "halfId": "1CF_sIozkNICTdvhVBFW5k6SFb8EXk9E4",
+  "conceptId": "1PW693xPDfDuqvsWaiVk10iyzRMBBXVsw"
+ },
+ {
+  "character": "Adela",
+  "skinName": "Maid Adela",
+  "group": "Maid",
+  "slot": "03",
+  "fullId": "1JyC6N7ZMqDjaY0n0Eye9MgSmh20XhvQi",
+  "halfId": "1Ju-jRBKhj3ZvrhJphZr1L-B0JC6Z82ar",
+  "conceptId": "1PUR75dYagNtVSeXjrH9Qcybr1h4c1HmX"
+ },
+ {
+  "character": "Adriana",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "14IZWh82iT10RAm6GoSp5nufcgmEj13BB",
+  "halfId": "131a1qgIFTmDnHfz2J88xS9qfeGHja_8W",
+  "conceptId": "17EcWYw8xHL7MnTpRpdrffJ3Vz-mmWZnx"
+ },
+ {
+  "character": "Adriana",
+  "skinName": "Firebat Adriana",
+  "group": "Firebat",
+  "slot": "01",
+  "fullId": "1mOb8aWsfg4MbErszheAQAPzpH459Reiq",
+  "halfId": "1YK_4LUw3vdfC7s0yNjwdFH5GY7Fpcqea",
+  "conceptId": "1775glgfdGYL-rxeODWL6E12XbYQ09G8Y"
+ },
+ {
+  "character": "Adriana",
+  "skinName": "Exterminator Adriana",
+  "group": "Exterminator",
+  "slot": "02",
+  "fullId": "1DjaeIDDco3nqbVsvM36dLC7Wcuz6d1_4",
+  "halfId": "1DjYz1PxY-zk6n_gRvzdqrkuTaIPrVAKd"
+ },
+ {
+  "character": "Adriana",
+  "skinName": "Widriana",
+  "group": "Widriana",
+  "slot": "03",
+  "fullId": "141YhHvbx3PdQm7urh1p7dlKWJBdPmLk0",
+  "halfId": "13qxG4EI83RzkmEWrpL9YoAW2Pi936xh9"
+ },
+ {
+  "character": "Adriana",
+  "skinName": "Lethal Rose Adriana",
+  "group": "Lethal Rose",
+  "slot": "04",
+  "fullId": "14bn1U354Uky0NthZizs-XTyS1LctSWoT",
+  "halfId": "16PYsz8b2UWXf2DyYLB1-GpXXQqXsqAVt",
+  "conceptId": "176xo-zbzdk_NsrQ37kpH67TbmO2T9H8n"
+ },
+ {
+  "character": "Aya",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1WQBehDtt7T-VKc0jj8u9Ob2Xg-P5iH18",
+  "halfId": "1tECp17sfhiLASpzB3puFGQbMUpScnCFm",
+  "conceptId": "19Q96iPuNatd7S6LwjMnH6Zfog6IJolTe"
+ },
+ {
+  "character": "Aya",
+  "skinName": "On-Duty Aya",
+  "group": "On-Duty",
+  "slot": "01",
+  "fullId": "1lR5P4ch7BQzTmeKO1epkp2EkuX8g5bh_",
+  "halfId": "1W9UP0VtPYLuEwEgTl-JZalmswCse6MfQ",
+  "conceptId": "19Ozf61MwvgaEsFSgYpfXgKN5ccFRPhXG"
+ },
+ {
+  "character": "Aya",
+  "skinName": "Midsummer Festival Aya",
+  "group": "Midsummer Festival",
+  "slot": "02",
+  "fullId": "1olLz4tXjvvRPIC0KPu89wfZkob7XngCf",
+  "halfId": "1bRwWIlZ1t0j6fQcD7xPYorQHdHSAyEBQ",
+  "conceptId": "19JzEMV9NPXSxO5RrSlixraS9sSt0GOnf"
+ },
+ {
+  "character": "Aya",
+  "skinName": "Housekeeper Corp. Aya",
+  "group": "Housekeeper Corp.",
+  "slot": "03",
+  "fullId": "1a6ucM-QJV62gHajeKukuWvyPlWMqwKLs",
+  "halfId": "1a5EF8UGvc1B_W91yz9E1u6exwoV20YoZ",
+  "conceptId": "19BS7QDxy5Hjxm2_aOYIFIGeo2A-v8mln"
+ },
+ {
+  "character": "Barbara",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1ecJI7_DiRJ6nRlMqSNNfDI0H4lPwIknJ",
+  "halfId": "1eaICP6497Pusce9xSmMS8n5-ftBrJ3Xi",
+  "conceptId": "1QQgMJ4C4YHXYDX4cx0KARAOkV_eSNQng"
+ },
+ {
+  "character": "Barbara",
+  "skinName": "Chief Mechanic Barbara",
+  "group": "Chief Mechanic",
+  "slot": "01",
+  "fullId": "1jX9wGnbf0FQk7lhGp91oXe7ejw3ElZgL",
+  "halfId": "1jWIk-rOSUNrIeeF5M9wIWjHrCifvjxcW",
+  "conceptId": "1QAulbrRDjWy3Y9VaIaxg3PAnZmisF-11"
+ },
+ {
+  "character": "Barbara",
+  "skinName": "Interstellar Barbara",
+  "group": "Interstellar",
+  "slot": "02",
+  "fullId": "187x7utVb8D5ble7l3jYktFltktHbyUww",
+  "halfId": "18L9SeEzJTW0RY7VEYsT5ullvI1gOiVNT",
+  "conceptId": "1Q2wGajSOUQdbKPpswUfC9im8xWpN-eBv"
+ },
+ {
+  "character": "Barbara",
+  "skinName": "Researcher Barbara",
+  "group": "Researcher",
+  "slot": "03",
+  "fullId": "1BzGsc-W0BueaLkatynzMhOpcA392izot",
+  "halfId": "14wOrLX8DNwao_7Xs9nwZl4x32Xk4xKEw",
+  "conceptId": "1C-8_h3jk8aPtUFcfcshaOWYJ6TlYfYYW"
+ },
+ {
+  "character": "Bianca",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1lkyRxK6mVuXkoAjXaGzkInb0PtsO__tt",
+  "halfId": "1lkNLlcQmotxzofKP0F8m4tKj2pVdUMEU",
+  "conceptId": "1NSDJ90tm4BSXAUjuggYdzz7G2OGwjijf"
+ },
+ {
+  "character": "Bianca",
+  "skinName": "Comfy Bianca",
+  "group": "Comfy",
+  "slot": "01",
+  "fullId": "1sL99Rtk5dOJBqb9LwfEhZHcTY46uysXa",
+  "halfId": "1sS_7yS0hwKWW8nMuN0iN07UOFvHpuqLl",
+  "conceptId": "1Nas5zbgmGSbyRzuS-Ewnh9JfQJEWb2oA"
+ },
+ {
+  "character": "Bianca",
+  "skinName": "Transfer Student Bianca",
+  "group": "Transfer Student",
+  "slot": "02",
+  "fullId": "1Z4jL6Mj6J3uBztwWe-rFmQHU7gIqP0Yo",
+  "halfId": "1Z0yHW_l14aoFB7F_qi59eQHypbJWC6FL",
+  "conceptId": "1N_Urqivh4uB7M6DQEAbGX59IGMWscNYo"
+ },
+ {
+  "character": "Bianca",
+  "skinName": "Prison Guard Bianca",
+  "group": "Prison Guard",
+  "slot": "03",
+  "fullId": "1HFQSMyc7g3fJC5WMnqd21NtQuPhKzwxP",
+  "halfId": "1HA_4paBUwNBpHXYjk7PWjBswfQKx1MEq",
+  "conceptId": "1NVm8AM7WBNEp2tcuGbO40pCW9_FQg-M5"
+ },
+ {
+  "character": "Cathy",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1sjqjzJoqvgcMpTmsrWAALBW44ImSHC9W",
+  "halfId": "1sj12pI9hMQLUe37EhGomNK-sq5NYEz_X",
+  "conceptId": "1PBKoMGStT-rdvylL-OeOTT0AtPFIsumr"
+ },
+ {
+  "character": "Cathy",
+  "skinName": "Combat Medic Cathy",
+  "group": "Combat Medic",
+  "slot": "01",
+  "fullId": "1BCSNWLwyvX-1fMjLIAHnZxe06Xg0WjMO",
+  "halfId": "1Bnmb0hwqFsytLryIZM8x-uJfHZW5ZpBB",
+  "conceptId": "1P9mef_8e4paBXocn3amP2hn8nrtkBpGE"
+ },
+ {
+  "character": "Cathy",
+  "skinName": "Android Medic Cathy",
+  "group": "Android Medic",
+  "slot": "02",
+  "fullId": "1H25fg0LRajuVnTi5r7oHumK6T4wDdHwH",
+  "halfId": "1H1UYRNmh_1lE3JEnD6GttVBjQXPzcx4u",
+  "conceptId": "1P8hMWWYfNRDBSTeY2b2wsYDnhg2mQ6eS"
+ },
+ {
+  "character": "Cathy",
+  "skinName": "Professor Cathy",
+  "group": "Professor",
+  "slot": "03",
+  "fullId": "1zBrOJ22eGCRTiYeFG6wKXFGJau8ZtWyG",
+  "halfId": "1zEVfsBX2eoweD5b2-USlJ-nFMdW84Nrp",
+  "conceptId": "1P7WhyyF0efNLk__sUm0H3AZxAGFWSdet"
+ },
+ {
+  "character": "Cathy",
+  "skinName": "Jailhouse Phantom Cathy",
+  "group": "Jailhouse Phantom",
+  "slot": "04",
+  "fullId": "1o80g68EAoMUSjzN0-skP9YYu2vthWC9s",
+  "halfId": "1o5BMrZQnYDmfY9ylOzjt7pXl7repYElK",
+  "conceptId": "1g6uuEZcHswwz1ntiLieD7jhc2jfGtawl"
+ },
+ {
+  "character": "Celine",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1s_lii-NdnIu_M0dYqbmd6Sr3wxbrP37e",
+  "halfId": "1s_X8AJ1rXQ9_qovfzp2MYrXJT6h_RI4g",
+  "conceptId": "17lMItU4KRzgnlFIjrz8ctL788F2MYihw"
+ },
+ {
+  "character": "Celine",
+  "skinName": "Defusal Agent Celine",
+  "group": "Defusal Agent",
+  "slot": "01",
+  "fullId": "1yYF-QtwwBtbbu_I89kXI0CnajB6x0h4f",
+  "halfId": "1yXz4ptcLHEaLV9Vj-EprafHMwSssJVRX",
+  "conceptId": "17khZ1UVFScLOVI6zIqYd1nyrUMxa_Y0z"
+ },
+ {
+  "character": "Celine",
+  "skinName": "Electro Pumpkin Celine",
+  "group": "Electro Pumpkin",
+  "slot": "02",
+  "fullId": "19M8VzVkElBcINCFQAaKzHy9XAwLWXGhy",
+  "halfId": "19PRZb5z4oUJO74DKzaQXXO2hTrytSOUE",
+  "conceptId": "17jUDq9pjzavIIlC8Y2-B3LRMx33tUEyh"
+ },
+ {
+  "character": "Celine",
+  "skinName": "Tropical Getaway Celine",
+  "group": "Tropical Getaway",
+  "slot": "03",
+  "fullId": "1AmePrqn8UqHvlFSrRZ55LedBjltmeGmj",
+  "halfId": "1Awhwj0sEH5v-VvJRn-jGv4ecmqMvGHKZ",
+  "conceptId": "17jD1-o6pZXd9yd4H5Dkuoh2eEBLzrzEU"
+ },
+ {
+  "character": "Celine",
+  "skinName": "Blast Rabbit Celine",
+  "group": "Blast Rabbit",
+  "slot": "04",
+  "fullId": "1-36lF6Mmx4G72-P_MFzWf9BmEIEJU9Rt",
+  "halfId": "1-2OcJQUbKD2Ujy4AsuosJb7wSJmOQHQI",
+  "conceptId": "17eYrL78sa4D6rT5iXYgQcaQvsxOmdjwC"
+ },
+ {
+  "character": "Celine",
+  "skinName": "Berryblast Maid Celine",
+  "group": "Berryblast Maid",
+  "slot": "05",
+  "fullId": "1vM5Iwcps1DdQXIdOQXEzmxEBxHlzpimG",
+  "halfId": "1jw3e4zlxbOjFdPa94SEDXZMG3G-STOND"
+ },
+ {
+  "character": "Chiara",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1gcLkNrxPheN-QmDWfsfNjAjcGkd3Hfes",
+  "halfId": "1qBW2E7npCBNURlSpLk0aSrzL28w9_Rkg",
+  "conceptId": "1MU_DluaNFr6vXa3cYpKzTPRcWRbBYTGH"
+ },
+ {
+  "character": "Chiara",
+  "skinName": "Arbiter Chiara",
+  "group": "Arbiter",
+  "slot": "01",
+  "fullId": "100RclmPO4-8TVu9eUUgnj_3rTSc8Dp8t",
+  "halfId": "1rdE4PIUWfIHS7dPdjzAryVNbDQLn8di7",
+  "conceptId": "1MoECBFRlfkx1J9tQ9rL18tU1dDhV33gj"
+ },
+ {
+  "character": "Chiara",
+  "skinName": "Spirit Hunter Chiara",
+  "group": "Spirit Hunter",
+  "slot": "02",
+  "fullId": "1V5sBldGCGZsyqx7wpfLu9Hilpe4Hn3w6",
+  "halfId": "10yY-w4NmGDuQMCF5uJtwFLtg7N5n0adh",
+  "conceptId": "1MnBNyWCzdRjK--Yt_klOXH6zNtt2WZlz"
+ },
+ {
+  "character": "Chiara",
+  "skinName": "Magic Spell Chiara",
+  "group": "Magic Spell",
+  "slot": "03",
+  "fullId": "1O8MVHCZL8pHljukj7LXnHB9chCbJ2_FW",
+  "halfId": "1OCaDTrpMMkJYArlYUA1N5cZ58czIJRx1",
+  "conceptId": "1MhFTq5WDKV43JeQKpiS72AQZpRh_j_CH"
+ },
+ {
+  "character": "Chiara",
+  "skinName": "SummERtime Chiara",
+  "group": "SummERtime",
+  "slot": "04",
+  "fullId": "15XWg7PWLHxxF4sGXpR8n4RBfSCfhLGRG",
+  "halfId": "15O88FwumXD_LzaQUvmBeGBSAbJsfKRIK",
+  "conceptId": "1Mh9HZwBbzOzHq0p0n2pq9GkCLN1XeMoh"
+ },
+ {
+  "character": "Chiara",
+  "skinName": "Gloomy Bunny Chiara",
+  "group": "Gloomy Bunny",
+  "slot": "05",
+  "fullId": "1T_wUvXCGIXsqivoICY7bDXJVcg9Xg0J-",
+  "halfId": "11DrZ8fgahamhJZjLdPqI_PO0l2PFANL4",
+  "conceptId": "1_K6OqZvgIk_iXc-rSHVvUXH26i_RkgrR"
+ },
+ {
+  "character": "Chloe",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1ZSTZ3wXtFOeemjdItUW_vNKMR0pP1oJM",
+  "halfId": "1ZSKGcKIgQrQWMIYtEs-qBysGPZQFSmgR",
+  "conceptId": "1Ttgk0_KH0G3402S3-hDZB3cnrjivYpt0"
+ },
+ {
+  "character": "Chloe",
+  "skinName": "Dutiful Maid Chloe",
+  "group": "Dutiful Maid",
+  "slot": "01",
+  "fullId": "1ehmGfL9JCDNlDHZQkW6HgWvx_9Ine9AE",
+  "halfId": "1eh3oh0QGTbarnS7VhG10iPLKK0VzhMuU",
+  "conceptId": "1Tx5hRsRWM4oVQeAdXIokXm8Iq8i4FADc"
+ },
+ {
+  "character": "Chloe",
+  "skinName": "Lucky Bunny Chloe",
+  "group": "Lucky Bunny",
+  "slot": "02",
+  "fullId": "1iBDdSZp9bwBg7UVsuj4cqXrCbFV2yF1Q",
+  "halfId": "1iAwSlP8F3hJ7uZw9p4Mxy5pJdm19dfzv",
+  "conceptId": "1TviJNJrm8HLnaCLL47Mo4XjLw5kqKerG"
+ },
+ {
+  "character": "Chloe",
+  "skinName": "Ocean Breeze Chloe",
+  "group": "Ocean Breeze",
+  "slot": "03",
+  "fullId": "1MbjzfP4Qs-PZheNwbNkOxl8RG2RkS8Zo",
+  "halfId": "11pGX_ZtAj4pr5KrTLUdg0kpHSYy3g3Cn",
+  "conceptId": "1tLzZOUn6LTrFnDzfbimMus_kOxViX6Aq"
+ },
+ {
+  "character": "Elena",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "19JanZrpuH_vVlLsF5ZlQDT9s4ifyuTzB",
+  "halfId": "19I-QumUrzCeki_PNE_4GS9ocs5rQmatT",
+  "conceptId": "1WfXPWoWG26mu34sfxVx8EUC6EPlyfrgV"
+ },
+ {
+  "character": "Elena",
+  "skinName": "Black Swan Elena",
+  "group": "Black Swan",
+  "slot": "01",
+  "fullId": "1JbEijJxtIoioY5Y6ZI4rqZPG9vL7_Uy9",
+  "halfId": "1xr5a0rW-weM1hELdQb6jGgJZSvZ8_qga",
+  "conceptId": "1WStq2Sw-_bAzHe1Eq6r689Pl9DOA-UWs"
+ },
+ {
+  "character": "Elena",
+  "skinName": "Winter Breeze Elena",
+  "group": "Winter Breeze",
+  "slot": "02",
+  "fullId": "1CJegB__UylrMk0N_b5Cjkm3foTlrlc4i",
+  "halfId": "1CHhfaYd4cYbQCuMLpmpLkomZFGM8nAKB",
+  "conceptId": "1WP4PQFCZXsNya8t39fvRGQSB1_oLvIbO"
+ },
+ {
+  "character": "Elena",
+  "skinName": "Student Council President Elena",
+  "group": "Student Council President",
+  "slot": "03",
+  "fullId": "1UjRr2T5qBLqPbGwpPx1hHKYaIZOaflKM",
+  "halfId": "1UjLlauTL1f3JFu0uMXRSrbdXReK3g30s",
+  "conceptId": "1WMVTP8l3FSUiPCAlkJDBDZto3x2ndPZn"
+ },
+ {
+  "character": "Elena",
+  "skinName": "2nd Anniversary Elena",
+  "group": "2nd Anniversary",
+  "slot": "04",
+  "fullId": "1lBmvAX-1MkCUKnjp3MilGv8Z7HHNYz_K",
+  "halfId": "1NUEoU2fTgwCiBYvs97qists9J88oY-lh",
+  "conceptId": "1WKLZmqSnv7FAI2_IrsFqzgOrAEDihLgY"
+ },
+ {
+  "character": "Elena",
+  "skinName": "2nd Anniversary Elena Indigo",
+  "group": "2nd Anniversary Elena Indigo",
+  "slot": "05",
+  "fullId": "1PBtNDizzmilhDnwETqW7h1653RAf7jMv",
+  "halfId": "10XlU7-1oNHGdZIM2Z9_yO_RF-VE8Pnfz",
+  "conceptId": "1eGNUUg2iVBMrBI4whFEzvV_t9TYrYsyB"
+ },
+ {
+  "character": "Eleven",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "18u66cGH_8O6b8LhMc87_ko6tkD_ek0zr",
+  "halfId": "18tKYsNYZSDY6w46uf8T71X5En77wSkSi",
+  "conceptId": "1RT-iNTCgjKc_4US7ptlYw8lKM7hQcLfK"
+ },
+ {
+  "character": "Eleven",
+  "skinName": "Sugar Rush Eleven",
+  "group": "Sugar Rush",
+  "slot": "01",
+  "fullId": "1L3eXDkgGh18XIHv5AvtHPIVWGDS4ZEsk",
+  "halfId": "1L2o1C9-j4RZjCOW_CrBbfLtMbQqmy-G-",
+  "conceptId": "1RRKW_97YspC8T9VbRjjyXzQg3FZ1nzlC"
+ },
+ {
+  "character": "Eleven",
+  "skinName": "Teatime Rabbit Eleven",
+  "group": "Teatime Rabbit",
+  "slot": "02",
+  "fullId": "18WrtgfFo8yE8vDoQQKpuwLnsZCEBsdqQ",
+  "halfId": "18XEWoE6VXxYvAN5si2Z47dl8qQkbQCW6",
+  "conceptId": "1RQOutqu6RdA_OCm0_4jNmF26t2YzJLH5"
+ },
+ {
+  "character": "Eleven",
+  "skinName": "Little Sailor Eleven",
+  "group": "Little Sailor",
+  "slot": "03",
+  "fullId": "1EY3P1Xvb7AmVdPAdLZN4LzXVhbr2r_xG",
+  "halfId": "1EWV85mT3anIcA3yJtFUJh4dCC1tTUzdI",
+  "conceptId": "1RKz0LXMOSf1ko0Fm2Vp0fKJKJje0qAim"
+ },
+ {
+  "character": "Eleven",
+  "skinName": "Love Serenade Eleven",
+  "group": "Love Serenade",
+  "slot": "04",
+  "fullId": "1VQVz3I2UGpauIyGcC_5zgTcB5nXsnu7u",
+  "halfId": "1VPPXSBJw2JtOCYnHDB2ajwfdu6DDQ7YH",
+  "conceptId": "1RZuBs4Gz8C0s-zWEd95mg_iSpl8KiLin"
+ },
+ {
+  "character": "Emma",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1uyXyN1wCxAmlHB0KnBPnpkdeDjVAtPeW",
+  "halfId": "1ccKEGagFz3e6w-YmfG3y3_EkKLJ0Lr6s",
+  "conceptId": "1O3XASjCLyv8P64AozuE2UIe9XbOQO6ld"
+ },
+ {
+  "character": "Emma",
+  "skinName": "Maid Emma",
+  "group": "Maid",
+  "slot": "01",
+  "fullId": "13vGzmJroKfN81f5Vp2Y5lvOo5OlBKFF8",
+  "halfId": "19c5ia3PmmA_QRFtfyC4YBn21kGMLvJmI",
+  "conceptId": "1O-czkzhx8hEC3NidPblBKvi87Hnt80Dk"
+ },
+ {
+  "character": "Emma",
+  "skinName": "Witch Emma",
+  "group": "Witch",
+  "slot": "02",
+  "fullId": "1AD7f36KC12sNv3gylaKEuEYncG-oQo0v",
+  "halfId": "1fy4QToqXChk6v8s8uqGaNF4eEvYIUE1z",
+  "conceptId": "1NylVC9DgOOO3wDy4L0m9jJdWp01e11xx"
+ },
+ {
+  "character": "Emma",
+  "skinName": "Whimsical Picnic Emma",
+  "group": "Whimsical Picnic",
+  "slot": "03",
+  "fullId": "195cDVc_Vrf9SX7NZNfthObx6ygOqZFsm",
+  "halfId": "19GbXkJkGuD6Gm6BRgkpYJ7PqvXkCBBFg",
+  "conceptId": "1NueoK7_l83-2_VFPlsOckYUXbZVAihBo"
+ },
+ {
+  "character": "Emma",
+  "skinName": "Summer Party Magician Emma",
+  "group": "Summer Party Magician",
+  "slot": "04",
+  "fullId": "1hpN751lUvhsX01_doQqCFUwRCowvJtD1",
+  "halfId": "1hiEE-HR8ls2qNV9zWCpAgVnLmg8guFmW",
+  "conceptId": "1NtwOHAbio-TboAlU9iRGllwSC4FEpEhF"
+ },
+ {
+  "character": "Emma",
+  "skinName": "Magic Rabbit Emma",
+  "group": "Magic Rabbit",
+  "slot": "05",
+  "fullId": "1VZmJMzW6-ztD6JCdRaWWE6Owtnd7c1Vo",
+  "halfId": "1VXp7nuKWQGEvs44cOVsb2N-cdwi9QtgM",
+  "conceptId": "1NmUV3Gv1_8VaOZzv1h4QZ0bkhQIo2C2Q"
+ },
+ {
+  "character": "Eva",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1GEygGn35OT7NPSH9JPvjsWAru40PE6dv",
+  "halfId": "1GEgWYvKj6AWvjb4QOZluQT37ZLO9Itfx",
+  "conceptId": "1TQbZl6ZlLI_uXAkclgl1Xy1j86mK_20o"
+ },
+ {
+  "character": "Eva",
+  "skinName": "Celestial Clocktower Eva",
+  "group": "Celestial Clocktower",
+  "slot": "01",
+  "fullId": "1MCYvMp1to_o0_oAn57u5y3veWOu_jc-5",
+  "halfId": "1MB6VMTqg8Htxd-zmnmYYzpuadGJIDK9c",
+  "conceptId": "1TJUOi_qYA-ViVHp74LIp38RkJGDM6qCo"
+ },
+ {
+  "character": "Eva",
+  "skinName": "Sweet Valentine Eva",
+  "group": "Sweet Valentine",
+  "slot": "02",
+  "fullId": "1SkzNJS19Ry9fOxmt1z8ar1OEkNYAVzfH",
+  "halfId": "1SnHWRbnVnKjVVktgaWJDbr7vvpUCwOuG"
+ },
+ {
+  "character": "Eva",
+  "skinName": "Summer Bliss Eva",
+  "group": "Summer Bliss",
+  "slot": "03",
+  "fullId": "1Wkoybwik1wQ1C7LxVt4SyD6bZ9UxMHCA",
+  "halfId": "1WZEv8PprGk8t05PHHcFVTRLU1j7FlkQe",
+  "conceptId": "1T7j2Gne64-3XiOUHmsxJ5x_x6VualFAR"
+ },
+ {
+  "character": "Eva",
+  "skinName": "2nd Anniversary Eva",
+  "group": "2nd Anniversary",
+  "slot": "04",
+  "fullId": "1-tqMdR8jzb9gF2-RIU0aPYjvwBfS6_0O",
+  "halfId": "1HT7kCL5_dz706o47DsjraBJbRiSFC4Gq",
+  "conceptId": "1TWiV_RHMI0j-Zd1Q5G1lur4jcXJacHVe"
+ },
+ {
+  "character": "Eva",
+  "skinName": "2nd Anniversary Eva Blossom",
+  "group": "2nd Anniversary Eva Blossom",
+  "slot": "05",
+  "fullId": "1nsa44WZQ476DI4dn_w61p43-iMjc1H6S",
+  "halfId": "1Q4bZVf_gfsSrqfOF-Q4UNtqXHT0YgJf2",
+  "conceptId": "1oQ5jO6h_KioPgfYLJFieQKE5ouHjuLIn"
+ },
+ {
+  "character": "Fiora",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1qML3Owyt55SI8Grff7ptCC953ETrecxd",
+  "halfId": "1mcIBrMXcbs95Dr9Ulre0rPjb7fC3OJAL",
+  "conceptId": "1CBGeBL4A-A0G-5Ey5Ce189FXfOoyzYhJ"
+ },
+ {
+  "character": "Fiora",
+  "skinName": "Lieutenant Fiora",
+  "group": "Lieutenant",
+  "slot": "01",
+  "fullId": "1GhdZKDq_ZkG8jcqZI9aInJxRKi3dksHA",
+  "halfId": "1xukZJgcXJRQqxq5K3wq0_xtZsyaLCExz",
+  "conceptId": "1CAnPF00v6No8K3-hwyLr8AfAp6fb8CMz"
+ },
+ {
+  "character": "Fiora",
+  "skinName": "Musketeer Fiora",
+  "group": "Musketeer",
+  "slot": "02",
+  "fullId": "18MC54BArHM7ikS-eqZmPQQaSVs6hx-0r",
+  "halfId": "1kTedv5mRlxB3rZAIpUueMznwzEQilDr5",
+  "conceptId": "1CAlfWZZ5lHOvjdsDbsHeAGvUx7KZFanZ"
+ },
+ {
+  "character": "Fiora",
+  "skinName": "Banquet Fiora",
+  "group": "Banquet",
+  "slot": "03",
+  "fullId": "1515Wgvfblt3brDEnXBwlaaTak4USWtJC",
+  "halfId": "155N-0LF2D7n_Az5nHI1wTyVh9-A10oQU",
+  "conceptId": "1CAFh1Qied0G1vOESabbCmy_QILnDApCr"
+ },
+ {
+  "character": "Fiora",
+  "skinName": "Housekeeper Corp. Fiora",
+  "group": "Housekeeper Corp.",
+  "slot": "04",
+  "fullId": "16HYuahWAFwt13E4QVkJP5wxlCnFi8IGB",
+  "halfId": "16GeJWi5fN8WFMuSL5w8MNAYq9EXEmCri",
+  "conceptId": "1BtU5S6DUm6Uh7OHXNb5-C_1kYhI__fKS"
+ },
+ {
+  "character": "Fiora",
+  "skinName": "Instructor Fiora",
+  "group": "Instructor",
+  "slot": "05",
+  "fullId": "1dKG9kNRwNYyaUMtz0MeayKDxi8WxW4Um",
+  "halfId": "1dIfypNc_b5VpGHMyd0dOABdVo56MKjWt",
+  "conceptId": "1fcjC_SjmsS6lyIUJOOqnBMM0Lruxu079"
+ },
+ {
+  "character": "Hart",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1HupcyEA2PajIeT0wX5N_R148Tkp6SYLy",
+  "halfId": "1q0Q-14B99BKlS0gD_xfD6_wKmJerd8DK",
+  "conceptId": "1D59B9CWyy3HspR64R_r-OZ77FIZySWnV"
+ },
+ {
+  "character": "Hart",
+  "skinName": "Bandleader Hart",
+  "group": "Bandleader",
+  "slot": "01",
+  "fullId": "1DImQj_SO0LRW-P6IzkYRj3AHfrgJixOj",
+  "halfId": "1jDKg1e57uxSSCR2To1tPilfEVtcD313E",
+  "conceptId": "1D4j2zW8q1Ux1vT9SdTeydSJ0tsU7nNVj"
+ },
+ {
+  "character": "Hart",
+  "skinName": "Winter Carnival Hart",
+  "group": "Winter Carnival",
+  "slot": "02",
+  "fullId": "1EGihsJdr80-TEHhHRAcde4mbUag8-VYM",
+  "halfId": "1iUVXJErGAY2JkbexzV-zcTxNUwbSCIdF",
+  "conceptId": "1Cy2geI_BJtBeL1VZnFhDvUxqkKZq7L7O"
+ },
+ {
+  "character": "Hart",
+  "skinName": "Wonderland Hart",
+  "group": "Wonderland",
+  "slot": "03",
+  "fullId": "15KktYow6vqLX_94HU0fTOm5MD2g3eW2J",
+  "halfId": "15KPXeqgLQeYquvLisY5YApgbBPa7H3yn",
+  "conceptId": "1CtM9H-daocD0PUvorz2sM0JHk4ZS45E3"
+ },
+ {
+  "character": "Hart",
+  "skinName": "Marching Band Hart",
+  "group": "Marching Band",
+  "slot": "04",
+  "fullId": "1GlzxvFnTA5DmG1LiEfiXeVgTHs52dRHr",
+  "halfId": "1GjFS-QrfPvRsY3gPuVX93G-Ht69M0Yde",
+  "conceptId": "1CqW1gcRIyxBzbdYXoYMyfUFLQDj9iJno"
+ },
+ {
+  "character": "Hyejin",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1pWgOb5eBnCm-Xv4JsYv52l_4-KSpXYp2",
+  "halfId": "1rs3Ns4CB6hmI_EI4nfxzqEm9WRYalR2s",
+  "conceptId": "1GD9nG7LGGDl5cP_CCPSjY2COhujJu3mn"
+ },
+ {
+  "character": "Hyejin",
+  "skinName": "Magnolia Oracle Hyejin",
+  "group": "Magnolia Oracle",
+  "slot": "01",
+  "fullId": "1oicTMJ0O0SqDwp_f9Hbjuzc59hku26pG",
+  "halfId": "1JZdHr9LnhQK9aDwYq_zUNQcJ7CFf7no2",
+  "conceptId": "1G8J_coe41wRuKc2YmslVC4C-so_fZdts"
+ },
+ {
+  "character": "Hyejin",
+  "skinName": "Spirit Hunter Hyejin",
+  "group": "Spirit Hunter",
+  "slot": "02",
+  "fullId": "1s4WmX1Vl4GlO5plOPKog3mY0iqlYd4MH",
+  "halfId": "1YPMWY11DIUhZLDm2oRKaZBhGh3MCjm4j"
+ },
+ {
+  "character": "Hyejin",
+  "skinName": "Candy Cane Hyejin",
+  "group": "Candy Cane",
+  "slot": "03",
+  "fullId": "12qA_w55pA4-3r_5MuFVrk-edtnwgiTMr",
+  "halfId": "12paiJUPQQtGE-ATimSlxT--xa2DvyL8X",
+  "conceptId": "1GJPJgDmZKu80kj6TzIcIpmvMzjgDerKb"
+ },
+ {
+  "character": "Hyejin",
+  "skinName": "Test-Taker Hyejin",
+  "group": "Test-Taker",
+  "slot": "04",
+  "fullId": "1TwBygFZH7q5pZyDjLAT2K9JHO01ucbF2",
+  "halfId": "1qG5Nq2MgedigDFSlOreiaMu1AMkaB5tw",
+  "conceptId": "1YxjM47VQdhp2_ErWBC6FaepsdtSeDpSV"
+ },
+ {
+  "character": "Hyejin",
+  "skinName": "Pinkitty Maid Hyejin",
+  "group": "Pinkitty Maid",
+  "slot": "05",
+  "fullId": "17KDhjgzqB1orWgrBiH6sKy7Soy3frIkO",
+  "halfId": "1iHSwX7rGDlNt4riEKeOWagzi-3amrs_b",
+  "conceptId": "1GEScPNfK7I6IN4o91JaoXq1_Ik4aQ1Rl"
+ },
+ {
+  "character": "Jackie",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1q2-9boaWBFQTKOgnYzJDg4gPfJvgV26y",
+  "halfId": "1ymSZxGUpDmUn-otl-6BPklZi0LhHEbxf",
+  "conceptId": "18LvesOk_uFVLRkKESJOl8pWPHVG8mkIN"
+ },
+ {
+  "character": "Jackie",
+  "skinName": "Executioner Jackie",
+  "group": "Executioner",
+  "slot": "01",
+  "fullId": "1E4Z38BHqAIlEBujt3gDZGmKmqsOJ3m7i",
+  "halfId": "1vE13NiY1aa3W0T-JWXQADzK4E0G5O-Ap",
+  "conceptId": "18VrW7P0oUbCK4VeCPL9p2BlTsyK3k9my"
+ },
+ {
+  "character": "Jackie",
+  "skinName": "Scarlet Corsage Jackie",
+  "group": "Scarlet Corsage",
+  "slot": "02",
+  "fullId": "16k0KH11fTZuga-IUgUarkHLuybbpmXrA",
+  "halfId": "1TEARXYyy8-8r581BDGbbHmuPpggW6iNc",
+  "conceptId": "18VF67oBVV_fzJxDYTQmAq1NrVcI8UHxi"
+ },
+ {
+  "character": "Jackie",
+  "skinName": "Overvolt Jackie",
+  "group": "Overvolt",
+  "slot": "03",
+  "fullId": "1TrDTm6VcNIC_tyx-R1i0d3aUmGIDNkoZ",
+  "halfId": "1OxmQt-ORRJ6SleNv2GoypUZjkXm_YtBb",
+  "conceptId": "18SHfqu15isa2UsfnXn2lBXmQ0t-rLMvW"
+ },
+ {
+  "character": "Jackie",
+  "skinName": "Spirit Hunter Jackie",
+  "group": "Spirit Hunter",
+  "slot": "04",
+  "fullId": "1ZrwbroekzbQH_P5jvnegLFVG2MTMFc4X",
+  "halfId": "1ZoHlz4iqEcYiTPj8EL9C5d8Nk_qmxz9H"
+ },
+ {
+  "character": "Jenny",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1MMI9kDCgqpby604PYnQVyVAPvm4G8NXL",
+  "halfId": "1MNXMBkKmF4jrGccTvSXBwLTJN9UOCZM4",
+  "conceptId": "1TjJVy9g6HEj__Qdke8TZPOjo9CyAKMX1"
+ },
+ {
+  "character": "Jenny",
+  "skinName": "Mobster Jenny",
+  "group": "Mobster",
+  "slot": "01",
+  "fullId": "1SQS6jYO1CyMdYwiClQgcwD2yhOom0_Jk",
+  "halfId": "1SP_PwkQRuEkgaq4-9VwfpS3PHvKSU6ia",
+  "conceptId": "1TiXralSNRJkR81pXiqpvFsDyKK-hKXym"
+ },
+ {
+  "character": "Jenny",
+  "skinName": "Luxury Masquerade Jenny",
+  "group": "Luxury Masquerade",
+  "slot": "02",
+  "fullId": "1CeoOMueSxp7SPBsP3IpFd2TYxtIrrmMf",
+  "halfId": "1Cdatw5Pb96urW5niFdR_T3lbuiBuJZuS",
+  "conceptId": "1T_IdE-hEOwqDShvbFtsklbNytcjN8YZV"
+ },
+ {
+  "character": "Jenny",
+  "skinName": "Queen of Hearts Jenny",
+  "group": "Queen of Hearts",
+  "slot": "03",
+  "fullId": "1Bo4dYIzfLyJPQuRgznGFuzRpqptjLE-l",
+  "halfId": "1Bo-C_ZAnW2emq2wbTJqyqr58J7RmXR_U",
+  "conceptId": "1TosIJqwPeqtvy2kwbCafGH81el2ySS0S"
+ },
+ {
+  "character": "Jenny",
+  "skinName": "Unemployed Icon Jenny",
+  "group": "Unemployed Icon",
+  "slot": "04",
+  "fullId": "1alFXfywKPLnf-e9LwvjXx2pGxnzwn0uW",
+  "halfId": "1FGmSMwKVUCLoDLCM15Yfg56abyni_Q1c",
+  "conceptId": "1eIsztRavpUBxpJKHuUjUPv3KblzjgeZG"
+ },
+ {
+  "character": "Laura",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "17JPLU2JXCIUBw8lnsueraq297RWJ3cQv",
+  "halfId": "17CaKXbCQ1girQWiMpRszx5bZSMSVMMfi",
+  "conceptId": "1VI_E-kD3t9kzYTSIGks0BmIwh1UrHQKG"
+ },
+ {
+  "character": "Laura",
+  "skinName": "Jailhouse Phantom Laura",
+  "group": "Jailhouse Phantom",
+  "slot": "01",
+  "fullId": "12FFtCqVEFYMdpS3xr2halmz2YauOyDBc",
+  "halfId": "12EBfURnZwi3vPaKwa0oLddnlZpLnNCx2"
+ },
+ {
+  "character": "Laura",
+  "skinName": "Underworld Org Laura",
+  "group": "Underworld Org",
+  "slot": "02",
+  "fullId": "1SojEueRcE0z6Fb8nG3zYuQRDoPh2WqBW",
+  "halfId": "1SpVxlFBT-Jurt9xHMZeJPWWaweiPsdOz",
+  "conceptId": "1V-9UoH-y6TrKhQHhOP58_QSzB4nVIs_o"
+ },
+ {
+  "character": "Laura",
+  "skinName": "Morning Glory Laura",
+  "group": "Morning Glory",
+  "slot": "03",
+  "fullId": "1yXxZkSfjgNBPCQjunIaCBmIrIhary00n",
+  "halfId": "1yQBvNIRKB7MilyHbw5KYtPC3pMSIhXdl",
+  "conceptId": "1UqVl6MiblUDvKm-kv6915KzoYpQAiy9N"
+ },
+ {
+  "character": "Laura",
+  "skinName": "Tactics Instructor Laura",
+  "group": "Tactics Instructor",
+  "slot": "04",
+  "fullId": "1btAoBKIm38YBGLrS4NGlghYe5VTNnWQR",
+  "halfId": "1bpteeUraut5Kj4KQpfqYxlLCn0ujm-xG",
+  "conceptId": "1cdF-1lVWavq6TWUFLxYDM797R8xyYVHU"
+ },
+ {
+  "character": "Lenox",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1SVzljqWExRuL2kBBgiApnq6J6JeZTH7N",
+  "halfId": "1fhBnwTlzh1YLvpjGjiN0XQ6a3z8HEspZ",
+  "conceptId": "1Nm0flO2CoLratHJYfoAZ1Ok0812bN66d"
+ },
+ {
+  "character": "Lenox",
+  "skinName": "Capo Lenox",
+  "group": "Capo",
+  "slot": "01",
+  "fullId": "1Zm1cowvRlcAOPsJs9Xi3T4kqOWD_l6T8",
+  "halfId": "11u_QhancdPzH9ebzKO9KCtte5wIbewcM",
+  "conceptId": "1NlzGImjPRX1StI_1izKK0ni0fkID3d37"
+ },
+ {
+  "character": "Lenox",
+  "skinName": "Mistletoe Lenox",
+  "group": "Mistletoe",
+  "slot": "02",
+  "fullId": "1NzuGDKPTG-qjXu3nLBLhLS-KRZm_Pu67",
+  "halfId": "1vQv5kFUJgbiFqMbtfxo5y8P-GJCCpOMH",
+  "conceptId": "1NhwValIpx0k37uSPtMJ3MJ8D0CBPJafA"
+ },
+ {
+  "character": "Lenox",
+  "skinName": "Midnight Shinobi Lenox",
+  "group": "Midnight Shinobi",
+  "slot": "03",
+  "fullId": "1I1a5ZgFT__QSTGycMBnhE49HyC5addZO",
+  "halfId": "1Hx1oHwd_ejv2NzZ8mfcwQmkGEXFYw0R9",
+  "conceptId": "1NhX_69fwiUuHhOf7ljfHP_YXAAwV_m_z"
+ },
+ {
+  "character": "Lenox",
+  "skinName": "Treasure Finder Lenox",
+  "group": "Treasure Finder",
+  "slot": "04",
+  "fullId": "1h8SqHw0Ym10nIW9I6MwV_lSqEV6wld9p",
+  "halfId": "1hRYcr_4hwVABl4YY2N-0gTbutmq2cOER",
+  "conceptId": "1NegfjlHQn7CIXcCuQEBOs757fMn7yavk"
+ },
+ {
+  "character": "Lenox",
+  "skinName": "Abyss Empress Lenox",
+  "group": "Abyss Empress",
+  "slot": "05",
+  "fullId": "1frdp9yIzfqWbWASM676G9RF5iIAkFtQ0",
+  "halfId": "1fq6d1ymSY9wkTuKf0fjGBgiSReXGd-zS",
+  "conceptId": "1f_Fi1Ksxt4RKelxkUdrnznbh0MUP10sM"
+ },
+ {
+  "character": "Li Dailin",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "147Rx6nSqgSYL6ATkIQ2Lz_LSm_9_MMm4",
+  "halfId": "1COKCcWz2lrXEm8ZJP5LjsWDec7axxjp7",
+  "conceptId": "1CNVHFbFIBEFEI8hezmhuathUagfTC3PH"
+ },
+ {
+  "character": "Li Dailin",
+  "skinName": "Jade Drifter Li Dailin",
+  "group": "Jade Drifter",
+  "slot": "01",
+  "fullId": "1mAYJssejrkkhk43vpV8np8LuB-65L9Hg",
+  "halfId": "1ZY-JF2TTn0tdrs08g5RHryfMJWBYb7hQ",
+  "conceptId": "1CpRHrgZad3Q4-A0CaQv5kCeySYHjMboQ"
+ },
+ {
+  "character": "Li Dailin",
+  "skinName": "Rebel Li Dailin",
+  "group": "Rebel",
+  "slot": "02",
+  "fullId": "1hs8Ti_R0QETkjmew90xTGug831Fb_byP",
+  "halfId": "1dempOOpSzjKO7DZoRYYovlQcgdwVyv7g",
+  "conceptId": "1Ch4Y5I7wdjYJ7V4gkr9BIUeGyIh9UKPL"
+ },
+ {
+  "character": "Li Dailin",
+  "skinName": "Dragon Dance Li Dailin",
+  "group": "Dragon Dance",
+  "slot": "03",
+  "fullId": "1MuG-1Vt0fdoT6XTC0R9Vd6VEWqQCpdz6",
+  "halfId": "1jF0db_E2DTJ8l7aGrtUOAEzxWyd-yLvV",
+  "conceptId": "1CesCu2cE-tIZeBs2ChWPwlJl8LddjDxr"
+ },
+ {
+  "character": "Li Dailin",
+  "skinName": "Festive Roar Li Dailin",
+  "group": "Festive Roar",
+  "slot": "04",
+  "fullId": "1D17-DmSDGD7L2adcojISE0geBuNCoajp",
+  "halfId": "1D-yf7bs2ef-ekUCVtngXM0K616bv3Jbx",
+  "conceptId": "1CdddOxYhNNGFT81iPcC7HH2M7UksARCO"
+ },
+ {
+  "character": "Li Dailin",
+  "skinName": "Summer Toast Li Dailin",
+  "group": "Summer Toast",
+  "slot": "05",
+  "fullId": "1jQXN5Sri40ATJDjGwxpGPQKguYZ1ldTf",
+  "halfId": "1jKyb3pRAAOOuXo-YyfIFzMgG1I84EmXg",
+  "conceptId": "1CT3YDUv5XKq_BLQtrivNNqkhRtsfeAc8"
+ },
+ {
+  "character": "Mai",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1arCCsL-cJlFJ2nz7xTxbphvJYEJAyguH",
+  "halfId": "1ao00Jbios-tyN09zmuwXxCQiJXjBE_lb",
+  "conceptId": "1UK1N14imCTKGzNqDnUoqp1uovK-rbrMl"
+ },
+ {
+  "character": "Mai",
+  "skinName": "Transfer Student Mai",
+  "group": "Transfer Student",
+  "slot": "01",
+  "fullId": "1JLvqH1P_4swdIjeYQpeFAOd9-xPYkR32",
+  "halfId": "1JIyUj12USXmsR_3JWyjR6srX5qGAhV4s",
+  "conceptId": "1UIw_8Zxa9_KU1voE7Gw_WoIw-KmOXXlv"
+ },
+ {
+  "character": "Mai",
+  "skinName": "Tropical Runway Mai",
+  "group": "Tropical Runway",
+  "slot": "02",
+  "fullId": "1NJWIDVbaK9we8fh5ytmXp-jkt_QxTYth",
+  "halfId": "1NN62JkAWdMeu9up4RLvtmIYrk-_RMOaa"
+ },
+ {
+  "character": "Mai",
+  "skinName": "Popstar Mai",
+  "group": "Popstar",
+  "slot": "03",
+  "fullId": "1_ge1cWzg_Wt1_6F-kAV9l-zENOehpKuq",
+  "halfId": "1_i8PthmC3wpmQxEnKi2_odzknbBqbOQ-",
+  "conceptId": "1ULCkvz4DwwefmKEE8jSujZQAoY5vRK69"
+ },
+ {
+  "character": "Mai",
+  "skinName": "Fashionista Bunny Mai",
+  "group": "Fashionista Bunny",
+  "slot": "04",
+  "fullId": "18aKCdT9mzJ1xsfdWklquZlyp-3liDuzU",
+  "halfId": "1z-Eh5BJxgfOAdEWEjnaB97VykgUnD0hf",
+  "conceptId": "1_sumW1ykMFT4Yj3_guh5hyy0VrigdQeI"
+ },
+ {
+  "character": "Nadine",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1dmm9caxKyFk5DP4nRlfth5guHFhny2ec",
+  "halfId": "1dfIfhLFm24b8R9RBlKcaJ_GAB4w-ZXz9",
+  "conceptId": "16imOUjSwMiXM53BixXHVTm_wQCentKnE"
+ },
+ {
+  "character": "Nadine",
+  "skinName": "Neon Huntress Nadine",
+  "group": "Neon Huntress",
+  "slot": "01",
+  "fullId": "1dJzwYqWyCGZ2DznrDI5pDBnHmwtN7ws3",
+  "halfId": "1_VKbvYS7dLXJ5JXlA1_gSc40Qkpdp1Cd",
+  "conceptId": "16e63DU127l9R3BZoUUnP3SfNDlXP0Izr"
+ },
+ {
+  "character": "Nadine",
+  "skinName": "Little Nadine Riding Hood",
+  "group": "Little Nadine Riding Hood",
+  "slot": "02",
+  "fullId": "1FTfYpqYMu-oC-eDbgt6FMZX1IYdW1Qrt",
+  "halfId": "1xQYFLk41iDcBP9_PCDad5IXCGn1hF0HJ",
+  "conceptId": "16aTYNnSHFHS3RT_8CMOuWKM_lQDVJ-_b"
+ },
+ {
+  "character": "Nadine",
+  "skinName": "Howling Spirit Nadine",
+  "group": "Howling Spirit",
+  "slot": "03",
+  "fullId": "1wcTxxi8ddzOvJBq7CpabRpc1Ij0zOKHD",
+  "halfId": "1UyemaRWWEc0xI_A8UnqTAq6-QM7oE0Pd",
+  "conceptId": "16_ym0p0MnrgX-ca3Jv_YY3_VfI44Lc2b"
+ },
+ {
+  "character": "Nadine",
+  "skinName": "Demon Hunter Nadine",
+  "group": "Demon Hunter",
+  "slot": "04",
+  "fullId": "1JkrfqfefUYLrXY9UcwfriPPsEwDBw5cH",
+  "halfId": "1J_d9eNKmg83NqaI36uHmU860fZxs_1BT",
+  "conceptId": "16_kzIiasdwqMpkRpuwpSd_tfK0J8znde"
+ },
+ {
+  "character": "Nicky",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1LUwcGh09QW8JTZ2z_c4fqF9g5NGdJC2q",
+  "halfId": "1LUVDRNTVubiY4yjGRmbEwiUAXlvrXd4g",
+  "conceptId": "1S05ato9j45Apb3OhAkNe9OsRm5gsRfYE"
+ },
+ {
+  "character": "Nicky",
+  "skinName": "Alleycat Nicky",
+  "group": "Alleycat",
+  "slot": "01",
+  "fullId": "1c1DfrEHush0tAA1hA4Y12mNXwD4viB7w",
+  "halfId": "1c0czuixEeP-w7-et2-6RADlltShSMs3E",
+  "conceptId": "1SaNXkFdENMswpFD0UBLB1YEcHuN4YB7s"
+ },
+ {
+  "character": "Nicky",
+  "skinName": "Rebellious Nicky",
+  "group": "Rebellious",
+  "slot": "02",
+  "fullId": "1YcC9Ubg_6hhO7u9bRXILd_3IwzFj-hKA",
+  "halfId": "1YoUOa1OkYigygd12MI-97ZVyEGFEWQJZ"
+ },
+ {
+  "character": "Nicky",
+  "skinName": "Private Eye Nicky",
+  "group": "Private Eye",
+  "slot": "03",
+  "fullId": "1H35JB0CUH85WLPLJv3yHIgHQUx9ZK79w",
+  "halfId": "1H0fz6VpL7s1vNjoIJiaX2qbxmkT3FIJA",
+  "conceptId": "1STMcbc2WspV_em6Ehm9AGhA0LG-Pz1IK"
+ },
+ {
+  "character": "Nicky",
+  "skinName": "Bad Beat Nicky",
+  "group": "Bad Beat",
+  "slot": "04",
+  "fullId": "1C0EUVmOswBsluimiiiNiJ1XAU2M6a6bU",
+  "halfId": "1C22JsRi81WTOboruHuDuSLIoOKEqa11h",
+  "conceptId": "1SKSzSypiSCmLl1NDeYxXvNa-hQdQJ-5c"
+ },
+ {
+  "character": "Nicky",
+  "skinName": "Beachside Nicky",
+  "group": "Beachside",
+  "slot": "05",
+  "fullId": "1nqppqBsEOzipQMTeaNUFpCwRoR4K9U9I",
+  "halfId": "1boOsLRjPwgXY3WGsThXCcQKnZLQVSP_f",
+  "conceptId": "1SC7WLSzUUqYYPxuX2nO-tuUZmSwD-a0-"
+ },
+ {
+  "character": "Rio",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1nQlIBdArlKaj5H6Jbl2f8ZKZBxFiDDDY",
+  "halfId": "1o9ErGPRahKTNesxx6bZ0CZSq9Q8CA7jc",
+  "conceptId": "1R__4qne2VSCLW3NLMfdjv0jDIqYl9uDI"
+ },
+ {
+  "character": "Rio",
+  "skinName": "Shrine Maiden Rio",
+  "group": "Shrine Maiden",
+  "slot": "01",
+  "fullId": "1vBy4Gfu2X79Njxb3-kD7Eh9JnRKNycpo",
+  "halfId": "1vBOBHGCMVwhK69X-mZsOj9L9GO9hcn-n",
+  "conceptId": "1RkTwGbCIIEY-0KarVfFPKIn9m63IUJV6"
+ },
+ {
+  "character": "Rio",
+  "skinName": "SummERtime Rio",
+  "group": "SummERtime",
+  "slot": "02",
+  "fullId": "1us8yCsAEZMn0CMBFqWiGd7DeOp6fTOUh",
+  "halfId": "1uoQe8UoWImZxGYyb3vtXgS4std6SHNhO",
+  "conceptId": "1RiSGeGVkdsQCaqBLLvUOxYDXA59pfNLC"
+ },
+ {
+  "character": "Rio",
+  "skinName": "Midnight Aurora Rio",
+  "group": "Midnight Aurora",
+  "slot": "03",
+  "fullId": "1AtztwNcX9F6IzXF9UMGZCkv2Nwbzv-LJ",
+  "halfId": "1AstlQKzh71kiPuGx4prnpQNM_8y8pjL_"
+ },
+ {
+  "character": "Rio",
+  "skinName": "Winning Shot Rio",
+  "group": "Winning Shot",
+  "slot": "04",
+  "fullId": "1C2_5aC8a4Hgox3kVR-qQ3-puklsD1pUZ",
+  "halfId": "1C37MMACOYLr9ED9K2Wc3qbVifBzp23oc"
+ },
+ {
+  "character": "Rozzi",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "109DEDCty9ZfCipoOfTnr-84K7Nn_yf_E",
+  "halfId": "108BIIElTqj6BO7YkRNTxKwcrFrzBQnhf",
+  "conceptId": "1OIxuhOFAXfxq026IeIvXBRNGGLp0AjQi"
+ },
+ {
+  "character": "Rozzi",
+  "skinName": "Black Rose Rozzi",
+  "group": "Black Rose",
+  "slot": "01",
+  "fullId": "1FmgVXMkTXIyW68IsLx25ez1ezPR5Rjpp",
+  "halfId": "1FjgTHl5jlWrpXbb-1sMIzeTfRIz9ntgv",
+  "conceptId": "1OUqNj1wlicx75aONCH5y8brzfJzyDFH0"
+ },
+ {
+  "character": "Rozzi",
+  "skinName": "Elite Executioner Rozzi",
+  "group": "Elite Executioner",
+  "slot": "02",
+  "fullId": "1FVXiDNDw3H8xrqEl5ZzRKo6Jdk-Doigy",
+  "halfId": "1FSviS4bnEAluJzNoft2C30OYg7uiUIFJ",
+  "conceptId": "1OKV7T-hmMwWuEv08CPKKdfbjDcb9kRDW"
+ },
+ {
+  "character": "Rozzi",
+  "skinName": "Housekeeper Corp. Rozzi",
+  "group": "Housekeeper Corp.",
+  "slot": "03",
+  "fullId": "1a8xD7L6VjX8tXGY4Ss5gTNpG3zJHizeA",
+  "halfId": "1a9gaJnYOyA7tQ8eI_EvjkIyigCyHHaXC",
+  "conceptId": "1OJflEgxg1kqgcYjeu7OqnuI4j38pezMT"
+ },
+ {
+  "character": "Rozzi",
+  "skinName": "Sweet Valentine Rozzi",
+  "group": "Sweet Valentine",
+  "slot": "04",
+  "fullId": "1DefcHofa-aPPOJ5MnOsmBqyT7OWbwx9g",
+  "halfId": "1Dd0pf59D2MJav8dh-_ETjZeTe9RjNEQs",
+  "conceptId": "1Pj0Pfgrx-Rm8XeLgucTjWZayrQCGj47j"
+ },
+ {
+  "character": "Silvia",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1lUpqvThZi_uUTkDI27YoaA3vDd4bfhFU",
+  "halfId": "1ayabwo0mM04YZhJhUGyBvqN_LGMurQcU",
+  "conceptId": "1O5xeRB9ZPzfTT_AgFVvQ6q2PgTzQcabd"
+ },
+ {
+  "character": "Silvia",
+  "skinName": "Geforce Now Silvia",
+  "group": "Geforce Now",
+  "slot": "01",
+  "fullId": "10hZjOBR-bqiqd4jeuBcPQgxMxvIIG4SP",
+  "halfId": "1x49Qpz-HhcNOcDw-4pm0kfQHgl2q_2m8",
+  "conceptId": "1OHvxI_yQYFVs026yqjxLvaCZ-RuK_D3o"
+ },
+ {
+  "character": "Silvia",
+  "skinName": "Midnight Breeze Silvia",
+  "group": "Midnight Breeze",
+  "slot": "02",
+  "fullId": "1ofgzVl55_gcYZR99m4dAGShpdbiBq11g",
+  "halfId": "1ykiiU0DtcQ-fZovkS0ARXMCZkTILQqff"
+ },
+ {
+  "character": "Silvia",
+  "skinName": "Donutdasher Silvia",
+  "group": "Donutdasher",
+  "slot": "03",
+  "fullId": "1KCZPyLSUqDznYw97ZlJY2tZXBoA_wbj_",
+  "halfId": "1K73AgB9uPOiLq-ZJ6hiDEfNl12C3Rs6V",
+  "conceptId": "1OHXAqtxd6pUJ1pJ0h3gzDNPZVowQ9YR8"
+ },
+ {
+  "character": "Silvia",
+  "skinName": "Cozy Camper Silvia",
+  "group": "Cozy Camper",
+  "slot": "04",
+  "fullId": "1aBAPk3VsodxiTGJPohm6IQiy1VEXwHw1",
+  "halfId": "1aBut5Bx39eHjdgNIUPCJCYTveQBLKxLB",
+  "conceptId": "1OAldKSpiQsouB24WOhlZYjMjhGg7IsUQ"
+ },
+ {
+  "character": "Sissela",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1l5ugC9WWIiYHkvwQOYBjubqugNmst1Zi",
+  "halfId": "1UOSoPFR0LJNTfcm6TqbB7bi0Np32jnmo",
+  "conceptId": "1NFtCJuZ1nzyVlSxEoKZ67IJqcufCWS9Y"
+ },
+ {
+  "character": "Sissela",
+  "skinName": "Frost Clover Sissela",
+  "group": "Frost Clover",
+  "slot": "01",
+  "fullId": "18Y4V3pC3KmbV3cJfQGBhTPMjVB9ztqYP",
+  "halfId": "14lcXkZm96YixXQ1lAt_UVhgyazklP3uw",
+  "conceptId": "1NEIYO85B7kYayTfdhdg324JtPGf3UsZ6"
+ },
+ {
+  "character": "Sissela",
+  "skinName": "Noblewoman Sissela",
+  "group": "Noblewoman",
+  "slot": "02",
+  "fullId": "1-1AbXUJPnUrS5U0aHHHygEpvfhN6mi_P",
+  "halfId": "1SDGnCQYsWIFBATnzUE1fRt34dTrJcfk7",
+  "conceptId": "1N8czzggmghjtX-VFEmMHd3P_KoIU5fDT"
+ },
+ {
+  "character": "Sissela",
+  "skinName": "Winter Carnival Sissela",
+  "group": "Winter Carnival",
+  "slot": "03",
+  "fullId": "10Xl31-Sa98SK01BBth8T5QPrh5_i70NO",
+  "halfId": "17dGvIyY4bZ-Y7GYHe2I1NuGozwXNkdEz",
+  "conceptId": "1N587cSg4fnizd7tt-BTJjBMph283l363"
+ },
+ {
+  "character": "Sissela",
+  "skinName": "Wilson Bakery Sissela",
+  "group": "Wilson Bakery",
+  "slot": "04",
+  "fullId": "1iTbByQLx2T1BzE3dkcVfU5bIC--NQJjT",
+  "halfId": "1iTWIaKukrRAz_d9JEiN7pBDlZPiPkqHn",
+  "conceptId": "1N36NmjjOY-bRtc6LOnk4uDnOV_lRXmys"
+ },
+ {
+  "character": "Sissela",
+  "skinName": "Devilkin Sissela",
+  "group": "Devilkin",
+  "slot": "05",
+  "fullId": "1fSaJVMSmuecZIXcpzaaM7X8VQymHbXqK",
+  "halfId": "1fSZ1oyDOeLZNjLNDJsQ4_BlLEgI2CVqx",
+  "conceptId": "1fOhVBOhrjBhP_vS8jNz3-Iy00gbfGzZt"
+ },
+ {
+  "character": "Sua",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1TFHMfhtGHh27tGUAj600AkaApf3v9UBB",
+  "halfId": "1TDbk-0Zcu94c1aSj2U9WAVV-AQGsUYsG",
+  "conceptId": "1QuejZAVZ0B4PFPTM_QLnpB1OqeuIAK3D"
+ },
+ {
+  "character": "Sua",
+  "skinName": "Wistful Heritage Sua",
+  "group": "Wistful Heritage",
+  "slot": "01",
+  "fullId": "1Te8KUwqdVbYJ8-QIX3nxLuGCS6sPDfuI",
+  "halfId": "1Td-_7OhIOQOKyhHh8apDS0N3gkV-RZRq"
+ },
+ {
+  "character": "Sua",
+  "skinName": "SummERtime Sua",
+  "group": "SummERtime",
+  "slot": "02",
+  "fullId": "1TW7vwE17hjMyf7XxnIzPPWg-CE9DywvF",
+  "halfId": "1TUW0qd1AzeGHaqJzJKX9J1zFGfkX5VhN",
+  "conceptId": "1QsnMYgshr37xzC2TDCpwh-J-sxp4286E"
+ },
+ {
+  "character": "Sua",
+  "skinName": "1st Anniversery Sua",
+  "group": "1st Anniversery",
+  "slot": "03",
+  "fullId": "1E7_r6c0TM99cz8SnYQJzcP8S9O-GepuD",
+  "halfId": "1E6pSQlCCnStzMha6bjn-tJjaXtAI8ogA",
+  "conceptId": "1QsDM7bkU4ajP-bHA7z0fL5ngCrUISTKv"
+ },
+ {
+  "character": "Sua",
+  "skinName": "1st Anniversery Dawn Sua",
+  "group": "1st Anniversery Dawn",
+  "slot": "04",
+  "fullId": "1EAGzyIEWMdzohQymOoeBk6Hg68azEYs8",
+  "halfId": "1EH202KVPdxzqNt6WFT3e8gtGVVYt4OQV"
+ },
+ {
+  "character": "Tia",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "13sziUMnQpWT4hy9QjLuXo8gpSvUbSx9g",
+  "halfId": "13s8Yzc3ejXaGM6bPmd8aBJjAy2Ah1CUl",
+  "conceptId": "1VQE-XfinWwj2erQ0Kma0QUo97pqq4fFk"
+ },
+ {
+  "character": "Tia",
+  "skinName": "Street Atelier Tia",
+  "group": "Street Atelier",
+  "slot": "01",
+  "fullId": "1t3wTYAr9yNw9M5Bm2zVcYlmDJ1J_-zVj",
+  "halfId": "1uPseMz9UT8hewCujfphdubV-nK3zn-9-",
+  "conceptId": "1VownkE7goIzw5xW0VeLFrb120StGJSeu"
+ },
+ {
+  "character": "Tia",
+  "skinName": "Apprentice Witch Tia",
+  "group": "Apprentice Witch",
+  "slot": "02",
+  "fullId": "1Vu9tuqZEjOKuSPv-pQCcEfkxr-MKCiqf",
+  "halfId": "1VvGBKUC8yscOdWW9t7WdBXIWK_hMjxLJ",
+  "conceptId": "1VjtG34hmBFBdm_8eVkWgl78_Wp_7HW1O"
+ },
+ {
+  "character": "Tia",
+  "skinName": "Pixel ARt Tia",
+  "group": "Pixel ARt",
+  "slot": "03",
+  "fullId": "1W534sey8lCWzIDl2OvCTP2EgFSI4Ectv",
+  "halfId": "1W4yl090XOdsMlsjpYkQtu6WEvYedOIPc",
+  "conceptId": "1V_n3FPHeVRKMF9qxheZWlvQ7Dz7MJeNe"
+ },
+ {
+  "character": "Tia",
+  "skinName": "Ocean Painter Tia",
+  "group": "Ocean Painter",
+  "slot": "04",
+  "fullId": "1sO7_OJnzErmXFms2M_q7Wml2EYYUqqR5",
+  "halfId": "1aN6ujNfqmgxq9ziFZdYgFPuTVMGhmWNS",
+  "conceptId": "1oZqpzmiGQs6Knz49OyDGxUTm0VQgw8e2"
+ },
+ {
+  "character": "Tia",
+  "skinName": "Chipsneaky Maid Tia",
+  "group": "Chipsneaky Maid",
+  "slot": "05",
+  "fullId": "1qOHhHx8Kc44uY4XkEDygMKVD8u3o3yqa",
+  "halfId": "10UpkFBYo8koqCUKIJPrphyblR6iWLtuQ",
+  "conceptId": "1-AK6g1pbg9ktf5fe6MWvHF4fnUvW92kI"
+ }
+]
