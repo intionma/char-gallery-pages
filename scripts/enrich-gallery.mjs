@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dataDir = path.resolve(root, process.argv[2] || 'dist/data');
 const UA = 'char-gallery-pages/1.0 (+https://github.com/intionma/char-gallery-pages)';
-const BLUE_UTILS = 'https://test.blue-utils.me';
+// test. 서브도메인은 2026-08 기준 DNS가 사라졌다. 같은 경로를 apex 가 그대로 서빙한다.
+const BLUE_UTILS = 'https://blue-utils.me';
 const DANBOORU = 'https://danbooru.donmai.us';
 const FXTWITTER = 'https://api.fxtwitter.com';
 const BA_SWIMSUIT_TWEET_ID = '2081344804974403832';

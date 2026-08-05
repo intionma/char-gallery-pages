@@ -102,7 +102,13 @@ const MISSING_STATUSES = new Set([404, 410]);
 export const LIVE_CHECK_CONCURRENCY = 6;
 const missingUrlCache = new Map();
 
-export async function isMissingUrl(url) {
+/**
+ * URL 한 건의 상태. 'missing' 은 서버가 없다고 답한 것이고, 'unreachable' 은 아예 답을
+ * 못 받은 것이다. 둘을 섞으면 안 된다 — 호스트가 통째로 사라졌을 때 모든 요청이 예외로
+ * 끝나는데, 그걸 'live' 로 세면 "전부 살아있다"는 결론이 나온다. 실제로 그렇게
+ * test.blue-utils.me 의 DNS 가 사라진 뒤에도 메모리얼 538건이 그대로 배포됐다.
+ */
+export async function urlLiveness(url) {
   if (missingUrlCache.has(url)) return missingUrlCache.get(url);
   const check = (async () => {
     for (const method of ['HEAD', 'GET']) {
@@ -114,24 +120,42 @@ export async function isMissingUrl(url) {
         });
         if (response.body) await response.body.cancel().catch(() => {});
         if (response.status === 405 || response.status === 501) continue;
-        return MISSING_STATUSES.has(response.status);
+        return MISSING_STATUSES.has(response.status) ? 'missing' : 'live';
       } catch {
-        return false;
+        return 'unreachable';
       }
     }
-    return false;
+    return 'live';
   })();
   missingUrlCache.set(url, check);
   return check;
 }
 
-/** images 중 실제로 없는 것만 걸러낸다. skip 이 true 면 원본을 그대로 돌려준다. */
-export async function filterLiveImages(images, label, { skip = false, log = console.log } = {}) {
+/** 서버가 명시적으로 "없다"고 답한 경우에만 true. 도달 실패는 지우지 않는다. */
+export async function isMissingUrl(url) {
+  return (await urlLiveness(url)) === 'missing';
+}
+
+/**
+ * images 중 실제로 없는 것만 걸러낸다. skip 이 true 면 원본을 그대로 돌려준다.
+ * 도달 실패가 대부분이면 원본 장애로 보고 예외를 던진다 — 조용히 통과시키면
+ * 죽은 호스트가 그대로 배포된다.
+ */
+export async function filterLiveImages(images, label, {
+  skip = false, log = console.log, unreachableLimit = 0.5, unreachableSample = 20,
+} = {}) {
   if (skip) return images;
-  const missing = await mapLimited(images, LIVE_CHECK_CONCURRENCY, (image) => isMissingUrl(image.url));
-  const kept = images.filter((_, index) => !missing[index]);
+  const states = await mapLimited(images, LIVE_CHECK_CONCURRENCY, (image) => urlLiveness(image.url));
+  const unreachable = states.filter((state) => state === 'unreachable').length;
+  // 표본이 작으면 일시 장애 한두 건으로도 비율이 튄다. 캐릭터 한 명씩 도는 호출까지
+  // 터뜨리지 않도록 일정 건수 이상일 때만 장애로 판정한다.
+  if (images.length >= unreachableSample && unreachable > images.length * unreachableLimit) {
+    throw new Error(`${label}: ${unreachable}/${images.length} image URL(s) unreachable — 원본 호스트 장애로 보입니다`);
+  }
+  const kept = images.filter((_, index) => states[index] !== 'missing');
   const dropped = images.length - kept.length;
   if (dropped) log(`${label}: dropped ${dropped} missing image URL(s) of ${images.length}`);
+  if (unreachable) log(`${label}: ${unreachable} unreachable URL(s) kept (일시 장애로 간주)`);
   return kept;
 }
 
