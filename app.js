@@ -30,6 +30,33 @@
     return document.documentElement.dataset.uncensored === 'on';
   }
 
+  // 사볼 난이도와 이터널 리턴 뷰가 같은 variants 구조를 쓴다. 라이트박스 전환기와
+  // 목록 카드 배지가 같은 색을 쓰도록 여기에 모아 둔다.
+  const VIEW_COLORS = {
+    NOV: '#8b5cf6',
+    ADV: '#f5c518',
+    EXH: '#ff4757',
+    MXM: '#d7dee6',
+    INF: '#ff3da5',
+    GRV: '#ff7a18',
+    HVN: '#3dd8ff',
+    VVD: '#ff5fa2',
+    XCD: '#3d7bff',
+    기본: '#9aa4b2',
+    // 한 스킨에 딸린 여러 장의 아트(이터널 리턴 로드맵·티저·공식 팬키트).
+    일러스트: '#7fd4ff',
+    컨셉아트: '#ffc46b',
+    삼면도: '#b79bff',
+    '팬키트 전신': '#6ee7a8',
+    '팬키트 반신': '#8fe3c8',
+    '팬키트 컨셉': '#ffb3d1',
+  };
+
+  function viewColor(view) {
+    const key = String(view || '기본').toUpperCase();
+    return VIEW_COLORS[key] || VIEW_COLORS[view] || VIEW_COLORS.기본;
+  }
+
   function artUrl(image) {
     if (!image) return '';
     return (!uncensored() && image.safeUrl) || image.url;
@@ -437,7 +464,7 @@
 
   // 상세 화면의 이전/다음 대상. 목록을 거쳐 들어왔으면 그때 보던 순서를,
   // 링크로 바로 들어왔으면 그 게임의 기본 정렬 순서를 쓴다.
-  function characterNeighbors(gameId, data, characterId) {
+  function characterOrder(gameId, data, characterId) {
     const characters = Array.isArray(data.characters) ? data.characters : [];
     let ids = browseOrder.gameId === gameId ? browseOrder.ids : [];
     if (!ids.includes(characterId)) {
@@ -445,11 +472,50 @@
       const mode = defaultSort(gameId, sortCapabilities(data, characters));
       ids = sortCharacters(characters, mode, sourceIndex).map((character) => character.id);
     }
-    const index = ids.indexOf(characterId);
+    return { ids, index: ids.indexOf(characterId) };
+  }
+
+  function characterNeighbors(gameId, data, characterId) {
+    const characters = Array.isArray(data.characters) ? data.characters : [];
+    const { ids, index } = characterOrder(gameId, data, characterId);
     if (index < 0 || ids.length < 2) return null;
     const byId = new Map(characters.map((character) => [character.id, character]));
     const at = (offset) => byId.get(ids[(index + offset + ids.length) % ids.length]);
     return { previous: at(-1), next: at(1), position: index + 1, total: ids.length };
+  }
+
+  /**
+   * variants 가 "뷰"인 게임인지. 사볼은 같은 곡의 난이도별 자켓이라 라이트박스 안에서
+   * 바꾸는 게 맞지만, 이터널 리턴의 일러스트·컨셉아트·삼면도는 서로 다른 그림이라
+   * 목록에서 바로 보여야 한다.
+   */
+  function usesViewVariants(gameId) {
+    return !GAME_BY_ID.get(gameId)?.features?.jackets;
+  }
+
+  /**
+   * 뷰가 여러 개인 이미지를 뷰마다 한 장씩으로 편다. 카드 하나에 숨겨 두면 들어가 보기
+   * 전에는 그런 그림이 있는지 알 수 없다.
+   */
+  function expandViewCards(images, gameId) {
+    if (!usesViewVariants(gameId)) return images;
+    const expanded = [];
+    for (const image of images) {
+      const variants = (image.variants || []).filter((variant) => variant?.url);
+      if (variants.length < 2) { expanded.push(image); continue; }
+      for (const variant of variants) {
+        // 펼친 카드는 그 뷰 한 장만 가리킨다. variants 를 남기면 라이트박스에 전환기가
+        // 또 뜨고, thumbUrl 을 남기면 세 카드가 전부 대표 그림으로 보인다.
+        const { variants: _variants, thumbUrl: _thumbUrl, ...rest } = image;
+        expanded.push({
+          ...rest,
+          url: variant.url,
+          viewLabel: variant.difficulty,
+          viewerTitle: [image.group || image.type, variant.difficulty].filter(Boolean).join(' · '),
+        });
+      }
+    }
+    return expanded;
   }
 
   function characterNavBar(gameId, neighbors) {
@@ -523,7 +589,10 @@
     const data = await loadJson(DATA_FILES[gameId]);
     const character = (data.characters || []).find((item) => item.id === characterId);
     if (!character) return renderNotFound();
-    const images = Array.isArray(character.images) ? character.images.filter((image) => image.url) : [];
+    const images = expandViewCards(
+      Array.isArray(character.images) ? character.images.filter((image) => image.url) : [],
+      gameId,
+    );
     const name = displayName(character);
     const english = character.names?.en && character.names.en !== name ? character.names.en : '';
     setCensorAvailability((data.characters || []).some((entry) => entry.safeProfileImage
@@ -543,8 +612,14 @@
       </section>
       ${navBar}
     `;
+    const chain = characterOrder(gameId, data, characterId);
     app.querySelectorAll('[data-image-index]').forEach((card) => {
-      card.addEventListener('click', () => imageViewer.open(images, Number(card.dataset.imageIndex), { gameId, characterId }));
+      card.addEventListener('click', () => imageViewer.open(images, Number(card.dataset.imageIndex), {
+        gameId,
+        characterId,
+        characterName: name,
+        chain: chain.index >= 0 ? chain : null,
+      }));
     });
     app.querySelectorAll('[data-character-nav]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -559,11 +634,14 @@
 
   function detailCard(image, index) {
     const label = image.group || image.type || '기본';
+    const view = image.viewLabel || '';
     const landscape = Number(image.width) > Number(image.height) * 1.15;
+    const full = [label, view].filter(Boolean).join(' · ');
     return `
-      <button class="standing-card${landscape ? ' landscape' : ''}" type="button" data-image-index="${index}" aria-label="${escapeAttr(`${label} 크게 보기`)}">
+      <button class="standing-card${landscape ? ' landscape' : ''}" type="button" data-image-index="${index}" aria-label="${escapeAttr(`${full} 크게 보기`)}">
         <span class="badge">${escapeHtml(label)}</span>
-        <div class="art"><img src="${escapeAttr(artThumb(image))}" alt="${escapeAttr(label)}" loading="${index < 3 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(artThumb(image))}"></div>
+        ${view ? `<span class="view-badge" style="--view-color:${escapeAttr(viewColor(view))}">${escapeHtml(view)}</span>` : ''}
+        <div class="art"><img src="${escapeAttr(artThumb(image))}" alt="${escapeAttr(full)}" loading="${index < 3 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(artThumb(image))}"></div>
       </button>
     `;
   }
@@ -737,23 +815,7 @@
       official_misc: '공식 이미지',
       fanart: '팬아트',
     };
-    const DIFF_COLORS = {
-      NOV: '#8b5cf6',
-      ADV: '#f5c518',
-      EXH: '#ff4757',
-      MXM: '#d7dee6',
-      INF: '#ff3da5',
-      GRV: '#ff7a18',
-      HVN: '#3dd8ff',
-      VVD: '#ff5fa2',
-      XCD: '#3d7bff',
-      기본: '#9aa4b2',
-      // 한 스킨에 딸린 여러 장의 아트(이터널 리턴 로드맵·티저)를 넘겨볼 때 쓰는 라벨.
-      일러스트: '#7fd4ff',
-      컨셉아트: '#ffc46b',
-      삼면도: '#b79bff',
-    };
-    const LIGHT_VARIANTS = new Set(['MXM', '기본', '일러스트', '컨셉아트', '삼면도']);
+    const LIGHT_VARIANTS = new Set(['MXM', '기본', '일러스트', '컨셉아트', '삼면도', '팬키트 전신', '팬키트 반신', '팬키트 컨셉']);
     const pointers = new Map();
     let items = [];
     let itemIndex = 0;
@@ -768,7 +830,11 @@
     let copyResetTimer = 0;
     let cropResetTimer = 0;
     // 어느 게임의 어떤 화면에서 열렸는지. "이 캐릭터로 이동" 버튼의 목적지를 정한다.
-    let context = { gameId: '', characterId: '' };
+    // chain 이 있으면 마지막 장에서 더 넘길 때 다음 캐릭터로 이어진다.
+    let context = { gameId: '', characterId: '', characterName: '', chain: null };
+    // 라이트박스 안에서 캐릭터를 넘어갔는지. 닫을 때 어디로 보낼지가 달라진다.
+    let crossed = false;
+    let crossing = false;
     // 좁은 화면에서는 액션 바가 4칸이라 긴 라벨이 들어가지 않는다.
     const cropLabel = () => (window.matchMedia('(max-width: 639px)').matches ? '영역 복사' : '보이는 영역 복사');
     const CROP_HINT = '확대·이동한 상태로 화면에 보이는 부분만 이미지로 복사합니다';
@@ -801,11 +867,14 @@
     }
 
     function viewerTitle(item) {
-      if (item?.viewerTitle) return item.viewerTitle;
-      if (item?.skinName) {
-        return [characterName(item), item.skinName].filter(Boolean).join(' · ');
+      const own = item?.viewerTitle
+        || (item?.skinName ? [characterName(item), item.skinName].filter(Boolean).join(' · ') : '')
+        || item?.group || item?.title || item?.artist || '이미지';
+      // 캐릭터를 넘나드는 중이면 지금 누구를 보고 있는지가 제목에 있어야 한다.
+      if (context.chain && context.characterName && !own.startsWith(context.characterName)) {
+        return `${context.characterName} · ${own}`;
       }
-      return item?.group || item?.title || item?.artist || '이미지';
+      return own;
     }
 
     function viewerMeta(item) {
@@ -846,10 +915,7 @@
       return `${variant.difficulty || '기본'}${level}`;
     }
 
-    function diffColor(difficulty) {
-      const key = String(difficulty || '기본').toUpperCase();
-      return DIFF_COLORS[key] || DIFF_COLORS[difficulty] || DIFF_COLORS.기본;
-    }
+    const diffColor = viewColor;
 
     function lockBody() {
       if (bodyStyle) return;
@@ -1140,7 +1206,7 @@
     }
 
     function updateNavigation() {
-      const canNavigate = items.length > 1 || variantsFor().length > 1;
+      const canNavigate = items.length > 1 || variantsFor().length > 1 || Boolean(context.chain);
       [lightboxPrev, lightboxNext, lightboxPrevMobile, lightboxNextMobile].forEach((button) => {
         button.disabled = !canNavigate;
       });
@@ -1184,9 +1250,60 @@
       preloadAround();
     }
 
+    /**
+     * 캐릭터 상세에서 연 라이트박스는 그 캐릭터의 마지막 장에서 멈추지 않고 다음
+     * 캐릭터의 첫 장으로 이어진다. 닫고 "다음 →" 을 누르지 않아도 전원을 훑을 수 있다.
+     */
+    async function crossCharacter(direction) {
+      const chain = context.chain;
+      if (!chain || chain.ids.length < 2 || crossing) return false;
+      const gameId = context.gameId;
+      const start = chain.ids.indexOf(context.characterId);
+      if (start < 0) return false;
+      crossing = true;
+      try {
+        // 이미지가 하나도 없는 캐릭터는 건너뛴다. 한 바퀴 돌면 멈춘다.
+        for (let step = 1; step <= chain.ids.length; step += 1) {
+          const total = chain.ids.length;
+          const nextId = chain.ids[((start + direction * step) % total + total) % total];
+          const data = await loadJson(DATA_FILES[gameId]);
+          const character = (data.characters || []).find((entry) => entry.id === nextId);
+          const nextItems = expandViewCards(
+            (character?.images || []).filter((image) => image?.url),
+            gameId,
+          );
+          if (!nextItems.length) continue;
+          items = nextItems;
+          itemIndex = direction > 0 ? 0 : items.length - 1;
+          variantIndex = direction > 0 ? 0 : Math.max(0, variantsFor(items[itemIndex]).length - 1);
+          context = {
+            ...context,
+            characterId: nextId,
+            characterName: character ? displayName(character) : '',
+          };
+          crossed = true;
+          renderItem();
+          return true;
+        }
+        return false;
+      } catch {
+        return false;
+      } finally {
+        crossing = false;
+      }
+    }
+
     function move(direction) {
       if (!items.length) return;
       const variants = variantsFor();
+      const atEdge = direction > 0
+        ? itemIndex === items.length - 1 && variantIndex >= variants.length - 1
+        : itemIndex === 0 && variantIndex <= 0;
+      if (atEdge && context.chain) {
+        resetTransform();
+        crossCharacter(direction);
+        return;
+      }
       if (items.length === 1 && variants.length <= 1) return;
       resetTransform();
       if (direction > 0 && variantIndex < variants.length - 1) {
@@ -1307,7 +1424,13 @@
 
     function open(nextItems, nextIndex = 0, nextContext = {}) {
       if (!Array.isArray(nextItems) || !nextItems.length) return;
-      context = { gameId: nextContext.gameId || '', characterId: nextContext.characterId || '' };
+      context = {
+        gameId: nextContext.gameId || '',
+        characterId: nextContext.characterId || '',
+        characterName: nextContext.characterName || '',
+        chain: nextContext.chain?.ids?.length > 1 ? nextContext.chain : null,
+      };
+      crossed = false;
       items = nextItems;
       itemIndex = Math.min(Math.max(Number(nextIndex) || 0, 0), items.length - 1);
       variantIndex = 0;
@@ -1337,11 +1460,19 @@
       variantIndex = 0;
       lightboxImage.removeAttribute('src');
       lightboxDetail.hidden = true;
+      // 라이트박스로 다른 캐릭터까지 넘어갔으면, 닫았을 때 그 캐릭터 페이지에 있어야 한다.
+      const landing = crossed && context.gameId && context.characterId
+        ? `game/${context.gameId}/character/${encodeURIComponent(context.characterId)}`
+        : '';
+      crossed = false;
       if (historyEntryActive && !fromHistory) {
         historyEntryActive = false;
+        // history.back() 은 비동기라 곧바로 hash 를 바꾸면 되돌려진다. 빠진 뒤에 이동한다.
+        if (landing) window.addEventListener('popstate', () => navigate(landing), { once: true });
         window.history.back();
       } else if (fromHistory) {
         historyEntryActive = false;
+        if (landing) navigate(landing);
       }
       returnFocus?.focus?.({ preventScroll: true });
       returnFocus = null;
