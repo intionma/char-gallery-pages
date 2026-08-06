@@ -412,6 +412,24 @@ img { display: block; max-width: 100%; }
 .standing-card .badge,
 .jacket-card .badge { position: absolute; top: 8px; left: 8px; z-index: 2; border-radius: 999px; background: rgb(var(--panel) / .92); color: rgb(var(--accent-strong)); padding: 4px 8px; font-size: 10px; font-weight: 800; box-shadow: 0 1px 4px rgb(0 0 0 / .14); }
 
+/* 같은 스킨의 다른 뷰(일러스트·컨셉아트·삼면도·팬키트)를 카드에서 바로 구분한다.
+   라이트박스 전환기와 같은 색을 쓴다. */
+.standing-card .view-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  border-radius: 999px;
+  border: 1px solid var(--view-color, rgb(var(--line)));
+  background: color-mix(in srgb, var(--view-color, #9aa4b2) 18%, rgb(var(--panel)));
+  color: var(--view-color, rgb(var(--sub)));
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  box-shadow: 0 1px 4px rgb(0 0 0 / .18);
+}
+
 .jacket-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .jacket-card {
   position: relative;
