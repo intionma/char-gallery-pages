@@ -295,6 +295,15 @@
   "conceptId": "19BS7QDxy5Hjxm2_aOYIFIGeo2A-v8mln"
  },
  {
+  "character": "Aya",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1BqOxfh7dbP5pMs6sVT_RV5MXIaQ_UcoO",
+  "halfId": "1BvvHq3QCJBwCBP9Kl_fY4ByE2oTgjk5P",
+  "conceptId": "1kN-lt9_i1S5qloaiAeZEL9KVuMSkT4YS"
+ },
+ {
   "character": "Barbara",
   "skinName": "Default - 기본",
   "group": "Default - 기본",
@@ -402,6 +411,15 @@
   "conceptId": "1NVm8AM7WBNEp2tcuGbO40pCW9_FQg-M5"
  },
  {
+  "character": "Bianca",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1_qhFOPbZmkTCSjRAUKG5IEueC5pYM91A",
+  "halfId": "1_tGvjHg3Cpzk2txQbEr2q9p4J80gvqAN",
+  "conceptId": "1_oM-sVePjfCcE4nUBAG-CLMqOm7_FK3O"
+ },
+ {
   "character": "Bihyung",
   "skinName": "Default",
   "group": "기본",
@@ -425,14 +443,6 @@
   "fullId": "1HLUIrlxlUSCgK4XkwWmFdOBhIV5XuqE7",
   "halfId": "1FatZQTL0jKho-WuH1jjIsVMdkgD5jaZA",
   "conceptId": "1yCW4jJHmIUSXCrvrR52whlEEwqD5Gr8f"
- },
- {
-  "character": "Cadet (Ranked Reward)",
-  "skinName": "Season 9 - Nadine",
-  "group": "Season 9 - Nadine",
-  "slot": "05",
-  "fullId": "196LDKLpJSM3cNJg488lxgTvbhhQAhwBL",
-  "halfId": "1-19TbsPkODW7EP-17iwtaGRvbVnByYDa"
  },
  {
   "character": "Camilo",
@@ -809,6 +819,15 @@
   "halfId": "1JnSNGhH7G8EAIcG7hpi8vFeDiu6i8SNn"
  },
  {
+  "character": "Echion",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1VXsZruA_KC96gUjRi6ATzm2KAgF-89vD",
+  "halfId": "1VoHKrg0G70wAFl_c1GKHB3oGjm_8H_7l",
+  "conceptId": "1-tEhcBW65jdpPEdsFevCZbWkm4SEcs44"
+ },
+ {
   "character": "Elena",
   "skinName": "Default",
   "group": "기본",
@@ -861,6 +880,15 @@
   "fullId": "1PBtNDizzmilhDnwETqW7h1653RAf7jMv",
   "halfId": "10XlU7-1oNHGdZIM2Z9_yO_RF-VE8Pnfz",
   "conceptId": "1eGNUUg2iVBMrBI4whFEzvV_t9TYrYsyB"
+ },
+ {
+  "character": "Elena",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1kF9hAZYah4EEQNvjLlxhrilhBBm_xJH4",
+  "halfId": "1k7AiiygaHNIlVKmFOyEY3AO4vGKhj-Mc",
+  "conceptId": "1A0No2aNbV1CWuM2h9JR8Hp3kIG1YwWhl"
  },
  {
   "character": "Eleven",
@@ -1060,6 +1088,24 @@
   "conceptId": "1oQ5jO6h_KioPgfYLJFieQKE5ouHjuLIn"
  },
  {
+  "character": "Eva",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1M8IMO10iuU7k_T6Xf5DgmsmHn6uD8eRU",
+  "halfId": "1M7UH9BJlz4kK7_lygPwq426dzAWCgRGH",
+  "conceptId": "1GFljLMq6W1n0KiLjPwR0IVULOQBDhu73"
+ },
+ {
+  "character": "Felix",
+  "skinName": "Default",
+  "group": "기본",
+  "slot": "00",
+  "fullId": "1wVm642t1_MxwId7synjAkSt7ZhGrVLYJ",
+  "halfId": "1wVO4TiiP9Ova8rhJYgQjXz3RVsQILQDe",
+  "conceptId": "1W8EPhXPNOaL-dz1B5FR-bgxRm4fkqONY"
+ },
+ {
   "character": "Felix",
   "skinName": "Lumialand Felix",
   "group": "Lumialand",
@@ -1085,6 +1131,14 @@
   "fullId": "1jZCyEhBnBKc_MCrqCrZBS35Y0maAQ3vd",
   "halfId": "1jXDaiTBVuXRSxBq6KB0kmRCENysZ04Qz",
   "conceptId": "1W8cENB8zmd9yVglFvk5IQigru63cG2E2"
+ },
+ {
+  "character": "Felix",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1jUrmpqwpxC4umtipDcXFbRGup_y5R5ZQ",
+  "halfId": "1sIZwSuFeJtqEQhnxBghPlmBbnp0Fcxn4"
  },
  {
   "character": "Fenrir",
@@ -1227,6 +1281,15 @@
   "fullId": "1GlzxvFnTA5DmG1LiEfiXeVgTHs52dRHr",
   "halfId": "1GjFS-QrfPvRsY3gPuVX93G-Ht69M0Yde",
   "conceptId": "1CqW1gcRIyxBzbdYXoYMyfUFLQDj9iJno"
+ },
+ {
+  "character": "Hart",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1bc2F1QyAiOzfzzjr9ZmWhiK_A1Nr8H2C",
+  "halfId": "1bbamkoCeFMvwiI_ryxPCby3jVxtp6OaE",
+  "conceptId": "1fkQlDLIAxw6-EcWX7Xr0_f9r0CSkRMGs"
  },
  {
   "character": "Haze",
@@ -1388,6 +1451,15 @@
   "conceptId": "1YxjM47VQdhp2_ErWBC6FaepsdtSeDpSV"
  },
  {
+  "character": "Hyejin",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1LblllXjAfOSW5--C7Svd_LEjjvk8jWs7",
+  "halfId": "1Beydf3e11Pse_hNlyDMmtRG7uh1alIFW",
+  "conceptId": "1XfV3Z1QgRISLubWviHgj9EGHKDhOQs3X"
+ },
+ {
   "character": "Hyunwoo",
   "skinName": "Default",
   "group": "기본",
@@ -1429,6 +1501,15 @@
   "slot": "04",
   "fullId": "1Aqmacl5eJTc8b0YXkLByHO_SY7bqLB5L",
   "halfId": "1AsjQD5wDwilNnxjzaz0u8F_BYv0WLJfT"
+ },
+ {
+  "character": "Hyunwoo",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "15bTpc5R7CwTN3xRWJAF_EAVDnre5rZzM",
+  "halfId": "1Z4KSEkw1xiUcQGdaVmFbLRxwlGKcjQnD",
+  "conceptId": "19_exZd5XvxWr9EVT9rXTvzA2_ELoXysZ"
  },
  {
   "character": "Irem",
@@ -1538,6 +1619,15 @@
   "conceptId": "172GFT7O_7OxthbW8Epp2c4Ix3a7hIBxf"
  },
  {
+  "character": "Isol",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "11SLWGJaR8_1PIVc823bHaAEm8lnYECiH",
+  "halfId": "113iVMYVOhDAYBaIEG2Sxtkktj594xKPe",
+  "conceptId": "11Uu5ESXZfv_wneNYUkAatI6if8JbiY0_"
+ },
+ {
   "character": "István",
   "skinName": "Default",
   "group": "기본",
@@ -1566,6 +1656,24 @@
  },
  {
   "character": "Jackie",
+  "skinName": "Overvolt Jackie",
+  "group": "Overvolt",
+  "slot": "00",
+  "fullId": "1TrDTm6VcNIC_tyx-R1i0d3aUmGIDNkoZ",
+  "halfId": "1OxmQt-ORRJ6SleNv2GoypUZjkXm_YtBb",
+  "conceptId": "18LvesOk_uFVLRkKESJOl8pWPHVG8mkIN"
+ },
+ {
+  "character": "Jackie",
+  "skinName": "Spirit HuntER Jackie",
+  "group": "Spirit HuntER",
+  "slot": "00",
+  "fullId": "1ZrwbroekzbQH_P5jvnegLFVG2MTMFc4X",
+  "halfId": "1ZoHlz4iqEcYiTPj8EL9C5d8Nk_qmxz9H",
+  "conceptId": "18LvesOk_uFVLRkKESJOl8pWPHVG8mkIN"
+ },
+ {
+  "character": "Jackie",
   "skinName": "ExecutionER Jackie",
   "group": "ExecutionER",
   "slot": "01",
@@ -1581,6 +1689,15 @@
   "fullId": "16k0KH11fTZuga-IUgUarkHLuybbpmXrA",
   "halfId": "1TEARXYyy8-8r581BDGbbHmuPpggW6iNc",
   "conceptId": "18VF67oBVV_fzJxDYTQmAq1NrVcI8UHxi"
+ },
+ {
+  "character": "Jackie",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1Niqc67HKSUE-zWmy1Qs4s6ut5KqfC2_r",
+  "halfId": "1NfKRwefzCm8G2FKoA2654XQLEyJoH-cf",
+  "conceptId": "1O_CevhlRWEi-4c-TRCOc_C-htLUtXJ6j"
  },
  {
   "character": "Jan",
@@ -2056,6 +2173,14 @@
   "conceptId": "1CT3YDUv5XKq_BLQtrivNNqkhRtsfeAc8"
  },
  {
+  "character": "Li Dailin",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1bngvYy-x-1VGffAlYTbWdZqMvSQPMkhU",
+  "halfId": "1fbLaffDZkWbQff3fRFAKzvSTqmPM1NoL"
+ },
+ {
   "character": "Luke",
   "skinName": "Default",
   "group": "기본",
@@ -2107,6 +2232,14 @@
   "fullId": "1dRfpCqwrblMymlrhdp4m9l2gOqIfLSqo",
   "halfId": "1dWqQPWaZhNBdDftQFob5J0LeVrOXRy-Q",
   "conceptId": "1O_Ky4Gm0vjVJLo-QtfpnTGH7Ca5hrJNw"
+ },
+ {
+  "character": "Luke",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1HuBBZ8H21gqPzzSO3tvxCWkOOrsykjI7",
+  "halfId": "1HrNLKosrcUBlsGFAstMNAexAdlli9x9b"
  },
  {
   "character": "Ly anh",
@@ -2190,6 +2323,14 @@
   "conceptId": "1VBu9e-iw6sDuahKhhiZS7jsjPkSSoLm3"
  },
  {
+  "character": "Magnus",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1qEL_tVI3FvcWGdhrVmLFVvAz03SQOjos",
+  "halfId": "1qD6U1J0bgahYClzD4LvptsLwtsqvudka"
+ },
+ {
   "character": "Mai",
   "skinName": "Default",
   "group": "기본",
@@ -2232,6 +2373,15 @@
   "fullId": "18aKCdT9mzJ1xsfdWklquZlyp-3liDuzU",
   "halfId": "1z-Eh5BJxgfOAdEWEjnaB97VykgUnD0hf",
   "conceptId": "1eZ4A_KHVtXXMdp0iLL4fL_q3MSRkA6R_"
+ },
+ {
+  "character": "Mai",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1Cu4sqKkBLFAD4e_ErWtbUfdwpgkK5p8u",
+  "halfId": "1CwzeG6Pub8uUn6AOyx4qIj_9Rn0wmutB",
+  "conceptId": "1KvUBAiPLEmndPW3katOLVQ7HMh_lMA90"
  },
  {
   "character": "Markus",
@@ -2349,6 +2499,14 @@
   "fullId": "1JkrfqfefUYLrXY9UcwfriPPsEwDBw5cH",
   "halfId": "1J_d9eNKmg83NqaI36uHmU860fZxs_1BT",
   "conceptId": "16_kzIiasdwqMpkRpuwpSd_tfK0J8znde"
+ },
+ {
+  "character": "Nadine",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "196LDKLpJSM3cNJg488lxgTvbhhQAhwBL",
+  "halfId": "1-19TbsPkODW7EP-17iwtaGRvbVnByYDa"
  },
  {
   "character": "Nathapon",
@@ -2788,6 +2946,15 @@
   "conceptId": "1QvfJ8rwTF-uRT-G8D_KrJDtfmFFlpHNS"
  },
  {
+  "character": "Sua",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1TiUFeNEipPIzEjq9ve_8K1CasoGzJQv2",
+  "halfId": "1ThJnqKfXMCL9GDYBPXbx6nYEx6o9mMsZ",
+  "conceptId": "1TIUlUkIXw3OjFbFME4h371ET_tMVr5cj"
+ },
+ {
   "character": "Tazia",
   "skinName": "Default",
   "group": "기본",
@@ -3125,6 +3292,15 @@
   "fullId": "1xXS5844PXvYe-1FQg7v6GzEDS0LT-0RQ",
   "halfId": "1OHnO5YCpHOVDLe9LbYVaIP45wIODDhhD",
   "conceptId": "1FZgnizp_hEGICPXEhiJ24Z-RMDBnpew6"
+ },
+ {
+  "character": "Yuki",
+  "skinName": "Cadet",
+  "group": "Cadet",
+  "slot": "cadet",
+  "fullId": "1YChy48_cnVMgVhveEzwa-pODWhzEKyJB",
+  "halfId": "1pvooW36aE8skoOkaSHhc_B86ADwB4vPh",
+  "conceptId": "1MYnABtY2lZpLokGoEG26d5cVhF0-iDT0"
  },
  {
   "character": "Yumin",

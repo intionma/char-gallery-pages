@@ -56,6 +56,14 @@ const driveUrl = (id) => (id ? `https://lh3.googleusercontent.com/d/${id}` : und
 // 팬키트 폴더명에 오타가 있는 것들. 원본이 고쳐지면 이 줄을 지우면 된다.
 const FANKIT_ALIASES = new Map([
   ['blair:fealessrace', 'blair:fearlessrace'],
+  ['haze:1stanniverseryblanc', 'haze:1stanniversaryblanc'],
+  ['haze:1stanniversery', 'haze:1stanniversary'],
+  ['sua:1stanniversery', 'sua:1stanniversary'],
+  ['sua:1stanniverserydawn', 'sua:1stanniversarydawn'],
+  ['emma:witch', 'emma:witchy'],
+  ['irem:fluffysnowbal', 'irem:fluffysnowball'],
+  ['garnet:crimsonprimise', 'garnet:crimsonpromise'],
+  ['lenore:noctunesymphony', 'lenore:nocturnesymphony'],
 ]);
 const fankitByKey = new Map(
   FANKIT_ART.map((art) => {
