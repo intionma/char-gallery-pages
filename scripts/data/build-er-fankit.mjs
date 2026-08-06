@@ -79,8 +79,22 @@ const decodeEntities = (value) => String(value).replace(
 );
 
 const stripIndex = (name) => name.replace(/^\d+\.\s*/, '').trim();
-const slotOf = (fileName) => fileName.match(/_(?:Full|Half|Mini)_(\d+)\./i)?.[1]
+
+// 팬키트에는 파일명 규칙이 세 가지 섞여 있다. 하나만 보면 캐릭터가 통째로 빠지므로
+// (실제로 그렇게 16명이 누락됐다) 전부 받는다.
+//   Celine_Full_00.png   — 종류가 가운데
+//   Full_Bihyung_00.png  — 종류가 앞 (최근 실험체)
+//   Yuki_Cadet_Full.png  — 종류가 뒤, 슬롯 번호 없음 (랭크 보상)
+const isKind = (fileName, kind) => new RegExp(`(?:^|_)${kind}(?:_|\\.)`, 'i').test(fileName);
+const slotOf = (fileName) => fileName.match(/(?:^|_)(?:Full|Half|Mini)_(?:.*_)?(\d+)\./i)?.[1]
   ?? fileName.match(/^(\d+)\./)?.[1];
+
+// 스킨이 아닌 자료 폴더. 이름에 'icon' 이 들어간 스킨('Unemployed Icon Jenny')까지
+// 잘라내지 않도록 폴더명 전체로 판정한다.
+const SECTION_DIR = /^(concept\s*art|skill\s*icon|skill|voice\s*line|icon)$/i;
+
+// 실험체가 아니라 스킨 한 종류가 캐릭터 폴더처럼 들어가 있는 자리.
+const RANKED_REWARD = /^Cadet\s*\(Ranked Reward\)$/i;
 
 console.log('팬키트 CharactER 폴더를 훑는 중…');
 const root = await listFolder(ROOT);
@@ -91,6 +105,7 @@ const characters = (await listFolder(charactER.id)).filter((entry) => entry.isFo
 console.log(`캐릭터 폴더 ${characters.length}개`);
 
 const manifest = [];
+const emptyCharacters = [];
 for (const [index, characterDir] of characters.entries()) {
   const character = stripIndex(characterDir.name);
   await sleep(250);
@@ -99,6 +114,41 @@ for (const [index, characterDir] of characters.entries()) {
     sections = await listFolder(characterDir.id);
   } catch (error) {
     console.warn(`  !! ${character}: ${error.message}`);
+    continue;
+  }
+
+  // 랭크 보상 Cadet 은 캐릭터가 아니라 스킨 한 종류다. 하위가 '<시즌> - <캐릭터>' 라
+  // 캐릭터를 폴더명에서 읽어 group='Cadet' 으로 편다. 컨셉아트도 폴더 안에 같이 있다.
+  if (RANKED_REWARD.test(character)) {
+    let got = 0;
+    for (const seasonDir of sections.filter((s) => s.isFolder)) {
+      const who = seasonDir.name.split(/\s+-\s+/).pop()?.trim();
+      if (!who) continue;
+      await sleep(250);
+      let files;
+      try {
+        files = await listFolder(seasonDir.id);
+      } catch (error) {
+        console.warn(`  !! ${character}/${seasonDir.name}: ${error.message}`);
+        continue;
+      }
+      const full = files.find((f) => !f.isFolder && isKind(f.name, 'Full'));
+      const half = files.find((f) => !f.isFolder && isKind(f.name, 'Half'));
+      const concept = files.find((f) => !f.isFolder && /concept/i.test(f.name));
+      if (!full && !half) continue;
+      manifest.push({
+        character: who,
+        skinName: 'Cadet',
+        group: 'Cadet',
+        slot: 'cadet',
+        ...(full ? { fullId: full.id } : {}),
+        ...(half ? { halfId: half.id } : {}),
+        ...(concept ? { conceptId: concept.id } : {}),
+      });
+      got += 1;
+    }
+    console.log(`  [${index + 1}/${characters.length}] ${character}: 시즌 ${sections.filter((s) => s.isFolder).length}개 → ${got}건`);
+    if (!got) emptyCharacters.push(character);
     continue;
   }
 
@@ -115,7 +165,7 @@ for (const [index, characterDir] of characters.entries()) {
 
   // 스킨 폴더: Default 와 '<스킨명> <캐릭터>' 형태. 아이콘·스킬·음성은 건너뛴다.
   const skinDirs = sections.filter((s) => s.isFolder
-    && !/concept|skill|voice|icon/i.test(s.name));
+    && !SECTION_DIR.test(stripIndex(s.name)));
   for (const skinDir of skinDirs) {
     await sleep(250);
     let files;
@@ -125,8 +175,8 @@ for (const [index, characterDir] of characters.entries()) {
       console.warn(`  !! ${character}/${skinDir.name}: ${error.message}`);
       continue;
     }
-    const full = files.find((f) => /_Full_\d+\./i.test(f.name));
-    const half = files.find((f) => /_Half_\d+\./i.test(f.name));
+    const full = files.find((f) => isKind(f.name, 'Full'));
+    const half = files.find((f) => isKind(f.name, 'Half'));
     if (!full && !half) continue;
 
     const slot = slotOf(full?.name || half.name) || '00';
@@ -146,7 +196,16 @@ for (const [index, characterDir] of characters.entries()) {
       ...(conceptBySlot.has(slot) ? { conceptId: conceptBySlot.get(slot) } : {}),
     });
   }
-  console.log(`  [${index + 1}/${characters.length}] ${character}: ${skinDirs.length}개 슬롯`);
+  // 폴더는 있는데 한 건도 못 건진 캐릭터는 파일명 규칙이 또 바뀐 것이다.
+  // 예전에 이게 조용히 지나가서 최근 캐릭터 16명이 통째로 빠졌으므로 눈에 띄게 남긴다.
+  const got = manifest.filter((row) => row.character === character).length;
+  if (!got) emptyCharacters.push(character);
+  console.log(`  [${index + 1}/${characters.length}] ${character}: 폴더 ${skinDirs.length}개 → ${got}건${got ? '' : '  ← 수집 0'}`);
+}
+
+if (emptyCharacters.length) {
+  console.warn(`\n!! 수집 0건인 캐릭터 ${emptyCharacters.length}명: ${emptyCharacters.join(', ')}`);
+  console.warn('   팬키트 파일명 규칙이 바뀌었을 수 있습니다. isKind/slotOf 를 확인하세요.');
 }
 
 manifest.sort((a, b) => a.character.localeCompare(b.character) || a.slot.localeCompare(b.slot));
