@@ -267,6 +267,10 @@
         const data = await loadJson(DATA_FILES[gameId]);
         return renderWallpapers(data, gameId);
       }
+      if (GAME_BY_ID.get(gameId)?.features?.crew && parts[2] === 'crew') {
+        const data = await loadJson(DATA_FILES[gameId]);
+        return renderCrew(data, gameId);
+      }
       if (GAME_BY_ID.get(gameId)?.features?.jackets && parts[2] === 'jackets') {
         const data = await loadJson(DATA_FILES[gameId]);
         // parts[3] 이 있으면 그 자켓까지 펼쳐서 라이트박스로 연다 ("이 자켓으로 이동").
@@ -359,6 +363,9 @@
       features.wallpapers
         ? `<button class="feature-link" type="button" data-wallpapers-entry><span>${escapeHtml(labels.wallpapersEntry || '배경화면 보기')}</span><span aria-hidden="true">→</span></button>`
         : '',
+      features.crew
+        ? `<button class="feature-link" type="button" data-crew-entry><span>${escapeHtml(labels.crewEntry || '크루 보기')}</span><span aria-hidden="true">→</span></button>`
+        : '',
     ].filter(Boolean).join('');
 
     app.innerHTML = `
@@ -446,6 +453,7 @@
     app.querySelector('[data-jackets-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/jackets`));
     app.querySelector('[data-skins-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/skins`));
     app.querySelector('[data-wallpapers-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/wallpapers`));
+    app.querySelector('[data-crew-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/crew`));
     update();
   }
 
@@ -755,6 +763,37 @@
    * 시즌 배경화면 뷰. 캐릭터가 아니라 시즌 단위라 목록·정렬 장치가 필요 없고,
    * 카드는 가로가 긴 4K 이미지라 자켓 그리드와 다른 비율을 쓴다.
    */
+  function renderCrew(data, gameId) {
+    setTheme(gameId);
+    const labels = GAME_BY_ID.get(gameId)?.labels || {};
+    const title = labels.crewTitle || '크루';
+    const crew = Array.isArray(data.crew) ? data.crew.filter((row) => row.url) : [];
+
+    setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
+    setHeader({ title, subtitle: `${crew.length}종`, back: `game/${gameId}` });
+    app.innerHTML = `
+      ${labels.crew ? `<p class="view-note">${escapeHtml(labels.crew)}</p>` : ''}
+      <div class="section-title"><h2>${escapeHtml(title)}</h2><span>${crew.length}종</span></div>
+      <section class="standing-grid">
+        ${crew.length ? crew.map((row, index) => `
+          <button class="standing-card" type="button" data-image-index="${index}" aria-label="${escapeAttr(`${row.name} 크게 보기`)}">
+            <span class="badge">${escapeHtml(row.name)}</span>
+            ${row.characterName ? `<span class="view-badge" style="--view-color:${escapeAttr(viewColor('기본'))}">${escapeHtml(row.characterName)}</span>` : ''}
+            <div class="art"><img src="${escapeAttr(row.url)}" alt="${escapeAttr(row.name)}" loading="${index < 4 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(row.url)}"></div>
+          </button>
+        `).join('') : '<div class="empty">크루 데이터가 없습니다.</div>'}
+      </section>
+    `;
+    const items = crew.map((row) => ({
+      ...row,
+      viewerTitle: row.name,
+      viewerMeta: [row.characterName, row.width && `${row.width}×${row.height}`, row.addedAt].filter(Boolean).join(' · '),
+    }));
+    app.querySelectorAll('[data-image-index]').forEach((card) => {
+      card.addEventListener('click', () => imageViewer.open(items, Number(card.dataset.imageIndex), { gameId }));
+    });
+  }
+
   function renderWallpapers(data, gameId) {
     setTheme(gameId);
     const labels = GAME_BY_ID.get(gameId)?.labels || {};
@@ -813,6 +852,7 @@
       official_standing: '공식 · 스탠딩',
       official_skin: '공식 · 코스튬',
       official_misc: '공식 이미지',
+      official_portrait: '공식 · 프로필',
       fanart: '팬아트',
     };
     const LIGHT_VARIANTS = new Set(['MXM', '기본', '일러스트', '컨셉아트', '삼면도', '팬키트 전신', '팬키트 반신', '팬키트 컨셉']);

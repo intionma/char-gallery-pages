@@ -168,6 +168,17 @@ for (const [gameId, expectation] of Object.entries(expectations)) {
     else fail(gameId, `wallpaper ${wallpaper.id} has no thumbUrl`);
   }
 
+  // 크루 뷰도 마찬가지다. 수집이 조용히 비면 빈 화면이 나간다.
+  const crew = Array.isArray(data.crew) ? data.crew : [];
+  if (GAMES.find((game) => game.id === gameId)?.features?.crew && !crew.length) {
+    fail(gameId, 'crew is empty');
+  }
+  uniqueIds(gameId, 'crew', crew);
+  for (const row of crew) {
+    if (!row.name) fail(gameId, `crew ${row.id} has no name`);
+    httpsUrl(gameId, `crew ${row.id} url`, row.url);
+  }
+
   if (gameId === 'blue-archive') {
     const popularity = data.sortMetadata?.popularity;
     if (!popularity || typeof popularity.available !== 'boolean') {

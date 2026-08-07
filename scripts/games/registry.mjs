@@ -191,7 +191,7 @@ export const GAMES = [
     coverImage: null,
     collection: 'jackets',
     // 자켓 뷰(전곡)와 별개로, 캐릭터가 그려진 자켓만 모아 보는 화면도 함께 둔다.
-    features: { skins: true, jackets: true },
+    features: { skins: true, jackets: true, crew: true },
     labels: {
       detailSection: '공식 이미지',
       emptyList: 'SDVX 캐릭터 데이터가 준비되면 이 화면에 기존과 같은 목록으로 표시됩니다.',
@@ -199,6 +199,9 @@ export const GAMES = [
       skins: '캐릭터가 그려진 자켓만 모아 발매 최신순으로 봅니다.',
       skinsEntry: '캐릭터 자켓 모아보기',
       skinsOrder: '발매순',
+      crewTitle: '네메시스 크루',
+      crew: '플레이 화면에 세우는 내비게이터 아트를 모아 봅니다.',
+      crewEntry: '네메시스 크루 모아보기',
     },
     sort: { modes: [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']] },
     genderFilter: 'source-curated',
