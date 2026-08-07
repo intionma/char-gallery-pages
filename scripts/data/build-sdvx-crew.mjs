@@ -20,7 +20,15 @@ import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dest = path.resolve(process.argv[2] || path.join(here, 'sdvx-crew.json'));
-const CHARA_PAGE = 'https://p.eagate.573.jp/game/sdvx/vi/chara/index.html';
+// 버전마다 캐릭터 페이지가 따로 있고 실린 인원이 다르다. EXCEED GEAR 페이지에만
+// 기대면 구버전에만 있는 캐릭터(원더풀 러브 짱 등)가 빠진다. 최신 버전을 먼저 두어
+// 같은 캐릭터는 최신 그림이 대표가 되게 한다.
+const CHARA_PAGES = [
+  'https://p.eagate.573.jp/game/sdvx/vi/chara/index.html',
+  'https://p.eagate.573.jp/game/sdvx/v/p/chara/index.html',
+  'https://p.eagate.573.jp/game/sdvx/iv/p/chara/index.html',
+  'https://p.eagate.573.jp/game/sdvx/iii/p/chara/index.html',
+];
 const WIKI = 'sdvx.fandom.com';
 // 공식 사이트는 봇 UA 를 캡차로 돌려보낸다. 브라우저 UA 로 받는다.
 const BROWSER_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
@@ -46,20 +54,31 @@ async function get(url, headers) {
   return response;
 }
 
-/** 공식 캐릭터 페이지의 대표 일러스트. */
+/** 공식 캐릭터 페이지의 대표 일러스트. 버전별 페이지를 모두 훑는다. */
 async function officialPortraits() {
-  const html = await (await get(CHARA_PAGE, { 'User-Agent': BROWSER_UA, 'Accept-Language': 'ja' })).text();
-  const rows = [...html.matchAll(/<img[^>]*class="chara_image"[^>]*>/g)].map((match) => {
-    const tag = match[0];
-    return {
-      url: tag.match(/data-original="([^"]+)"/)?.[1],
-      name: decodeEntities(tag.match(/alt="([^"]*)"/)?.[1] || '').trim(),
-      width: Number(tag.match(/width="(\d+)"/)?.[1]) || undefined,
-      height: Number(tag.match(/height="(\d+)"/)?.[1]) || undefined,
-    };
-  }).filter((row) => row.url && row.name);
+  const rows = [];
+  for (const page of CHARA_PAGES) {
+    let html;
+    try {
+      html = await (await get(page, { 'User-Agent': BROWSER_UA, 'Accept-Language': 'ja' })).text();
+    } catch (error) {
+      console.warn(`  !! ${page}: ${error.message}`);
+      continue;
+    }
+    const found = [...html.matchAll(/<img[^>]*class="chara_image"[^>]*>/g)].map((match) => {
+      const tag = match[0];
+      return {
+        url: tag.match(/data-original="([^"]+)"/)?.[1] || tag.match(/src="(https[^"]+)"/)?.[1],
+        name: decodeEntities(tag.match(/alt="([^"]*)"/)?.[1] || '').trim(),
+        width: Number(tag.match(/width="(\d+)"/)?.[1]) || undefined,
+        height: Number(tag.match(/height="(\d+)"/)?.[1]) || undefined,
+      };
+    }).filter((row) => row.url && row.name);
+    console.log(`  ${page.replace('https://p.eagate.573.jp/game/sdvx/', '')} → ${found.length}건`);
+    rows.push(...found);
+  }
   if (rows.length < 40) throw new Error(`공식 캐릭터 일러스트가 너무 적습니다 (${rows.length}건) — 페이지 구조가 바뀌었을 수 있습니다`);
-  // 같은 그림이 여러 번 걸려 있는 경우가 있다.
+  // 같은 그림이 여러 페이지에 걸려 있다. 앞선(최신) 것을 남긴다.
   const seen = new Set();
   return rows.filter((row) => (seen.has(row.url) ? false : seen.add(row.url)));
 }
@@ -104,14 +123,18 @@ const PORTRAIT_ALIASES = new Map([
   ['リリック・リシュナ', 'Lyric Rishuna'],
   ['冥道ユウキ', 'Yuuki Myodo'],
   ['井之上 千影', 'Chikage Inoue'],
-  ['弐拾四階段の道化師（ハーレクイン）', 'Mysterieux Rouge'],
-  ['サイコパスコミュニケーション', 'Psycho Holic'],
   ['マキナ・苺ハートビート 製造型番 WAX-15HB-KG', 'Machina Mai Heartbeat'],
   ['ハルト=カプサイシン=スチプチサット', 'Halt=Capsaicin=Styptysat'],
   ['覚醒のジュワユース', 'Joyeuse Awakening'],
   ['氷雪ちゃん', 'Hiyuki-chan'],
   ['静かなる嵐のイノテンちゃん', 'Inoten-chan'],
   ['蒼＆雛＆桃', 'Hina, Ao, and Momo'],
+]);
+
+// 공식 파일명이 실제 캐릭터와 어긋나는 자리. 예를 들어 '샤토 로와르' 의 파일명이
+// joyeuse.jpg 라 '각성 주와이외즈' 에 붙는다. 우리 캐릭터가 아닌 것만 여기 적는다.
+const PORTRAIT_SKIP = new Set([
+  'シャトー・ロワーレ',
 ]);
 
 const ascii = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -138,12 +161,32 @@ const crew = await wikiCrew();
 console.log(`  ${crew.length}건 (카드 ${crew.filter((c) => c.kind === 'card').length} · 내비 ${crew.filter((c) => c.kind === 'navigator').length})`);
 
 // 프로필 ↔ 캐릭터 연결
+const words = (value) => String(value || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).sort().join('|');
+
+/**
+ * 부분 문자열만으로 붙이면 사고가 난다. 실제로 'わんだふるラヴちゃん' 의 파일명 love.jpg 가
+ * 'Candy Lovesick Maltodextrin' 에 걸렸다. 겹치는 조각이 이름의 절반은 돼야 인정한다.
+ */
+function portraitMatches(key, name, nameWords, keyWords, nameTokens) {
+  if (key === name) return true;
+  if (keyWords && keyWords === nameWords) return true; // 'KINO ANZU' ↔ 'ANZU KINO'
+  // 'kino' 는 'ANZU KINO' 의 한 단어라 인정하고, 'love' 는 'Lovesick' 의 조각일 뿐이라 뺀다.
+  if (key.length >= 4 && nameTokens.includes(key)) return true;
+  if (key.includes(name)) return name.length >= Math.max(5, key.length * 0.5);
+  return false;
+}
+
 const unmatched = [];
 for (const row of portraits) {
+  if (PORTRAIT_SKIP.has(row.name)) { unmatched.push(row.name); continue; }
   const keys = portraitKeys(row);
+  const rowWords = words(row.name.replace(/[^\x20-\x7e]/g, ' '));
   const match = characters.find((character) => {
     const name = ascii(character.name);
-    return name.length >= 3 && keys.some((key) => key === name || key.includes(name) || name.includes(key));
+    if (name.length < 3) return false;
+    const nameWords = words(character.name);
+    const nameTokens = String(character.name).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    return keys.some((key) => portraitMatches(key, name, nameWords, rowWords || undefined, nameTokens));
   });
   if (match) row.character = match.name;
   else unmatched.push(row.name);
@@ -176,7 +219,7 @@ if (unmatched.length) {
 
 const manifest = {
   source: {
-    portraits: CHARA_PAGE,
+    portraits: CHARA_PAGES[0],
     crew: `https://${WIKI}/wiki/Category:Characters`,
   },
   portraits: portraits.sort((a, b) => a.name.localeCompare(b.name)),
