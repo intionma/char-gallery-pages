@@ -15,14 +15,19 @@
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/bof.jpg",
    "name": "BOF",
    "width": 700,
-   "height": 233,
-   "character": "Miss.DD & BOF"
+   "height": 233
   },
   {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/engra.jpg",
    "name": "engra",
    "width": 470,
    "height": 418
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/fumu.jpg",
+   "name": "F型人工生命",
+   "width": 324,
+   "height": 324
   },
   {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/gomy.jpg",
@@ -61,8 +66,7 @@
    "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/sakura.jpg",
    "name": "sakura",
    "width": 324,
-   "height": 324,
-   "character": "Sakurako Sobani"
+   "height": 324
   },
   {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/tama.jpg",
@@ -153,6 +157,13 @@
    "character": "GRACE"
   },
   {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/grace.jpg",
+   "name": "グレイス",
+   "width": 720,
+   "height": 604,
+   "character": "GRACE"
+  },
+  {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/gorilla.jpg",
    "name": "ゴリラ/GORILLA",
    "width": 700,
@@ -162,8 +173,7 @@
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/psychopass.jpg",
    "name": "サイコパスコミュニケーション",
    "width": 840,
-   "height": 280,
-   "character": "Psycho Holic"
+   "height": 280
   },
   {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/satan.jpg",
@@ -182,8 +192,7 @@
    "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/joyeuse.jpg",
    "name": "シャトー・ロワーレ",
    "width": 324,
-   "height": 324,
-   "character": "Joyeuse Awakening"
+   "height": 324
   },
   {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/chocopla.jpg",
@@ -194,6 +203,12 @@
   },
   {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/tsumabuki.jpg",
+   "name": "つまぶき",
+   "width": 282,
+   "height": 265
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/tsumabuki.jpg",
    "name": "つまぶき",
    "width": 282,
    "height": 265
@@ -219,6 +234,13 @@
    "character": "NEAR & NOAH"
   },
   {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/near_noah.jpg",
+   "name": "ニア & ノア/NEAR & NOAH",
+   "width": 700,
+   "height": 680,
+   "character": "NEAR & NOAH"
+  },
+  {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/kapusaishin.jpg",
    "name": "ハルト=カプサイシン=スチプチサット",
    "width": 324,
@@ -229,8 +251,7 @@
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/panna.jpg",
    "name": "パンナコッター",
    "width": 523,
-   "height": 450,
-   "character": "Pannacottar & The Martians"
+   "height": 450
   },
   {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/pilica.jpg",
@@ -257,6 +278,12 @@
    "name": "ボルテナイザーマキシマ",
    "width": 900,
    "height": 630
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/maxima.jpg",
+   "name": "ボルテナイザーマキシマ",
+   "width": 510,
+   "height": 497
   },
   {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/makina.jpg",
@@ -327,6 +354,13 @@
    "character": "RASIS"
   },
   {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/rasis.jpg",
+   "name": "レイシスV",
+   "width": 750,
+   "height": 550,
+   "character": "RASIS"
+  },
+  {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/rex.jpg",
    "name": "レックス",
    "width": 760,
@@ -351,7 +385,7 @@
    "name": "わんだふるラヴちゃん",
    "width": 324,
    "height": 324,
-   "character": "Candy Lovesick Maltodextrin"
+   "character": "Wonderful Love-chan"
   },
   {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/akane.jpg",
@@ -419,7 +453,19 @@
    "height": 500
   },
   {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/left.jpg",
+   "name": "嬬武器烈風刀",
+   "width": 750,
+   "height": 500
+  },
+  {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/right.jpg",
+   "name": "嬬武器雷刀",
+   "width": 750,
+   "height": 500
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/right.jpg",
    "name": "嬬武器雷刀",
    "width": 750,
    "height": 500
@@ -435,8 +481,7 @@
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/haele.jpg",
    "name": "弐拾四階段の道化師（ハーレクイン）",
    "width": 540,
-   "height": 270,
-   "character": "Mysterieux Rouge"
+   "height": 270
   },
   {
    "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/setsu.jpg",
