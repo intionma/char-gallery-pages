@@ -581,9 +581,15 @@ async function buildSoundVoltex() {
   if (!script) throw new Error('SDVX frontend bundle not found');
   const bundleUrl = new URL(script.replace(/&amp;/g, '&'), ROOT).href;
   const bundle = await fetchText(bundleUrl);
-  const manifestPath = bundle.match(/["'](\/songsv[\d.]+\.json)["']/)?.[1];
+  // 매니페스트 이름은 버전이 올라갈 때마다 바뀐다. 예전 정규식이 버전을 숫자와 점으로만
+  // 받는 바람에 'songsv1.4.2c.json' 처럼 끝에 글자가 붙자 매칭에 실패했고, 스냅샷
+  // 폴백이 조용히 받아 주면서 2주 넘게 옛 데이터가 배포됐다. 파일명 전체를 받는다.
+  const manifestPath = bundle.match(/["'](\/songsv[^"']*\.json)["']/)?.[1];
   if (!manifestPath) throw new Error('SDVX song manifest not found');
   const source = await fetchJson(new URL(manifestPath, ROOT).href);
+  if (!Array.isArray(source) || source.length < 2000) {
+    throw new Error(`SDVX song manifest looks wrong: ${Array.isArray(source) ? `${source.length} songs` : typeof source}`);
+  }
   const diff = { novice: 'NOV', advanced: 'ADV', exhaust: 'EXH', maximum: 'MXM', infinite: 'INF', gravity: 'GRV', heavenly: 'HVN', vivid: 'VVD', exceed: 'XCD' };
   const rank = { NOV: 1, ADV: 2, EXH: 3, MXM: 10, INF: 10, GRV: 10, HVN: 10, VVD: 10, XCD: 10 };
   const jackets = source.flatMap((song) => {
@@ -600,6 +606,9 @@ async function buildSoundVoltex() {
       url: variants[0].url, sourceUrl: `${ROOT}/s/${song.songid}/1`, variants,
     }];
   });
+  // 최신곡 날짜를 남긴다. 원본이 멈췄는지 로그만 보고 알 수 있어야 한다.
+  const newest = jackets.map((j) => j.releasedAt).filter(Boolean).sort().at(-1);
+  console.log(`SDVX manifest ${manifestPath}: ${jackets.length} jackets, newest ${newest || '(날짜 없음)'}`);
   return enrichSoundVoltex({
     generatedAt,
     game: gameMeta('sound-voltex'),
