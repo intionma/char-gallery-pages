@@ -142,8 +142,24 @@ async function loadSdvxCharacterLinks() {
   return sdvxCharacterLinks;
 }
 
+let sdvxCrew = null;
+async function loadSdvxCrew() {
+  if (!sdvxCrew) {
+    sdvxCrew = JSON.parse(await fs.readFile(path.join(__dirname, 'data/sdvx-crew.json'), 'utf8'));
+  }
+  return sdvxCrew;
+}
+
 async function enrichSoundVoltex(data) {
   const links = await loadSdvxCharacterLinks();
+  const crewData = await loadSdvxCrew();
+  const portraitsByCharacter = new Map();
+  for (const portrait of crewData.portraits || []) {
+    if (!portrait.character || !portrait.url) continue;
+    const list = portraitsByCharacter.get(portrait.character) || [];
+    list.push(portrait);
+    portraitsByCharacter.set(portrait.character, list);
+  }
   const jackets = Array.isArray(data.jackets) ? data.jackets : [];
   const jacketsBySong = new Map(
     jackets.map((jacket) => [songKey(jacket.title || jacket.group), jacket]),
@@ -179,13 +195,23 @@ async function enrichSoundVoltex(data) {
         jacketId: jacket.id,
       }];
     });
+    // 공식 캐릭터 일러스트는 사실상 프로필 사진이다. 자켓(곡 그림)보다 앞에 둔다.
+    const portraits = (portraitsByCharacter.get(entry.name) || []).map((portrait) => ({
+      url: portrait.url,
+      group: portrait.name,
+      type: '프로필',
+      sourceType: 'official_portrait',
+      sourceUrl: crewData.source?.portraits || entry.pageUrl,
+      width: portrait.width,
+      height: portrait.height,
+    }));
     return {
       id,
       names,
       group: '여성 캐릭터',
-      profileImage: entry.profileImage,
+      profileImage: portraits[0]?.url || entry.profileImage,
       sourceUrl: entry.pageUrl,
-      images,
+      images: [...portraits, ...images],
     };
   });
   const enrichedJackets = jackets.map((jacket) => {
@@ -200,10 +226,31 @@ async function enrichSoundVoltex(data) {
       category: rateSdvxJacket(jacket, charactersForSong.length),
     };
   });
+  // 네메시스 크루는 곡과 무관한 별도 계통이라 전용 목록으로 낸다.
+  const charactersByName = new Map((links.characters || []).map((entry) => [entry.name, entry]));
+  const crew = (crewData.crew || []).filter((row) => row.url).map((row) => {
+    const owner = row.character ? charactersByName.get(row.character) : undefined;
+    return {
+      id: slug('sdvx-crew', row.name),
+      name: row.name,
+      url: row.url,
+      width: row.width,
+      height: row.height,
+      kind: row.kind,
+      addedAt: row.addedAt,
+      sourceUrl: crewData.source?.crew,
+      ...(owner ? {
+        characterId: slug('sdvx', owner.name),
+        characterName: owner.ko || owner.name,
+      } : {}),
+    };
+  });
+
   return {
     ...data,
     characters,
     jackets: enrichedJackets,
+    crew,
     linkMetadata: {
       source: links.source,
       characters: characters.length,

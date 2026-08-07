@@ -1,0 +1,887 @@
+{
+ "source": {
+  "portraits": "https://p.eagate.573.jp/game/sdvx/vi/chara/index.html",
+  "crew": "https://sdvx.fandom.com/wiki/Category:Characters"
+ },
+ "portraits": [
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/apex.jpg",
+   "name": "apex",
+   "width": 840,
+   "height": 280,
+   "character": "Apex Sisters"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/bof.jpg",
+   "name": "BOF",
+   "width": 700,
+   "height": 233,
+   "character": "Miss.DD & BOF"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/engra.jpg",
+   "name": "engra",
+   "width": 470,
+   "height": 418
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/gomy.jpg",
+   "name": "gomy",
+   "width": 324,
+   "height": 324
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/hvnadv.jpg",
+   "name": "hvnadv",
+   "width": 450,
+   "height": 450
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/rouge.jpg",
+   "name": "Mystérieux Rouge",
+   "width": 840,
+   "height": 280,
+   "character": "Mysterieux Rouge"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/noisia.jpg",
+   "name": "Noisy.A/ノイジア",
+   "width": 450,
+   "height": 450,
+   "character": "Noisy.A"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/psyholi.jpg",
+   "name": "PSYCHO†HOLIC",
+   "width": 700,
+   "height": 350,
+   "character": "Psycho Holic"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/sakura.jpg",
+   "name": "sakura",
+   "width": 324,
+   "height": 324,
+   "character": "Sakurako Sobani"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/tama.jpg",
+   "name": "ＴＡＭＡちゃん＆ＴＡＭＡ猫",
+   "width": 450,
+   "height": 450,
+   "character": "TAMA-chan & TAMANEKO"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/vela.jpg",
+   "name": "Vela",
+   "width": 350,
+   "height": 350
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/vertex.jpg",
+   "name": "アウグスト=ヴェルテックス",
+   "width": 540,
+   "height": 270
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/bokurashika.jpg",
+   "name": "イル・ユーリ&ヨル・ユーリ / Yl・Yuriy&Jol・Yuriy",
+   "width": 700,
+   "height": 350
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/espoir.jpg",
+   "name": "エスポワール:PDR改良弐型/ESPOIR",
+   "width": 600,
+   "height": 662,
+   "character": "ESPOIR"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/etoile.jpg",
+   "name": "エトワール＝フィラント",
+   "width": 760,
+   "height": 540,
+   "character": "ETOILE FILANTE"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/ortlinde.jpg",
+   "name": "オルトリンデ＝NBLG＝ヴァルキュリア",
+   "width": 684,
+   "height": 612,
+   "character": "Ortlinde=NBLG=Valkyria"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/ondine.jpg",
+   "name": "オンディーヌ・シフィカ・チハ",
+   "width": 450,
+   "height": 450,
+   "character": "Ondine Shifika Chiha"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/cannon.jpg",
+   "name": "カノン",
+   "width": 700,
+   "height": 450,
+   "character": "Cannon=XXXX"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/cawol_ashita.jpg",
+   "name": "カヲル＆アシタ/CAWOL & ASHITA",
+   "width": 653,
+   "height": 650,
+   "character": "CAWOL & ASHITA"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/kisa.jpg",
+   "name": "キサ＝キジモト",
+   "width": 450,
+   "height": 450,
+   "character": "Kisa=Kijimoto"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/lovesick.jpg",
+   "name": "キャンディ=ラブシック=マルトデキストリン",
+   "width": 450,
+   "height": 450,
+   "character": "Candy Lovesick Maltodextrin"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/grace.jpg",
+   "name": "グレイス",
+   "width": 720,
+   "height": 604,
+   "character": "GRACE"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/gorilla.jpg",
+   "name": "ゴリラ/GORILLA",
+   "width": 700,
+   "height": 233
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/psychopass.jpg",
+   "name": "サイコパスコミュニケーション",
+   "width": 840,
+   "height": 280,
+   "character": "Psycho Holic"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/satan.jpg",
+   "name": "サタン-P*L-イヴリース",
+   "width": 450,
+   "height": 450
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/cinema.jpg",
+   "name": "シネマ",
+   "width": 324,
+   "height": 324,
+   "character": "Chinema=Storia"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/joyeuse.jpg",
+   "name": "シャトー・ロワーレ",
+   "width": 324,
+   "height": 324,
+   "character": "Joyeuse Awakening"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/chocopla.jpg",
+   "name": "チョコプラちゃん",
+   "width": 450,
+   "height": 450,
+   "character": "Chocopla-chan"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/tsumabuki.jpg",
+   "name": "つまぶき",
+   "width": 282,
+   "height": 265
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/triple.jpg",
+   "name": "トライプル・ストレエッジ",
+   "width": 324,
+   "height": 324,
+   "character": "Triple Stredge"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/nasa.jpg",
+   "name": "ナサニエル",
+   "width": 450,
+   "height": 450
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/near_noah.jpg",
+   "name": "ニア & ノア/NEAR & NOAH",
+   "width": 1000,
+   "height": 630,
+   "character": "NEAR & NOAH"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/kapusaishin.jpg",
+   "name": "ハルト=カプサイシン=スチプチサット",
+   "width": 324,
+   "height": 324,
+   "character": "Halt=Capsaicin=Styptysat"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/panna.jpg",
+   "name": "パンナコッター",
+   "width": 523,
+   "height": 450,
+   "character": "Pannacottar & The Martians"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/pilica.jpg",
+   "name": "ピリカ",
+   "width": 623,
+   "height": 632,
+   "character": "Pilica Deux Saint-Co"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/fura.jpg",
+   "name": "フラウリン＆フラウリィ",
+   "width": 450,
+   "height": 450,
+   "character": "Fluorine & Flowry"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/profe.jpg",
+   "name": "プロフェッサー識苑",
+   "width": 324,
+   "height": 324
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/maxima.jpg",
+   "name": "ボルテナイザーマキシマ",
+   "width": 900,
+   "height": 630
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/makina.jpg",
+   "name": "マキナ・苺ハートビート 製造型番 WAX-15HB-KG",
+   "width": 324,
+   "height": 324,
+   "character": "Machina Mai Heartbeat"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/mitsuruko.jpg",
+   "name": "ミツル子ちゃん",
+   "width": 324,
+   "height": 324,
+   "character": "Mitsuruko-chan"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/yusha.jpg",
+   "name": "ユーシャ",
+   "width": 840,
+   "height": 280
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/ariya.jpg",
+   "name": "ユタニケ",
+   "width": 760,
+   "height": 540,
+   "character": "Ariya Cadenza"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/yutanike.jpg",
+   "name": "ユタニケ",
+   "width": 760,
+   "height": 540,
+   "character": "Yutanike"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/riot.jpg",
+   "name": "ライオット・デストルドー",
+   "width": 560,
+   "height": 560
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/ribbon.jpg",
+   "name": "リボン/RIBBON",
+   "width": 480,
+   "height": 611,
+   "character": "RIBBON & WATAGASHI"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/rimuru.jpg",
+   "name": "りむる",
+   "width": 324,
+   "height": 324,
+   "character": "Rimuru"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/gorgetech.jpg",
+   "name": "リリック・リシュナ",
+   "width": 450,
+   "height": 450,
+   "character": "Lyric Rishuna"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/rasis.jpg",
+   "name": "レイシスV",
+   "width": 750,
+   "height": 550,
+   "character": "RASIS"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/rex.jpg",
+   "name": "レックス",
+   "width": 760,
+   "height": 600,
+   "character": "REX"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/vita.jpg",
+   "name": "レックス",
+   "width": 760,
+   "height": 600,
+   "character": "Vita"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/wabutan.jpg",
+   "name": "わぶたんセンパイ",
+   "width": 840,
+   "height": 280
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/love.jpg",
+   "name": "わんだふるラヴちゃん",
+   "width": 324,
+   "height": 324,
+   "character": "Candy Lovesick Maltodextrin"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/akane.jpg",
+   "name": "一鬼アカネ",
+   "width": 450,
+   "height": 450,
+   "character": "Akane Itsuki"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/hero.jpg",
+   "name": "不律灯色",
+   "width": 324,
+   "height": 324
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/gangara.jpg",
+   "name": "不思議玩具ガンガラディンドン",
+   "width": 700,
+   "height": 233
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/noway.jpg",
+   "name": "井之上 千影",
+   "width": 450,
+   "height": 450,
+   "character": "Chikage Inoue"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/haruka.jpg",
+   "name": "京終 始果",
+   "width": 585,
+   "height": 579
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/ghost_mascot.jpg",
+   "name": "冥道ユウキ",
+   "width": 450,
+   "height": 450,
+   "character": "Yuuki Myodo"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/kamito.jpg",
+   "name": "十鳴 カミト(となり かみと)",
+   "width": 324,
+   "height": 324
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/honey.jpg",
+   "name": "埴仁 虎子",
+   "width": 324,
+   "height": 324,
+   "character": "Torako Hani"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/ekusa.jpg",
+   "name": "天月エクサ＆ピコ軍曹",
+   "width": 495,
+   "height": 450,
+   "character": "Exa Amatsuki & Sergeant Pico"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/left.jpg",
+   "name": "嬬武器烈風刀",
+   "width": 750,
+   "height": 500
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/right.jpg",
+   "name": "嬬武器雷刀",
+   "width": 750,
+   "height": 500
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/samurai.jpg",
+   "name": "広瀬川ミヤコ＆青葉城 晩翠",
+   "width": 450,
+   "height": 450,
+   "character": "Miyako Hirosegawa"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/haele.jpg",
+   "name": "弐拾四階段の道化師（ハーレクイン）",
+   "width": 540,
+   "height": 270,
+   "character": "Mysterieux Rouge"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/setsu.jpg",
+   "name": "接(SETSU)",
+   "width": 324,
+   "height": 324,
+   "character": "Setsu"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/koki.jpg",
+   "name": "昴希",
+   "width": 700,
+   "height": 233
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/ruki.jpg",
+   "name": "桐院 るぅき",
+   "width": 800,
+   "height": 600,
+   "character": "Ruki Toin"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/tsubaki.jpg",
+   "name": "椿＆福龍＆クロミミパンダ隊/ TSUBAKI & FUKURYU & KUROMIMIPANDA",
+   "width": 620,
+   "height": 810,
+   "character": "Tsubaki & Kuromimipanda"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/kino.jpg",
+   "name": "樹野あんず KINO ANZU",
+   "width": 299,
+   "height": 680,
+   "character": "ANZU KINO"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/yukionna.jpg",
+   "name": "氷雪ちゃん",
+   "width": 324,
+   "height": 324,
+   "character": "Hiyuki-chan"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/hotaru.jpg",
+   "name": "汐夏ほたる",
+   "width": 450,
+   "height": 450,
+   "character": "Hotaru Shioka"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/deathm.jpg",
+   "name": "深紅 / しんく",
+   "width": 700,
+   "height": 350
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/ren.jpg",
+   "name": "火琉毘 煉",
+   "width": 450,
+   "height": 450
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/pande.jpg",
+   "name": "班田みみこ",
+   "width": 450,
+   "height": 450,
+   "character": "Mimiko Pande"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/fukuryu.jpg",
+   "name": "福龍/FUKURYU",
+   "width": 324,
+   "height": 324
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/kureha.jpg",
+   "name": "紅刃",
+   "width": 700,
+   "height": 233,
+   "character": "Kureha"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/cat.jpg",
+   "name": "蒼＆雛＆桃",
+   "width": 700,
+   "height": 233,
+   "character": "Hina, Ao, and Momo"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/kemuri.jpg",
+   "name": "虚語ケムリ",
+   "width": 700,
+   "height": 350,
+   "character": "Kemuri Utsurogatari"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/nana.jpg",
+   "name": "虹霓・シエル・奈奈",
+   "width": 700,
+   "height": 233,
+   "character": "Kougei Ciel Nana"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/nishi_nippori.jpg",
+   "name": "西日暮里さん",
+   "width": 526,
+   "height": 561
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/joyeuse2.jpg",
+   "name": "覚醒のジュワユース",
+   "width": 324,
+   "height": 324,
+   "character": "Joyeuse Awakening"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/vi/images/chara/illust/gemu.jpg",
+   "name": "谷川 ゲム",
+   "width": 760,
+   "height": 550
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/fire.jpg",
+   "name": "賽河原 炎十郎佐之助五右衛門",
+   "width": 324,
+   "height": 324
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/soul.jpg",
+   "name": "赤志 魂/SEKISHI SOUL",
+   "width": 538,
+   "height": 755
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/kanade.jpg",
+   "name": "野増菜かなで",
+   "width": 324,
+   "height": 324,
+   "character": "Kanade Yamashina"
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/snowmotion.jpg",
+   "name": "雪翔くん",
+   "width": 324,
+   "height": 324
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/sv/p/floor/image/floor_chara/rain.jpg",
+   "name": "青雨 冷音/AOSAME RAIN",
+   "width": 500,
+   "height": 617
+  },
+  {
+   "url": "https://eacache.s.konaminet.jp/game/sdvx/v/p/images/p/chara/illust/bx.jpg",
+   "name": "静かなる嵐のイノテンちゃん",
+   "width": 700,
+   "height": 350,
+   "character": "Inoten-chan"
+  }
+ ],
+ "crew": [
+  {
+   "name": "Cocona",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/e/ef/Cocona_PUR.png/revision/latest?cb=20170504021704",
+   "width": 430,
+   "height": 529,
+   "addedAt": "2017-05-04",
+   "kind": "card"
+  },
+  {
+   "name": "Dark Left",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/e/ec/Dark_Left_PUR.png/revision/latest?cb=20170402014620",
+   "width": 430,
+   "height": 518,
+   "addedAt": "2017-04-02",
+   "kind": "card"
+  },
+  {
+   "name": "Grace",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/b/b1/Grace_PUR.png/revision/latest?cb=20170415214133",
+   "width": 429,
+   "height": 506,
+   "addedAt": "2017-04-15",
+   "kind": "card",
+   "character": "GRACE"
+  },
+  {
+   "name": "Grace + Rasis",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/5/5d/Grace_%2B_Rasis_PUR.png/revision/latest?cb=20170402010159",
+   "width": 431,
+   "height": 519,
+   "addedAt": "2017-04-02",
+   "kind": "card",
+   "character": "RASIS"
+  },
+  {
+   "name": "Grace Christmas",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/1/16/Grace_Christmas_PUR.png/revision/latest?cb=20180224060427",
+   "width": 430,
+   "height": 519,
+   "addedAt": "2018-02-24",
+   "kind": "card",
+   "character": "GRACE"
+  },
+  {
+   "name": "Grace SuddeNDeath Live2D Navigator",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/b/b5/Grace_SuddeNDeath_Live2D_Navigator.jpg/revision/latest?cb=20230813204453",
+   "width": 1080,
+   "height": 1920,
+   "addedAt": "2023-08-13",
+   "kind": "navigator",
+   "character": "GRACE"
+  },
+  {
+   "name": "HE4VEN",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/5/5f/HE4VEN_PUR.png/revision/latest?cb=20170402012113",
+   "width": 431,
+   "height": 593,
+   "addedAt": "2017-04-02",
+   "kind": "card"
+  },
+  {
+   "name": "Hiyuki",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/7/76/Hiyuki_PUR.png/revision/latest?cb=20170402012532",
+   "width": 431,
+   "height": 599,
+   "addedAt": "2017-04-02",
+   "kind": "card",
+   "character": "Hiyuki-chan"
+  },
+  {
+   "name": "Hiyuki Swimsuit",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/d/dc/Hiyuki_Swimsuit_PUR.png/revision/latest?cb=20171117020331",
+   "width": 431,
+   "height": 519,
+   "addedAt": "2017-11-17",
+   "kind": "card",
+   "character": "Hiyuki-chan"
+  },
+  {
+   "name": "Ibuki",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/8/81/Ibuki_PUR.png/revision/latest?cb=20170504021324",
+   "width": 430,
+   "height": 515,
+   "addedAt": "2017-05-04",
+   "kind": "card"
+  },
+  {
+   "name": "ILLness",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/0/08/ILLness_PUR.png/revision/latest?cb=20170402010240",
+   "width": 430,
+   "height": 523,
+   "addedAt": "2017-04-02",
+   "kind": "card"
+  },
+  {
+   "name": "Kanade",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/0/0e/Kanade_PUR.png/revision/latest?cb=20170402014159",
+   "width": 430,
+   "height": 478,
+   "addedAt": "2017-04-02",
+   "kind": "card",
+   "character": "Kanade Yamashina"
+  },
+  {
+   "name": "Kanade Halloween",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/c/c4/Kanade_Halloween_PUR.png/revision/latest?cb=20171117005236",
+   "width": 431,
+   "height": 522,
+   "addedAt": "2017-11-17",
+   "kind": "card",
+   "character": "Kanade Yamashina"
+  },
+  {
+   "name": "Konoha",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/d/dd/Konoha_PUR.png/revision/latest?cb=20170430181255",
+   "width": 430,
+   "height": 593,
+   "addedAt": "2017-04-30",
+   "kind": "card",
+   "character": "Konoha"
+  },
+  {
+   "name": "Konoha Yukata",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/2/2d/Konoha_Yukata_PUR.png/revision/latest?cb=20180811224512",
+   "width": 431,
+   "height": 534,
+   "addedAt": "2018-08-11",
+   "kind": "card",
+   "character": "Konoha"
+  },
+  {
+   "name": "Kureha",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/b/b3/Kureha_PUR.png/revision/latest?cb=20170415210930",
+   "width": 429,
+   "height": 525,
+   "addedAt": "2017-04-15",
+   "kind": "card",
+   "character": "Kureha"
+  },
+  {
+   "name": "Maxima",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/4/4d/Maxima_PUR.png/revision/latest?cb=20170402013102",
+   "width": 430,
+   "height": 527,
+   "addedAt": "2017-04-02",
+   "kind": "card"
+  },
+  {
+   "name": "Maxima Stone",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/3/30/Maxima_Stone_PUR.png/revision/latest?cb=20170402013116",
+   "width": 431,
+   "height": 524,
+   "addedAt": "2017-04-02",
+   "kind": "card"
+  },
+  {
+   "name": "Meu",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/4/49/Meu_PUR.png/revision/latest?cb=20170504021336",
+   "width": 431,
+   "height": 479,
+   "addedAt": "2017-05-04",
+   "kind": "card"
+  },
+  {
+   "name": "Natsuhi",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/e/ef/Natsuhi_PUR.png/revision/latest?cb=20170504021649",
+   "width": 436,
+   "height": 604,
+   "addedAt": "2017-05-04",
+   "kind": "card"
+  },
+  {
+   "name": "Near & Noah",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/4/40/Near_%26_Noah_PUR.png/revision/latest?cb=20170402011947",
+   "width": 431,
+   "height": 594,
+   "addedAt": "2017-04-02",
+   "kind": "card",
+   "character": "NEAR & NOAH"
+  },
+  {
+   "name": "Near & Noah Xmas",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/0/08/Near_%26_Noah_Xmas_PUR.png/revision/latest?cb=20170402012034",
+   "width": 431,
+   "height": 601,
+   "addedAt": "2017-04-02",
+   "kind": "card",
+   "character": "NEAR & NOAH"
+  },
+  {
+   "name": "Ortlinde",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/1/16/Ortlinde_PUR.png/revision/latest?cb=20180504012146",
+   "width": 431,
+   "height": 546,
+   "addedAt": "2018-05-04",
+   "kind": "card",
+   "character": "Ortlinde=NBLG=Valkyria"
+  },
+  {
+   "name": "RASIS",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/5/5f/RASIS_PUR_Limit_Break.png/revision/latest?cb=20170402005331",
+   "width": 430,
+   "height": 522,
+   "addedAt": "2017-04-02",
+   "kind": "card",
+   "character": "RASIS"
+  },
+  {
+   "name": "RASIS & Reisen",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/9/99/RASIS_%26_Reisen_PUR.png/revision/latest?cb=20180811224536",
+   "width": 432,
+   "height": 534,
+   "addedAt": "2018-08-11",
+   "kind": "card",
+   "character": "RASIS"
+  },
+  {
+   "name": "RASIS Floor Anthem",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/7/7a/RASIS_Floor_Anthem_PUR.png/revision/latest?cb=20180811224524",
+   "width": 430,
+   "height": 536,
+   "addedAt": "2018-08-11",
+   "kind": "card",
+   "character": "RASIS"
+  },
+  {
+   "name": "RASIS Swimsuit",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/a/a2/RASIS_Swimsuit_PUR.png/revision/latest?cb=20170402010008",
+   "width": 431,
+   "height": 525,
+   "addedAt": "2017-04-02",
+   "kind": "card",
+   "character": "RASIS"
+  },
+  {
+   "name": "Right",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/0/07/Right_PUR.png/revision/latest?cb=20170415185853",
+   "width": 430,
+   "height": 601,
+   "addedAt": "2017-04-15",
+   "kind": "card"
+  },
+  {
+   "name": "Rin",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/6/66/Rin_PUR.png/revision/latest?cb=20170504021408",
+   "width": 431,
+   "height": 525,
+   "addedAt": "2017-05-04",
+   "kind": "card"
+  },
+  {
+   "name": "Sekishi Soul",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/5/51/Sekishi_Soul_PUR.png/revision/latest?cb=20170402013833",
+   "width": 429,
+   "height": 522,
+   "addedAt": "2017-04-02",
+   "kind": "card"
+  },
+  {
+   "name": "Tamaneko",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/6/67/Tamaneko_PUR.png/revision/latest?cb=20180506185629",
+   "width": 430,
+   "height": 518,
+   "addedAt": "2018-05-06",
+   "kind": "card",
+   "character": "TAMA-chan & TAMANEKO"
+  },
+  {
+   "name": "Yukata Kureha",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/7/72/Yukata_Kureha_PUR.png/revision/latest?cb=20170415211023",
+   "width": 431,
+   "height": 597,
+   "addedAt": "2017-04-15",
+   "kind": "card",
+   "character": "Kureha"
+  },
+  {
+   "name": "Yukata RASIS",
+   "url": "https://static.wikia.nocookie.net/sound-voltex/images/d/db/Yukata_RASIS_PUR.png/revision/latest?cb=20170402010104",
+   "width": 430,
+   "height": 595,
+   "addedAt": "2017-04-02",
+   "kind": "card",
+   "character": "RASIS"
+  }
+ ]
+}
