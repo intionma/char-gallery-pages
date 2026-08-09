@@ -51,22 +51,50 @@ function gameMeta(gameId) {
   return { id: game.id, name: game.name, description: game.dataDescription };
 }
 
+// 원본이 순간적으로 끊기면 그 게임 전체가 스냅샷 폴백으로 떨어진다. 화면에는 옛 데이터가
+// 그대로 나가므로 눈에 잘 띄지 않는다. 사볼이 이 한 번의 실패 때문에 이틀 동안 08-06 자켓을
+// 내보냈다. 끊김·타임아웃·5xx·429 는 잠깐 뒤 다시 시도한다. 404 처럼 재시도가 무의미한
+// 응답은 그대로 던져 폴백으로 보낸다.
+function isRetryable(error) {
+  if (error?.name === 'TimeoutError' || error?.name === 'AbortError') return true;
+  if (error instanceof TypeError) return true; // 'fetch failed' — DNS·연결 끊김
+  return [408, 425, 429, 500, 502, 503, 504].includes(error?.status);
+}
+
+async function fetchRetry(url, init, { tries = 3, delay = 3000 } = {}) {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      const response = await fetch(url, init());
+      if (!response.ok) {
+        const error = new Error(`${response.status} ${response.statusText}: ${url}`);
+        error.status = response.status;
+        // 본문을 붙잡고 있으면 연결이 반납되지 않는다.
+        await response.body?.cancel().catch(() => {});
+        throw error;
+      }
+      return response;
+    } catch (error) {
+      if (attempt >= tries || !isRetryable(error)) throw error;
+      console.log(`재시도 ${attempt}/${tries - 1}: ${error.message}`);
+      await new Promise((resolve) => { setTimeout(resolve, delay * attempt); });
+    }
+  }
+}
+
 async function fetchJson(url, options = {}) {
-  const response = await fetch(url, {
+  const response = await fetchRetry(url, () => ({
     ...options,
     headers: { Accept: 'application/json,*/*', 'User-Agent': UA, ...(options.headers || {}) },
     signal: AbortSignal.timeout(options.timeout || 60000),
-  });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${url}`);
+  }));
   return response.json();
 }
 
 async function fetchText(url) {
-  const response = await fetch(url, {
+  const response = await fetchRetry(url, () => ({
     headers: { Accept: 'text/html,application/javascript,*/*', 'User-Agent': UA },
     signal: AbortSignal.timeout(60000),
-  });
-  if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${url}`);
+  }));
   return response.text();
 }
 
@@ -621,12 +649,28 @@ async function buildEternalReturn() {
   };
 }
 
+/**
+ * 원본이 봇 차단 인터스티셜을 내보낼 때가 있다. 그때는 HTTP 202 에 캡차 HTML 이라
+ * 응답 자체는 정상으로 보이고, 번들 주소만 없다. fetchRetry 는 상태 코드만 보므로
+ * 이 경우를 잡지 못한다. 번들을 찾을 때까지 몇 번 더 두드린다.
+ */
+async function sdvxBundle(ROOT, tries = 3, delay = 5000) {
+  for (let attempt = 1; ; attempt += 1) {
+    const page = await fetchText(`${ROOT}/`);
+    const script = page.match(/<script[^>]+src="([^"]*main\.[^"]+\.js)"/i)?.[1];
+    if (script) return new URL(script.replace(/&amp;/g, '&'), ROOT).href;
+    const blocked = /sgcaptcha|captcha|http-equiv="refresh"/i.test(page);
+    if (attempt >= tries) {
+      throw new Error(`SDVX frontend bundle not found${blocked ? ' (봇 차단 인터스티셜)' : ''}`);
+    }
+    console.log(`재시도 ${attempt}/${tries - 1}: SDVX 첫 페이지에 번들이 없습니다${blocked ? ' — 봇 차단 인터스티셜' : ''}`);
+    await new Promise((resolve) => { setTimeout(resolve, delay * attempt); });
+  }
+}
+
 async function buildSoundVoltex() {
   const ROOT = 'https://sdvxindex.com';
-  const page = await fetchText(`${ROOT}/`);
-  const script = page.match(/<script[^>]+src="([^"]*main\.[^"]+\.js)"/i)?.[1];
-  if (!script) throw new Error('SDVX frontend bundle not found');
-  const bundleUrl = new URL(script.replace(/&amp;/g, '&'), ROOT).href;
+  const bundleUrl = await sdvxBundle(ROOT);
   const bundle = await fetchText(bundleUrl);
   // 매니페스트 이름은 버전이 올라갈 때마다 바뀐다. 예전 정규식이 버전을 숫자와 점으로만
   // 받는 바람에 'songsv1.4.2c.json' 처럼 끝에 글자가 붙자 매칭에 실패했고, 스냅샷
@@ -711,6 +755,10 @@ for (const [name, builder] of builders) {
         await writeJson(name, fallback);
         const count = fallback.jackets?.length ?? fallback.characters?.length ?? 0;
         results.push({ name, ok: true, stale: true, count });
+        // 폴백은 화면에 옛 데이터를 그대로 내보내므로 로그 한 줄로는 아무도 눈치채지 못한다.
+        // Actions 주석으로 올려 실행 목록에서 바로 보이게 한다.
+        const since = fallback.generatedAt ? ` (마지막 정상 수집 ${fallback.generatedAt})` : '';
+        console.warn(`::warning title=${name} 원본 갱신 실패::${count}건의 옛 데이터를 그대로 내보냅니다${since} — ${error.message}`);
         console.warn(`${name}: upstream refresh failed; retained ${count} published items (${error.message})`);
         continue;
       }
