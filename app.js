@@ -712,16 +712,24 @@
         const matched = (jacket.variants || []).find((variant) => (variant.levels || (variant.level == null ? [] : [variant.level])).includes(selectedLevel));
         return matched ? { ...jacket, url: matched.url } : jacket;
       });
+      // 수록일이 같은 곡이 아주 많다. 494개 날짜에 2,305곡이라 한 날짜에 평균 4.7곡,
+      // 최신 날짜에는 7곡이 몰린다. 날짜만 비교하면 그 안이 전부 동점으로 남고, 정렬이
+      // 안정적이라 원본 순서(곡 번호 오름차순)가 그대로 남는다. 그래서 '최신순'인데도
+      // 최신 날짜 묶음의 제일 최신곡이 묶음 맨 뒤로 밀렸다. 곡 번호로 동점을 깬다.
+      const songNo = (jacket) => Number(jacket.id) || 0;
       rows = [...rows].sort((a, b) => {
         if (sort.value === 'name') return (a.title || a.group || '').localeCompare(b.title || b.group || '', 'ko');
-        if (sort.value === 'oldest') return (a.releasedAt || '9999').localeCompare(b.releasedAt || '9999');
+        if (sort.value === 'oldest') {
+          return (a.releasedAt || '9999').localeCompare(b.releasedAt || '9999') || songNo(a) - songNo(b);
+        }
         if (sort.value === 'level-high') return maxLevel(b) - maxLevel(a);
         if (sort.value === 'level-low') return maxLevel(a) - maxLevel(b);
         if (sort.value === 'popular') {
           return Number(b.popularity ?? 0) - Number(a.popularity ?? 0)
-            || (b.releasedAt || '0000').localeCompare(a.releasedAt || '0000');
+            || (b.releasedAt || '0000').localeCompare(a.releasedAt || '0000')
+            || songNo(b) - songNo(a);
         }
-        return (b.releasedAt || '0000').localeCompare(a.releasedAt || '0000');
+        return (b.releasedAt || '0000').localeCompare(a.releasedAt || '0000') || songNo(b) - songNo(a);
       });
       allRows = rows;
       visibleRows = rows.slice(0, shown);

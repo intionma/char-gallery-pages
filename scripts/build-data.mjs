@@ -683,15 +683,23 @@ async function buildSoundVoltex() {
   }
   const diff = { novice: 'NOV', advanced: 'ADV', exhaust: 'EXH', maximum: 'MXM', infinite: 'INF', gravity: 'GRV', heavenly: 'HVN', vivid: 'VVD', exceed: 'XCD' };
   const rank = { NOV: 1, ADV: 2, EXH: 3, MXM: 10, INF: 10, GRV: 10, HVN: 10, VVD: 10, XCD: 10 };
+  // 자켓이 안 붙은 곡은 목록에서 뺀다. 다만 조용히 빼면 신곡이 안 뜨는 것과 구별되지
+  // 않는다. 새 난이도 이름이 생겨 diff 표에 없거나 자켓이 아직 안 올라온 경우가 여기 걸린다.
+  const dropped = [];
+  const unknownTypes = new Set();
   const jackets = source.flatMap((song) => {
     const seen = new Set();
     const variants = (song.difficulties || []).flatMap((chart) => {
       const difficulty = diff[String(chart.type || '').toLowerCase()];
+      if (!difficulty) unknownTypes.add(String(chart.type || '(빈 값)'));
       if (!difficulty || !chart.jacketArtPath || seen.has(difficulty)) return [];
       seen.add(difficulty);
       return [{ difficulty, level: chart.level, url: chart.jacketArtPath }];
     }).sort((a, b) => rank[b.difficulty] - rank[a.difficulty]);
-    if (!variants.length) return [];
+    if (!variants.length) {
+      dropped.push({ songid: Number(song.songid) || 0, title: song.title, date: song.date });
+      return [];
+    }
     return [{
       id: String(song.songid), title: song.title, artist: song.artist, releasedAt: song.date,
       url: variants[0].url, sourceUrl: `${ROOT}/s/${song.songid}/1`, variants,
@@ -699,7 +707,15 @@ async function buildSoundVoltex() {
   });
   // 최신곡 날짜를 남긴다. 원본이 멈췄는지 로그만 보고 알 수 있어야 한다.
   const newest = jackets.map((j) => j.releasedAt).filter(Boolean).sort().at(-1);
-  console.log(`SDVX manifest ${manifestPath}: ${jackets.length} jackets, newest ${newest || '(날짜 없음)'}`);
+  console.log(`SDVX manifest ${manifestPath}: ${source.length} songs → ${jackets.length} jackets, newest ${newest || '(날짜 없음)'}`);
+  if (dropped.length) {
+    const latest = [...dropped].sort((a, b) => b.songid - a.songid).slice(0, 5);
+    console.log(`SDVX: 자켓이 없어 제외한 곡 ${dropped.length}건 — 최근 ${latest.map((song) => `${song.songid} ${song.title}`).join(' · ')}`);
+  }
+  // 모르는 난이도 이름이 나오면 그 곡이 통째로 빠질 수 있다. 새 난이도 추가를 놓치지 않는다.
+  if (unknownTypes.size) {
+    console.log(`::warning title=SDVX 미등록 난이도::${[...unknownTypes].join(', ')} — diff 표에 없어 무시했습니다`);
+  }
   return enrichSoundVoltex({
     generatedAt,
     game: gameMeta('sound-voltex'),
