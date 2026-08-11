@@ -681,8 +681,10 @@ async function buildSoundVoltex() {
   if (!Array.isArray(source) || source.length < 2000) {
     throw new Error(`SDVX song manifest looks wrong: ${Array.isArray(source) ? `${source.length} songs` : typeof source}`);
   }
-  const diff = { novice: 'NOV', advanced: 'ADV', exhaust: 'EXH', maximum: 'MXM', infinite: 'INF', gravity: 'GRV', heavenly: 'HVN', vivid: 'VVD', exceed: 'XCD' };
-  const rank = { NOV: 1, ADV: 2, EXH: 3, MXM: 10, INF: 10, GRV: 10, HVN: 10, VVD: 10, XCD: 10 };
+  // ULT·NBL 은 4번째 난이도(MXM·INF·GRV·HVN·VVD·XCD)보다 위에 붙는 별도 난이도라
+  // 순위를 더 높게 준다. 대표 자켓은 variants[0] 이므로 이 곡들은 표지가 ULT·NBL 자켓이 된다.
+  const diff = { novice: 'NOV', advanced: 'ADV', exhaust: 'EXH', maximum: 'MXM', infinite: 'INF', gravity: 'GRV', heavenly: 'HVN', vivid: 'VVD', exceed: 'XCD', ultimate: 'ULT', nabla: 'NBL' };
+  const rank = { NOV: 1, ADV: 2, EXH: 3, MXM: 10, INF: 10, GRV: 10, HVN: 10, VVD: 10, XCD: 10, ULT: 20, NBL: 20 };
   // 자켓이 안 붙은 곡은 목록에서 뺀다. 다만 조용히 빼면 신곡이 안 뜨는 것과 구별되지
   // 않는다. 새 난이도 이름이 생겨 diff 표에 없거나 자켓이 아직 안 올라온 경우가 여기 걸린다.
   const dropped = [];
@@ -712,6 +714,13 @@ async function buildSoundVoltex() {
     const latest = [...dropped].sort((a, b) => b.songid - a.songid).slice(0, 5);
     console.log(`SDVX: 자켓이 없어 제외한 곡 ${dropped.length}건 — 최근 ${latest.map((song) => `${song.songid} ${song.title}`).join(' · ')}`);
   }
+  // 난이도별 자켓 수. 난이도를 새로 이어 붙였을 때 실제로 걸렸는지 여기서 확인한다.
+  const byDifficulty = {};
+  for (const jacket of jackets) for (const variant of jacket.variants) byDifficulty[variant.difficulty] = (byDifficulty[variant.difficulty] || 0) + 1;
+  const covers = {};
+  for (const jacket of jackets) covers[jacket.variants[0].difficulty] = (covers[jacket.variants[0].difficulty] || 0) + 1;
+  console.log(`SDVX 난이도별 자켓: ${Object.entries(byDifficulty).sort((a, b) => b[1] - a[1]).map(([code, n]) => `${code} ${n}`).join(' · ')}`);
+  console.log(`SDVX 대표 자켓 난이도: ${Object.entries(covers).sort((a, b) => b[1] - a[1]).map(([code, n]) => `${code} ${n}`).join(' · ')}`);
   // 모르는 난이도 이름이 나오면 그 곡이 통째로 빠질 수 있다. 새 난이도 추가를 놓치지 않는다.
   if (unknownTypes.size) {
     console.log(`::warning title=SDVX 미등록 난이도::${[...unknownTypes].join(', ')} — diff 표에 없어 무시했습니다`);
