@@ -34,6 +34,16 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: 22
+      # 원본에서 받은 원자료를 실행 간에 넘긴다. 원본이 막힌 날 발행된 결과를 그대로
+      # 다시 내보내면 그 사이 고친 수집 코드가 통째로 되돌아가므로, 원자료를 남겨 두고
+      # 지금 코드로 다시 만든다. key 에 run_id 를 넣어 매번 새로 저장하고,
+      # restore-keys 로 직전 실행 것을 받아 온다.
+      - name: Restore upstream source cache
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: upstream-source-${{ github.run_id }}
+          restore-keys: upstream-source-
       - name: Check JavaScript syntax
         run: |
           node --check app.js

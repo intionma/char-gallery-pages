@@ -18,6 +18,9 @@ const generatedAt = new Date().toISOString();
 const UA = 'char-gallery-pages/1.0 (+https://github.com/intionma/char-gallery-pages)';
 const PUBLISHED_DATA_ROOT = 'https://intionma.github.io/char-gallery-pages/data/';
 const publishedCache = new Map();
+// 원본에서 받은 원자료를 그대로 남겨 두는 자리. 결과가 아니라 원자료를 남겨야
+// 원본이 막힌 날에도 지금 코드로 다시 만들 수 있다. 워크플로가 실행 간에 넘겨 준다.
+const SDVX_SOURCE_CACHE = path.resolve(root, '.cache/sdvx-songs.json');
 
 await fs.mkdir(outDir, { recursive: true });
 
@@ -668,19 +671,53 @@ async function sdvxBundle(ROOT, tries = 3, delay = 5000) {
   }
 }
 
+/**
+ * 원본 곡 목록을 받아 원자료 그대로 캐시에 남긴다.
+ *
+ * 원본이 막히면 예전에는 발행된 결과(dist 에 나갔던 JSON)를 그대로 다시 내보냈다.
+ * 그 결과는 그때 살아 있던 코드가 만든 것이라, 그 사이 수집 코드를 고쳐 놔도 폴백이
+ * 한 번 걸리는 순간 통째로 되돌아갔다. 실제로 같은 커밋에서 원본 수집이 된 실행은
+ * 자켓 변형 8,593개(ULT·NBL 포함), 폴백이 걸린 실행은 8,584개(ULT·NBL 없음)가 나왔다.
+ * 게다가 폴백은 발행된 결과를 다시 읽으므로 한 번 되돌아가면 다음 폴백의 입력이 되어
+ * 그대로 굳는다.
+ *
+ * 그래서 결과가 아니라 **원자료**를 캐시에 남기고, 원본이 막히면 지금 코드로 다시
+ * 만든다. 곡 목록은 그때 것이라 stale 로 표시하지만 수집 코드 수정은 살아남는다.
+ */
+async function sdvxSource(ROOT) {
+  try {
+    const bundleUrl = await sdvxBundle(ROOT);
+    const bundle = await fetchText(bundleUrl);
+    // 매니페스트 이름은 버전이 올라갈 때마다 바뀐다. 예전 정규식이 버전을 숫자와 점으로만
+    // 받는 바람에 'songsv1.4.2c.json' 처럼 끝에 글자가 붙자 매칭에 실패했고, 스냅샷
+    // 폴백이 조용히 받아 주면서 2주 넘게 옛 데이터가 배포됐다. 파일명 전체를 받는다.
+    const manifestPath = bundle.match(/["'](\/songsv[^"']*\.json)["']/)?.[1];
+    if (!manifestPath) throw new Error('SDVX song manifest not found');
+    const songs = await fetchJson(new URL(manifestPath, ROOT).href);
+    if (!Array.isArray(songs) || songs.length < 2000) {
+      throw new Error(`SDVX song manifest looks wrong: ${Array.isArray(songs) ? `${songs.length} songs` : typeof songs}`);
+    }
+    await fs.mkdir(path.dirname(SDVX_SOURCE_CACHE), { recursive: true });
+    await fs.writeFile(SDVX_SOURCE_CACHE, JSON.stringify({ manifestPath, fetchedAt: generatedAt, songs }), 'utf8');
+    return { songs, manifestPath, cachedFrom: null };
+  } catch (error) {
+    const raw = await fs.readFile(SDVX_SOURCE_CACHE, 'utf8').catch(() => null);
+    if (!raw) throw error;
+    let cache;
+    try {
+      cache = JSON.parse(raw);
+    } catch {
+      throw error;
+    }
+    if (!Array.isArray(cache.songs) || cache.songs.length < 2000) throw error;
+    console.warn(`::warning title=SDVX 원본 수집 실패::${error.message} — ${cache.fetchedAt} 에 받아 둔 원자료로 지금 코드에서 다시 만듭니다`);
+    return { songs: cache.songs, manifestPath: cache.manifestPath, cachedFrom: cache.fetchedAt };
+  }
+}
+
 async function buildSoundVoltex() {
   const ROOT = 'https://sdvxindex.com';
-  const bundleUrl = await sdvxBundle(ROOT);
-  const bundle = await fetchText(bundleUrl);
-  // 매니페스트 이름은 버전이 올라갈 때마다 바뀐다. 예전 정규식이 버전을 숫자와 점으로만
-  // 받는 바람에 'songsv1.4.2c.json' 처럼 끝에 글자가 붙자 매칭에 실패했고, 스냅샷
-  // 폴백이 조용히 받아 주면서 2주 넘게 옛 데이터가 배포됐다. 파일명 전체를 받는다.
-  const manifestPath = bundle.match(/["'](\/songsv[^"']*\.json)["']/)?.[1];
-  if (!manifestPath) throw new Error('SDVX song manifest not found');
-  const source = await fetchJson(new URL(manifestPath, ROOT).href);
-  if (!Array.isArray(source) || source.length < 2000) {
-    throw new Error(`SDVX song manifest looks wrong: ${Array.isArray(source) ? `${source.length} songs` : typeof source}`);
-  }
+  const { songs: source, manifestPath, cachedFrom } = await sdvxSource(ROOT);
   // ULT·NBL 은 4번째 난이도(MXM·INF·GRV·HVN·VVD·XCD)보다 위에 붙는 별도 난이도라
   // 순위를 더 높게 준다. 대표 자켓은 variants[0] 이므로 이 곡들은 표지가 ULT·NBL 자켓이 된다.
   const diff = { novice: 'NOV', advanced: 'ADV', exhaust: 'EXH', maximum: 'MXM', infinite: 'INF', gravity: 'GRV', heavenly: 'HVN', vivid: 'VVD', exceed: 'XCD', ultimate: 'ULT', nabla: 'NBL' };
@@ -729,6 +766,8 @@ async function buildSoundVoltex() {
     generatedAt,
     game: gameMeta('sound-voltex'),
     jackets,
+    // 캐시로 만든 곡 목록은 그때 것이다. 화면에 갱신 지연 안내를 띄우기 위해 표시한다.
+    ...(cachedFrom ? { stale: true, sourceFetchedAt: cachedFrom } : {}),
   });
 }
 
