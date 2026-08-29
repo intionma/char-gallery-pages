@@ -249,6 +249,7 @@ const uploadDates = await wikiUploadDates(rawNames);
 const skins = [];
 const seen = new Set();
 const overwrittenBases = [];
+const keptUpstreamBases = [];
 
 pageData.characters.forEach((character, characterIndex) => {
   const en = character.names?.en || character.names?.ko || character.id;
@@ -269,13 +270,23 @@ pageData.characters.forEach((character, characterIndex) => {
     if (seen.has(id)) return;
     seen.add(id);
     const fankit = fankitByKey.get(`${normKey(en)}:${normKey(skinName)}`);
-    const variants = skinViews(verified, verified?.mainUrl || image.url, fankit);
-    // 캐릭터 상세도 같은 아트를 봐야 한다. 전체 스킨 뷰와 그림이 어긋나면 안 된다.
-    // 기본 스탠딩을 덮는 건 원본에 아직 그 캐릭터가 없을 때뿐이라야 한다. 잘못 짝지어지면
-    // 실제 스탠딩이 컨셉아트로 바뀌어 버리므로 몇 건을 덮었는지 남긴다.
-    if (verified?.forceMain && verified.mainUrl !== image.url) {
+    // 검증 아트(로드맵 티저)는 원본에 아직 그 그림이 없을 때 자리를 메우는 용도다.
+    // 원본(dak.gg)에서 온 그림이 이미 있으면 그게 진짜다 — 티저로 덮지 않는다.
+    // 루치아가 출시된 뒤에도 이 덮어쓰기 때문에 9일 동안 티저로 나갔고, 기본뿐 아니라
+    // 의상(가넷 키치 러브·니아 물속성 등)도 같은 자리에서 티저에 묶여 있었다.
+    // 다만 검증 아트 대부분은 공식 풀 일러스트라 원본의 인게임 렌더보다 낫다.
+    // 걷어낼 대상은 출시 전 자리를 메우던 로드맵·티저 그림뿐이다.
+    const placeholder = /\/event\/[^/]+\/(?:teaser|roadmap)\//i.test(verified?.mainUrl || '');
+    const upstreamArt = placeholder && /cdn\.dak\.gg/i.test(image.url);
+    // 대표 주소는 여기서 한 번만 정한다. 캐릭터 상세·전체 스킨 뷰·변형 첫 장이
+    // 전부 같은 그림을 가리켜야 한다.
+    const mainUrl = upstreamArt ? image.url : (verified?.mainUrl || image.url);
+    const variants = skinViews(verified, mainUrl, fankit);
+    if (verified?.forceMain && verified.mainUrl !== image.url && !upstreamArt) {
       if (baseSkin) overwrittenBases.push(`${en} ← ${verified.group}`);
-      image.url = verified.mainUrl;
+      image.url = mainUrl;
+    } else if (verified?.forceMain && upstreamArt && verified.mainUrl !== image.url) {
+      keptUpstreamBases.push(`${en} ${skinName}`);
     }
     if (variants) image.variants = variants;
     skins.push({
@@ -284,7 +295,7 @@ pageData.characters.forEach((character, characterIndex) => {
       character: { id: character.id, names: character.names },
       skinName,
       group: skinName,
-      url: verified?.mainUrl || image.url,
+      url: mainUrl,
       sourceUrl: verified?.sourceUrl || image.sourceUrl || character.sourceUrl,
       sourceType: baseSkin ? 'official_standing' : 'official_skin',
       releasedAt: seededDate || verified?.releasedAt,
@@ -341,6 +352,9 @@ if (skins.some((skin) => !Number.isFinite(Number(skin.additionOrder)))) {
 pageData.skins = skins;
 await fs.writeFile(file, JSON.stringify(pageData), 'utf8');
 console.log(`Eternal Return skins generated: ${skins.length}`);
+if (keptUpstreamBases.length) {
+  console.log(`  원본 아트가 있어 검증 아트 덮어쓰기를 건너뜀 (${keptUpstreamBases.length}건): ${keptUpstreamBases.join(', ')}`);
+}
 if (overwrittenBases.length) {
   console.log(`  기본 스탠딩을 검증 아트로 덮음: ${overwrittenBases.join(', ')}`);
 }

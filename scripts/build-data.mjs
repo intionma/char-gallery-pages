@@ -517,25 +517,72 @@ const wikiCategory = wikiCategoryMembers;
  * 시즌 로드맵·티저에만 공개돼 있어 이 목록이 유일한 출처다. 출시되면 DAK 에서
  * 같은 id 로 잡히므로, 그때 이 파일에서 지우면 자동으로 정식 데이터가 이긴다.
  */
-async function upcomingEternalReturn() {
+/**
+ * 미출시 실험체. 로드맵 티저 아트로 자리를 잡아 둔다.
+ *
+ * 티저는 출시 전까지만 쓰는 임시 그림이다. 출시되면 원본(dak.gg)에 진짜 아트가
+ * 생기므로 그쪽으로 갈아탄다. 예전에는 upcoming 이 하드코딩이라 출시된 뒤에도
+ * 티저에 묶여 있었다 — 루치아가 출시 9일이 지나도록 티저로 나갔다.
+ *
+ * 이 시드가 필요한 이유는 위키 성별 필터 때문이다. 신규 실험체는 Fandom 에 문서가
+ * 생기기 전이라 female 집합에 들어오지 못해 본 로스터가 통째로 놓친다. 문서가
+ * 생겨 본 로스터에 잡히면 시드 쪽은 buildEternalReturn 에서 걸러진다.
+ */
+async function upcomingEternalReturn({ dakMap, koMap, fullSize, host }) {
   const file = path.resolve(__dirname, 'data/er-upcoming-characters.json');
   const seeds = JSON.parse(await fs.readFile(file, 'utf8'));
-  return seeds.map((seed) => ({
-    id: slug('er', seed.name),
-    names: { en: seed.name, ko: seed.ko },
-    group: '실험체',
-    profileImage: seed.profileImage,
-    sourceUrl: seed.sourceUrl,
-    images: [{
-      url: seed.profileImage,
-      group: '기본',
-      type: '기본',
+  const promoted = [];
+  const rows = seeds.map((seed) => {
+    const dak = dakMap.get(norm(seed.name));
+    const images = (dak?.skins || []).flatMap((skin) => {
+      const url = fullSize(skin);
+      if (!url) return [];
+      const isBase = norm(skin.name) === norm(dak.name);
+      const escapedName = dak.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const label = isBase
+        ? '기본'
+        : String(skin.name).replace(new RegExp(`\\s+${escapedName}\\s*$`, 'i'), '').trim() || skin.name;
+      return [{
+        url,
+        group: label,
+        type: isBase ? '기본' : '의상',
+        sourceUrl: `https://${host}/wiki/${encodeURIComponent(dak.name.replace(/ /g, '_'))}`,
+      }];
+    });
+    if (images.length) {
+      promoted.push(seed.ko || seed.name);
+      return {
+        id: slug('er', dak.key || dak.name),
+        names: { en: dak.name, ko: koMap.get(norm(dak.key || dak.name)) || seed.ko },
+        group: '실험체',
+        profileImage: images[0].url,
+        sourceUrl: seed.sourceUrl,
+        images,
+        releasedAt: seed.releasedAt,
+        releaseSequence: Number(dak.id) || 0,
+      };
+    }
+    return {
+      id: slug('er', seed.name),
+      names: { en: seed.name, ko: seed.ko },
+      group: '실험체',
+      profileImage: seed.profileImage,
       sourceUrl: seed.sourceUrl,
-    }],
-    releasedAt: seed.releasedAt,
-    upcoming: true,
-    releaseSequence: Number.MAX_SAFE_INTEGER,
-  }));
+      images: [{
+        url: seed.profileImage,
+        group: '기본',
+        type: '기본',
+        sourceUrl: seed.sourceUrl,
+      }],
+      releasedAt: seed.releasedAt,
+      upcoming: true,
+      releaseSequence: Number.MAX_SAFE_INTEGER,
+    };
+  });
+  if (promoted.length) {
+    console.log(`Eternal Return: 미출시 시드 ${promoted.length}명이 출시되어 원본 아트로 전환 — ${promoted.join(', ')}`);
+  }
+  return rows;
 }
 
 /**
@@ -629,19 +676,25 @@ async function buildEternalReturn() {
       releasedAt: released ? new Date(released).toISOString().slice(0, 10) : undefined,
       releaseSequence: Number(dak.id) || 0,
     }];
-  }).concat(await upcomingEternalReturn()).sort((a, b) => {
+  });
+  // 위키에 문서가 생겨 본 로스터에 잡히면 시드 쪽은 버린다. 그대로 두면 id 가 겹쳐
+  // 같은 실험체가 두 번 나온다.
+  const rosterIds = new Set(characters.map((character) => character.id));
+  const seeded = (await upcomingEternalReturn({ dakMap, koMap, fullSize, host }))
+    .filter((character) => !rosterIds.has(character.id));
+  const roster = characters.concat(seeded).sort((a, b) => {
     const aTime = Date.parse(a.releasedAt || '') || 0;
     const bTime = Date.parse(b.releasedAt || '') || 0;
     return bTime - aTime
       || b.releaseSequence - a.releaseSequence
       || (a.names.ko || a.names.en).localeCompare(b.names.ko || b.names.en, 'ko', { numeric: true });
   }).map(({ releaseSequence, ...character }, releaseOrder) => ({ ...character, releaseOrder }));
-  const wikiMatched = characters.filter((character) => character.releasedAt).length;
-  const matched = releaseSource === 'eternal-return-wiki' ? wikiMatched : characters.length;
+  const wikiMatched = roster.filter((character) => character.releasedAt).length;
+  const matched = releaseSource === 'eternal-return-wiki' ? wikiMatched : roster.length;
   return {
     generatedAt,
     game: gameMeta('eternal-return'),
-    characters,
+    characters: roster,
     wallpapers: await eternalReturnWallpapers(),
     sortMetadata: {
       release: {
