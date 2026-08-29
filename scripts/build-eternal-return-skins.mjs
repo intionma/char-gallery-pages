@@ -221,9 +221,24 @@ const verifiedByKey = new Map(
 );
 const dakOrder = new Map();
 const dakRawName = new Map();
+// 한글 스킨명 → 원본의 영문 라벨. 검증 매니페스트가 한글 이름을 쓰는 항목이 있는데,
+// 원본은 영문이라 짝이 안 지어져 같은 의상이 카드 두 장으로 나왔다.
+// (가넷 '키치 러브' ↔ 'Edgy Love', 니아 '물속성' ↔ '(Water Element)' 등)
+// dak.gg 는 같은 스킨 id 로 ko/en 을 모두 주므로 id 로 짝지어 표를 만든다.
+const dakKoLabel = new Map();
+/** 스킨명에서 캐릭터 이름을 떼어낸다. 한글판은 앞에 붙기도 한다 — '니아 (물속성)'. */
+function skinLabelOnly(skinName, characterName) {
+  const withoutSuffix = stripCharacterSuffix(skinName, characterName);
+  const escaped = String(characterName).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return withoutSuffix.replace(new RegExp(`^\\s*${escaped}\\s*`, 'i'), '').trim() || skinName;
+}
 if (!skipDak) {
   try {
-    const dak = await fetchJson('https://er.dakgg.io/api/v1/data/characters?hl=en');
+    const [dak, dakKo] = await Promise.all([
+      fetchJson('https://er.dakgg.io/api/v1/data/characters?hl=en'),
+      fetchJson('https://er.dakgg.io/api/v1/data/characters?hl=ko').catch(() => ({ characters: [] })),
+    ]);
+    const enBySkinId = new Map();
     (dak.characters || []).forEach((character, characterIndex) => {
       (character.skins || []).forEach((skin, skinIndex) => {
         const baseSkin = norm(skin.name) === norm(character.name);
@@ -231,12 +246,38 @@ if (!skipDak) {
         const key = `${norm(character.name)}:${baseSkin ? '__base__' : norm(label)}`;
         dakOrder.set(key, 1_000_000 + characterIndex * 100 + skinIndex);
         dakRawName.set(key, skin.name);
+        if (!baseSkin) enBySkinId.set(skin.id, { character: character.name, label });
       });
     });
+    for (const character of dakKo.characters || []) {
+      for (const skin of character.skins || []) {
+        const english = enBySkinId.get(skin.id);
+        if (!english) continue;
+        const koLabel = skinLabelOnly(skin.name, character.name);
+        dakKoLabel.set(`${norm(english.character)}:${normKey(koLabel)}`, english.label);
+      }
+    }
   } catch (error) {
     console.warn(`ER DAK catalogue order unavailable: ${error.message}`);
   }
 }
+/** 검증 매니페스트의 그룹명을 원본 라벨로 옮긴다. 영문이면 그대로. */
+function upstreamLabel(characterEn, group) {
+  return dakKoLabel.get(`${norm(characterEn)}:${normKey(group)}`) || group;
+}
+// 한글 그룹명 항목을 원본 영문 라벨로도 찾을 수 있게 별칭을 건다. 이러면 본 루프가
+// 원본 스킨에 컨셉아트·삼면도를 붙여 주고, 아래 보충 루프는 중복을 만들지 않는다.
+const koAliases = [];
+for (const skin of VERIFIED_SKINS) {
+  const english = upstreamLabel(skin.character, skin.group);
+  if (english === skin.group) continue;
+  const key = `${normKey(skin.character)}:${normKey(english)}`;
+  if (!verifiedByKey.has(key)) {
+    verifiedByKey.set(key, skin);
+    koAliases.push(`${skin.character} ${skin.group} → ${english}`);
+  }
+}
+
 const rawNames = pageData.characters.flatMap((character) => {
   const en = character.names?.en || '';
   return (character.images || []).map((image) => {
@@ -305,9 +346,17 @@ pageData.characters.forEach((character, characterIndex) => {
   });
 });
 
+const mergedIntoUpstream = [];
 for (const verified of VERIFIED_SKINS) {
   const character = pageData.characters.find((item) => norm(item.names?.en) === norm(verified.character));
   if (!character) continue;
+  // 원본에 이미 있는 의상이면 본 루프가 처리했다. 여기서 또 넣으면 같은 옷이 두 장 된다.
+  const english = upstreamLabel(verified.character, verified.group);
+  if (english !== verified.group
+    && (character.images || []).some((image) => normKey(image.group) === normKey(english))) {
+    mergedIntoUpstream.push(`${verified.character} ${verified.group} → ${english}`);
+    continue;
+  }
   const id = `er-skin-${norm(character.id)}-${skinIdSuffix(verified.group)}`;
   if (seen.has(id)) continue;
   seen.add(id);
@@ -352,6 +401,9 @@ if (skins.some((skin) => !Number.isFinite(Number(skin.additionOrder)))) {
 pageData.skins = skins;
 await fs.writeFile(file, JSON.stringify(pageData), 'utf8');
 console.log(`Eternal Return skins generated: ${skins.length}`);
+if (mergedIntoUpstream.length) {
+  console.log(`  한글 이름 검증 항목을 원본 스킨에 합침 (${mergedIntoUpstream.length}건): ${mergedIntoUpstream.join(', ')}`);
+}
 if (keptUpstreamBases.length) {
   console.log(`  원본 아트가 있어 검증 아트 덮어쓰기를 건너뜀 (${keptUpstreamBases.length}건): ${keptUpstreamBases.join(', ')}`);
 }
