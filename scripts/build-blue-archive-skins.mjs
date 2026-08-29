@@ -24,6 +24,9 @@ const ANNOUNCED_SKINS = [
   sourceUrl: BA_55_LIVE,
 }));
 
+// 이 값을 넘으면 epoch ms(실제 시각), 아니면 순번이다.
+const REAL_TIME_FLOOR = 1e12;
+
 const OFFICIAL_RECENT_RELEASES = new Map([
   ['ba-skin-10145', '2026-06-24'],
   ['ba-skin-10144', '2026-06-24'],
@@ -119,7 +122,11 @@ const firstSeenAt = Date.parse(pageData.generatedAt) || Date.now();
 const persistedOrder = (id, fallback) => {
   if (!previous.available) return fallback;
   const seen = previous.orders.get(id);
-  return seen == null ? firstSeenAt : Math.max(fallback, seen);
+  if (seen == null) return firstSeenAt;
+  // 실제 시각으로 굳은 항목은 그대로 둔다(처음 본 시각을 잃으면 안 된다).
+  // 순번뿐인 항목은 지금 기준을 다시 쓴다 — 순번 기준을 바꿔도 옛 값이 max 로
+  // 눌러앉지 않게. 두 값의 자릿수가 달라 max 로 섞으면 기준 변경이 먹지 않는다.
+  return seen > REAL_TIME_FLOOR ? Math.max(fallback, seen) : fallback;
 };
 
 const [en, ko, ja] = await Promise.all([
@@ -144,9 +151,15 @@ const skins = released
     const skinName = baseSkin ? '기본' : costumeLabel(ko[String(student.Id)]?.Name, student.Name);
     const id = `ba-skin-${student.Id}`;
     const releaseDate = OFFICIAL_RECENT_RELEASES.get(id);
+    // 출시일을 아는 건 손으로 적어 둔 최근 몇 건뿐이다. 나머지는 순번으로 줄을 세운다.
+    //
+    // 원본에 출시일 필드가 없다. SchaleDB 는 IsReleased 불린만 주고, 위키 문서 생성
+    // 시각은 일본 서버 기준이라 한국 서버 출시일과 최대 1,539 일까지 어긋난다.
+    // 그래서 순번을 쓰는데, 학생 Id 보다 DefaultOrder 가 실제 출시 순서에 가깝다.
+    // 아는 날짜 20 건으로 재 보면 날짜 순서와 어긋나는 쌍이 35.8% → 22.2% 로 준다.
     const sourceOrder = releaseDate
       ? Date.parse(`${releaseDate}T00:00:00+09:00`)
-      : Number(student.Id);
+      : (Number.isFinite(Number(student.DefaultOrder)) ? Number(student.DefaultOrder) : Number(student.Id));
     return {
       id,
       characterId: `ba-${base.Id}`,

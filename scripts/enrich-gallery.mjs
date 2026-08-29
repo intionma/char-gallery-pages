@@ -1,5 +1,8 @@
 import fs from 'node:fs/promises';
 import { filterLiveImages as filterLive, mapLimited, additionOrderOf } from './adapters/shared.mjs';
+
+// 이 값을 넘으면 epoch ms(실제 시각), 아니면 순번이다.
+const REAL_TIME_FLOOR = 1e12;
 import { GAMES, gameById } from './games/registry.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -129,6 +132,9 @@ function memorialImage(image) {
     type: '메모리얼',
     sourceType: 'official_misc',
     sourceUrl: original,
+    // 메모리얼은 그 자체의 출시일이 없다. 어느 의상에 딸린 것인지만 남겨 두면
+    // 나중에 그 의상의 순서를 그대로 물려받을 수 있다.
+    parentGroup: image.group || '기본',
   };
 }
 
@@ -226,6 +232,47 @@ async function enrichBlueArchive() {
   if (total && memorialCharacters.length < total * 0.9) {
     throw new Error(`Blue Archive memorial coverage is incomplete (${memorialCharacters.length}/${total})`);
   }
+  // 메모리얼을 전체 스킨 뷰에도 올린다. 그동안 캐릭터 상세에만 있어서 246장이
+  // 목록에서 아예 안 보였다. 자기 출시일은 없지만 어느 의상에 딸린 것인지는 알기
+  // 때문에, 그 의상의 순서를 물려받으면 같은 줄에 세울 수 있다.
+  const skinOrderByKey = new Map();
+  for (const skin of data.skins || []) {
+    skinOrderByKey.set(`${skin.characterId}:${skin.group}`, skin);
+  }
+  const memorialSkins = [];
+  for (const character of data.characters || []) {
+    for (const image of character.images || []) {
+      if (image.type !== '메모리얼') continue;
+      const parent = skinOrderByKey.get(`${character.id}:${image.parentGroup}`);
+      // 부모 의상을 못 찾으면 줄 세울 근거가 없다. 그런 건 올리지 않는다.
+      if (!parent) continue;
+      memorialSkins.push({
+        id: `${parent.id}-memorial`,
+        characterId: character.id,
+        character: parent.character,
+        skinName: image.group,
+        group: image.group,
+        imageType: '메모리얼',
+        url: image.url,
+        thumbUrl: image.thumbUrl,
+        sourceUrl: image.sourceUrl,
+        sourceType: image.sourceType || 'official_misc',
+        ...(parent.releaseDate ? { releaseDate: parent.releaseDate } : {}),
+        // 부모보다 아주 조금 뒤로 놓아 같은 의상끼리 붙어 보이게 한다.
+        // 부모의 순서는 아래 지속 계층에서 확정되므로 거기서 다시 물려받는다.
+        orderFrom: 'parent',
+        parentId: parent.id,
+        additionOrder: Number(parent.additionOrder) - 0.5,
+      });
+    }
+  }
+  if (memorialSkins.length) {
+    for (const skin of data.skins || []) if (!skin.imageType) skin.imageType = skin.skinName === '기본' ? '기본' : '의상';
+    data.skins = [...(data.skins || []), ...memorialSkins]
+      .sort((a, b) => b.additionOrder - a.additionOrder || String(a.id).localeCompare(String(b.id)));
+    console.log(`Blue Archive memorial: ${memorialSkins.length} added to the skin view (부모 의상 순서 상속)`);
+  }
+
   // 아직 출시되지 않은 것만 예고 아트로 덮였어야 한다. 출시된 것은 원본 전신을 쓴다.
   const announcedIds = new Set(ANNOUNCED_ART.keys());
   const pending = (data.skins || []).filter((skin) => announcedIds.has(skin.id) && skin.upcoming);
@@ -490,9 +537,27 @@ async function applyFirstSeenSkinOrder() {
       // 원본이 실제 날짜를 준 항목은 그 날짜가 진실이다. 최초 관측 시각은 어디까지나
       // 날짜를 모르는 항목의 대체값이지, 아는 날짜를 덮어쓸 근거가 아니다.
       if (skin.releasedAt) continue;
+      // 부모에서 순서를 물려받는 항목(메모리얼)은 관측 시각으로 덮지 않는다. 덮으면
+      // 전부 같은 값이 되어 목록 맨 위에 뭉친다.
+      if (skin.orderFrom === 'parent') continue;
       const seen = orders.get(skin.id);
       if (seen == null) added += 1;
-      skin.additionOrder = Math.max(Number(skin.additionOrder) || 0, seen ?? firstSeenAt);
+      const previous = seen ?? firstSeenAt;
+      // 순번은 실제 시각과 자릿수가 달라서 max 로 섞으면 옛 순번이 눌러앉는다.
+      // 순번 기준을 바꿔도 반영되도록, 실제 시각일 때만 max 를 쓴다.
+      // 순번은 0 부터 시작할 수 있다(SchaleDB DefaultOrder). || 로 받으면 0 이
+      // 옛 값으로 새어 나가므로 유한한 숫자인지로 판단한다.
+      const current = Number(skin.additionOrder);
+      skin.additionOrder = previous > REAL_TIME_FLOOR
+        ? Math.max(Number.isFinite(current) ? current : 0, previous)
+        : (Number.isFinite(current) ? current : previous);
+    }
+    // 부모가 확정된 뒤에 상속 항목을 다시 계산한다.
+    const skinById = new Map(skins.map((skin) => [skin.id, skin]));
+    for (const skin of skins) {
+      if (skin.orderFrom !== 'parent' || !skin.parentId) continue;
+      const parent = skinById.get(skin.parentId);
+      if (parent) skin.additionOrder = Number(parent.additionOrder) - 0.5;
     }
     skins.sort((a, b) => b.additionOrder - a.additionOrder || String(a.id).localeCompare(String(b.id)));
     await writeJson(game.dataFile, data);
