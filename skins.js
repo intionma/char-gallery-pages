@@ -112,6 +112,8 @@
       const imageTypes = [...new Set(skins.map((skin) => skin.imageType).filter(Boolean))];
       // 인기도는 캐릭터 단위라 한 캐릭터의 스킨들이 같은 점수를 갖는다. 근거가 없는
       // 게임에서는 이 옵션을 아예 띄우지 않는다 — 억지로 세우면 잘못된 순서가 된다.
+      // 인기순은 고르는 것이지 기본값이 아니다. 진입 버튼이 "최신순 보기" 라서
+      // 기본 선택이 인기순이면 누른 것과 다른 화면이 열린다.
       const hasPopularity = skins.some((skin) => Number(skin.popularity) > 0);
       const generated = data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '';
       if (ui?.setStatus) ui.setStatus(generated);
@@ -121,7 +123,7 @@
           ${data.stale ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 스킨 데이터를 표시합니다.</div>' : ''}
           <div class="toolbar skin-toolbar">
             <input id="skinSearch" type="search" placeholder="스킨 또는 캐릭터 검색" autocomplete="off">
-            <select id="skinSort" aria-label="정렬">${hasPopularity ? '<option value="popular">인기순</option>' : ''}<option value="newest">최신 ${escapeHtml(catalog.orderLabel)} ↓</option><option value="oldest">오래된 ${escapeHtml(catalog.orderLabel)} ↑</option><option value="name">이름순</option></select>
+            <select id="skinSort" aria-label="정렬">${hasPopularity ? '<option value="popular">인기순</option>' : ''}<option value="newest" selected>최신 ${escapeHtml(catalog.orderLabel)} ↓</option><option value="oldest">오래된 ${escapeHtml(catalog.orderLabel)} ↑</option><option value="name">이름순</option></select>
             ${imageTypes.length > 1 ? `<select id="skinType" aria-label="종류"><option value="">모든 종류</option>${imageTypes.map((type) => `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join('')}</select>` : ''}
           </div>
           <div class="section-title"><h2>${escapeHtml(catalog.title)}</h2><span id="skinCount"></span></div>
