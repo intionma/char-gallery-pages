@@ -185,9 +185,18 @@ async function enrichBlueArchive() {
     }
   }
 
+  // 예고 아트는 출시 전까지 자리를 메우는 임시 그림이다. 출시되면 원본에 진짜
+  // 전신(투명 배경)이 생기는데, 그때도 계속 덮어쓰면 홍보 카드·가로 배너가 전신을
+  // 가린다. 실제로 다섯 명이 출시된 뒤에도 홍보 이미지가 카드로 걸려 있었다.
+  // upcoming 은 build-blue-archive-skins 가 원본의 출시 여부로 매긴 값이다.
+  const released = [];
   for (const skin of data.skins || []) {
     const announced = announcedArt.get(skin.id);
     if (!announced) continue;
+    if (!skin.upcoming) {
+      released.push(skin.id);
+      continue;
+    }
     skin.url = announced.url;
     skin.thumbUrl = announced.url;
     skin.sourceUrl = announced.sourceUrl;
@@ -217,10 +226,15 @@ async function enrichBlueArchive() {
   if (total && memorialCharacters.length < total * 0.9) {
     throw new Error(`Blue Archive memorial coverage is incomplete (${memorialCharacters.length}/${total})`);
   }
+  // 아직 출시되지 않은 것만 예고 아트로 덮였어야 한다. 출시된 것은 원본 전신을 쓴다.
   const announcedIds = new Set(ANNOUNCED_ART.keys());
+  const pending = (data.skins || []).filter((skin) => announcedIds.has(skin.id) && skin.upcoming);
   const replaced = (data.skins || []).filter((skin) => announcedIds.has(skin.id) && skin.temporaryArt);
-  if (replaced.length !== ANNOUNCED_ART.size) {
-    throw new Error(`Blue Archive announced art coverage is incomplete (${replaced.length}/${ANNOUNCED_ART.size})`);
+  if (replaced.length !== pending.length) {
+    throw new Error(`Blue Archive announced art coverage is incomplete (${replaced.length}/${pending.length})`);
+  }
+  if (released.length) {
+    console.log(`Blue Archive announced art: ${released.length} released, now using official art (${released.join(', ')})`);
   }
 
   await writeJson('blue-archive.json', data);
