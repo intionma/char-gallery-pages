@@ -21,6 +21,8 @@ const publishedCache = new Map();
 // 원본에서 받은 원자료를 그대로 남겨 두는 자리. 결과가 아니라 원자료를 남겨야
 // 원본이 막힌 날에도 지금 코드로 다시 만들 수 있다. 워크플로가 실행 간에 넘겨 준다.
 const SDVX_SOURCE_CACHE = path.resolve(root, '.cache/sdvx-songs.json');
+// 원자료가 이 일수를 넘게 묵으면 경고를 오류 주석으로 올린다.
+const SDVX_CACHE_STALE_DAYS = 7;
 
 await fs.mkdir(outDir, { recursive: true });
 
@@ -710,7 +712,15 @@ async function sdvxSource(ROOT) {
       throw error;
     }
     if (!Array.isArray(cache.songs) || cache.songs.length < 2000) throw error;
-    console.warn(`::warning title=SDVX 원본 수집 실패::${error.message} — ${cache.fetchedAt} 에 받아 둔 원자료로 지금 코드에서 다시 만듭니다`);
+    // 캐시에 유효기간이 없으면 원본이 오래 막혀도 로그 한 줄로 조용히 굳는다.
+    // 예전에 2주 동안 옛 데이터가 나간 적이 있어서, 일정 기간을 넘기면 경고를
+    // 오류 주석으로 올려 실행 목록에서 빨갛게 보이게 한다. 빌드는 세우지 않는다 —
+    // 여기서 실패시키면 멀쩡한 다른 게임들까지 갱신이 멈춘다.
+    const ageDays = Math.floor((Date.now() - Date.parse(cache.fetchedAt)) / 86400000);
+    const level = ageDays >= SDVX_CACHE_STALE_DAYS ? 'error' : 'warning';
+    console.warn(`::${level} title=SDVX 원본 수집 실패 (${ageDays}일째)::${error.message}`
+      + ` — ${cache.fetchedAt} 에 받아 둔 원자료로 지금 코드에서 다시 만듭니다`
+      + (level === 'error' ? ` · ${SDVX_CACHE_STALE_DAYS}일 넘게 갱신되지 않았습니다` : ''));
     return { songs: cache.songs, manifestPath: cache.manifestPath, cachedFrom: cache.fetchedAt };
   }
 }

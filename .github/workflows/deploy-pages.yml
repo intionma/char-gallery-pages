@@ -39,7 +39,7 @@ jobs:
       # 지금 코드로 다시 만든다. key 에 run_id 를 넣어 매번 새로 저장하고,
       # restore-keys 로 직전 실행 것을 받아 온다.
       - name: Restore upstream source cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache
           key: upstream-source-${{ github.run_id }}
@@ -95,10 +95,10 @@ jobs:
         run: node scripts/audit-public.mjs
       - name: Configure Pages
         if: github.event_name != 'pull_request'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
@@ -112,4 +112,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

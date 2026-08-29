@@ -374,7 +374,7 @@
     app.innerHTML = `
       ${entry}
       ${data.stale
-        ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 데이터를 표시합니다.</div>'
+        ? staleNotice(data, '데이터')
         : data.error ? '<div class="error">일부 원본 데이터를 갱신하지 못했습니다. 마지막 생성 결과만 표시합니다.</div>' : ''}
       <div class="mobile-character-controls">
         <label class="mobile-search">
@@ -614,7 +614,7 @@
     setHeader({ title: name, subtitle: english, back: `game/${gameId}` });
     app.innerHTML = `
       ${data.stale
-        ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 데이터를 표시합니다.</div>'
+        ? staleNotice(data, '데이터')
         : data.error ? '<div class="error">일부 원본 데이터를 갱신하지 못했습니다. 마지막 생성 결과만 표시합니다.</div>' : ''}
       ${navBar}
       <div class="section-title"><h2>${escapeHtml(GAME_BY_ID.get(gameId)?.labels?.detailSection || '스탠딩 · 의상')}</h2><span>${images.length}종</span></div>
@@ -671,7 +671,7 @@
     setHeader({ title: '모든 곡 자켓', subtitle: `${jackets.length}곡`, back: `game/${gameId}` });
     app.innerHTML = `
       ${data.stale
-        ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 자켓 데이터를 표시합니다.</div>'
+        ? staleNotice(data, '자켓 데이터')
         : data.error ? '<div class="error">최신 카탈로그 생성 중 일부 원본 요청이 실패했습니다.</div>' : ''}
       <div class="toolbar jacket-toolbar${hasCategory ? ' has-category' : ''}">
         <input id="search" type="search" placeholder="곡 또는 캐릭터 검색" autocomplete="off">
@@ -1616,6 +1616,17 @@
   function maxLevel(item) {
     return Math.max(0, ...(item.variants || []).flatMap((variant) => variant.levels || (variant.level == null ? [] : [variant.level])));
   }
+  /**
+   * 갱신 지연 안내. 원자료를 받아 둔 날짜를 함께 보여 준다. 날짜가 없으면
+   * 며칠째 굳어 있는지 화면에서 알 수가 없다.
+   */
+  function staleNotice(data, what) {
+    const since = String(data.sourceFetchedAt || data.fallbackUsedAt || '').slice(0, 10);
+    const parts = since.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    const when = parts ? ` (${Number(parts[2])}/${Number(parts[3])} 기준)` : '';
+    return `<div class="notice">원본 갱신이 지연되어 마지막 정상 ${what}를 표시합니다${when}.</div>`;
+  }
+
   function levelOptions(jackets) {
     const levels = [...new Set(jackets.flatMap((jacket) => (jacket.variants || []).flatMap((variant) => variant.levels || (variant.level == null ? [] : [variant.level]))))].sort((a, b) => b - a);
     return levels.map((value) => `<option value="${value}">레벨 ${value}</option>`).join('');
