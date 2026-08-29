@@ -19,6 +19,9 @@ const NEON_DANGER_BG = '48 20 31';
 export const GAMES = [
   {
     id: 'blue-archive',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 태그가 없는 게임은 이 줄을 비워 두면 그 게임만 인기순이 뜨지 않는다.
+    booruSuffix: 'blue_archive',
     name: '블루 아카이브',
     description: '공식 스탠딩과 의상',
     dataFile: 'blue-archive.json',
@@ -85,6 +88,9 @@ export const GAMES = [
   },
   {
     id: 'eternal-return',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 태그가 없는 게임은 이 줄을 비워 두면 그 게임만 인기순이 뜨지 않는다.
+    booruSuffix: 'black_survival',
     name: '이터널 리턴',
     description: '실험체 스탠딩과 스킨',
     dataFile: 'eternal-return.json',
@@ -130,6 +136,9 @@ export const GAMES = [
   },
   {
     id: 'genshin',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 태그가 없는 게임은 이 줄을 비워 두면 그 게임만 인기순이 뜨지 않는다.
+    booruSuffix: 'genshin_impact',
     name: '원신',
     description: '공식 캐릭터 이미지와 의상',
     dataFile: 'genshin.json',
@@ -181,6 +190,9 @@ export const GAMES = [
   },
   {
     id: 'sound-voltex',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 태그가 없는 게임은 이 줄을 비워 두면 그 게임만 인기순이 뜨지 않는다.
+    booruSuffix: 'sound_voltex',
     name: 'SOUND VOLTEX',
     description: '전체 곡 자켓과 난이도별 변형',
     dataFile: 'sound-voltex.json',
@@ -233,6 +245,9 @@ export const GAMES = [
   },
   {
     id: 'djmax',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 태그가 없는 게임은 이 줄을 비워 두면 그 게임만 인기순이 뜨지 않는다.
+    booruSuffix: 'djmax',
     name: 'DJMAX RESPECT V',
     description: '대표 캐릭터 이미지',
     dataFile: 'djmax.json',
@@ -282,6 +297,9 @@ export const GAMES = [
   },
   {
     id: 'honkai-star-rail',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 태그가 없는 게임은 이 줄을 비워 두면 그 게임만 인기순이 뜨지 않는다.
+    booruSuffix: 'honkai:_star_rail',
     name: '붕괴: 스타레일',
     description: '공식 캐릭터 일러스트',
     dataFile: 'honkai-star-rail.json',
@@ -328,6 +346,9 @@ export const GAMES = [
   },
   {
     id: 'azur-lane',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 태그가 없는 게임은 이 줄을 비워 두면 그 게임만 인기순이 뜨지 않는다.
+    booruSuffix: 'azur_lane',
     name: '벽람항로',
     description: '함선 인격 일러스트와 스킨',
     dataFile: 'azur-lane.json',
@@ -369,6 +390,9 @@ export const GAMES = [
   },
   {
     id: 'arknights',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 태그가 없는 게임은 이 줄을 비워 두면 그 게임만 인기순이 뜨지 않는다.
+    booruSuffix: 'arknights',
     name: '명일방주',
     description: '여성 오퍼레이터 일러스트와 스킨',
     dataFile: 'arknights.json',
@@ -409,6 +433,9 @@ export const GAMES = [
   },
   {
     id: 'last-origin',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 태그가 없는 게임은 이 줄을 비워 두면 그 게임만 인기순이 뜨지 않는다.
+    booruSuffix: 'last_origin',
     name: '라스트오리진',
     description: '바이오로이드 일러스트와 스킨',
     dataFile: 'last-origin.json',
@@ -449,6 +476,9 @@ export const GAMES = [
   },
   {
     id: 'nikke',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 태그가 없는 게임은 이 줄을 비워 두면 그 게임만 인기순이 뜨지 않는다.
+    booruSuffix: 'nikke',
     name: '승리의 여신: 니케',
     description: '니케 일러스트와 코스튬',
     dataFile: 'nikke.json',

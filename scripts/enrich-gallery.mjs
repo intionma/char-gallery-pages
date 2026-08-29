@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import { filterLiveImages as filterLive, mapLimited, additionOrderOf } from './adapters/shared.mjs';
+import { buildBooruPopularityScores } from './sort-utils.mjs';
 
 // 이 값을 넘으면 epoch ms(실제 시각), 아니면 순번이다.
 const REAL_TIME_FLOOR = 1e12;
@@ -267,7 +268,8 @@ async function enrichBlueArchive() {
     }
   }
   if (memorialSkins.length) {
-    for (const skin of data.skins || []) if (!skin.imageType) skin.imageType = skin.skinName === '기본' ? '기본' : '의상';
+    // 기본 스탠딩과 의상을 나눠 볼 이유가 없다. 한 종류('스킨')로 묶고 메모리얼만 가른다.
+    for (const skin of data.skins || []) if (!skin.imageType) skin.imageType = '스킨';
     data.skins = [...(data.skins || []), ...memorialSkins]
       .sort((a, b) => b.additionOrder - a.additionOrder || String(a.id).localeCompare(String(b.id)));
     console.log(`Blue Archive memorial: ${memorialSkins.length} added to the skin view (부모 의상 순서 상속)`);
@@ -565,7 +567,74 @@ async function applyFirstSeenSkinOrder() {
   }
 }
 
+/**
+ * 전체 스킨 뷰의 인기순 근거를 붙인다.
+ *
+ * 인기도는 캐릭터 단위다. Danbooru 의 캐릭터 태그 게시물 수를 쓰는데, 태그는
+ * 의상별로 나뉘지 않고 캐릭터 하나에 붙기 때문이다. 그래서 한 캐릭터의 스킨들은
+ * 같은 점수를 갖고 목록에서 서로 붙어 나온다.
+ *
+ * 근거를 못 찾은 게임은 그냥 넘어간다. 억지로 만들면 잘못된 순서가 된다 —
+ * 화면 쪽도 점수가 있는 게임에서만 인기순을 띄운다.
+ */
+async function fetchBooruTags(suffix) {
+  const tags = [];
+  for (let page = 1; page <= 3; page += 1) {
+    const url = new URL('https://danbooru.donmai.us/tags.json');
+    url.searchParams.set('search[category]', '4');
+    url.searchParams.set('search[name_matches]', `*_(${suffix})`);
+    url.searchParams.set('search[hide_empty]', 'yes');
+    url.searchParams.set('search[is_deprecated]', 'no');
+    url.searchParams.set('search[order]', 'count');
+    url.searchParams.set('limit', '1000');
+    url.searchParams.set('page', String(page));
+    const batch = await fetchJson(url.href);
+    if (!Array.isArray(batch)) throw new Error('Danbooru 응답이 배열이 아닙니다');
+    tags.push(...batch);
+    if (batch.length < 1000) break;
+  }
+  if (!tags.length) throw new Error(`Danbooru 에 *_(${suffix}) 캐릭터 태그가 없습니다`);
+  return tags;
+}
+
+async function applySkinPopularity() {
+  for (const game of GAMES) {
+    if (!game.features?.skins || !game.booruSuffix) continue;
+    const data = await readJson(game.dataFile);
+    const skins = Array.isArray(data.skins) ? data.skins : [];
+    const characters = Array.isArray(data.characters) ? data.characters : [];
+    if (!skins.length || !characters.length) continue;
+
+    // 이미 캐릭터 점수를 가진 게임(블루 아카이브)은 그 값을 그대로 쓴다.
+    let scores = new Map(characters
+      .filter((character) => Number(character.popularityScore) > 0)
+      .map((character) => [character.id, Number(character.popularityScore)]));
+    if (!scores.size) {
+      try {
+        scores = buildBooruPopularityScores(characters, await fetchBooruTags(game.booruSuffix), game.booruSuffix);
+      } catch (error) {
+        console.log(`${game.id}: 인기순 근거 없음 — ${error.message}`);
+        continue;
+      }
+    }
+    const matched = [...scores.values()].filter((score) => score > 0).length;
+    if (!matched) {
+      console.log(`${game.id}: 인기순 근거 없음 — 태그가 캐릭터와 하나도 맞지 않습니다`);
+      continue;
+    }
+    for (const character of characters) character.popularityScore = scores.get(character.id) || 0;
+    for (const skin of skins) skin.popularity = scores.get(skin.characterId) || 0;
+    data.sortMetadata = {
+      ...(data.sortMetadata || {}),
+      skinPopularity: { available: true, source: 'danbooru', matched, total: characters.length },
+    };
+    await writeJson(game.dataFile, data);
+    console.log(`${game.id}: 인기순 근거 ${matched}/${characters.length} 캐릭터 (danbooru)`);
+  }
+}
+
 async function restoreGameLogos() {
+
   const manifest = await readJson('manifest.json');
   manifest.games = (manifest.games || []).map((game) => ({
     ...game,
@@ -584,4 +653,5 @@ await pruneDanglingReferences();
 // 스킨 목록을 채운 뒤에 정렬 키를 잡아야 파생 스킨도 같은 규칙을 따른다.
 await ensureSkinCatalogs();
 await applyFirstSeenSkinOrder();
+await applySkinPopularity();
 await restoreGameLogos();
