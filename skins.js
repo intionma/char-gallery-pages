@@ -103,6 +103,10 @@
       const skins = Array.isArray(data.skins) ? data.skins : [];
       if (!skins.length) throw new Error('스킨 데이터가 없습니다.');
       ui?.setCensorAvailability?.(skins.some((skin) => skin.safeUrl));
+      // 한 게임에 여러 종류의 그림이 섞여 있으면 종류로 걸러 볼 수 있게 한다.
+      // 지금은 블루 아카이브만 해당한다 — 나머지 게임은 이미지와 스킨이 1:1 이라
+      // 종류가 하나뿐이고, 그러면 이 장치는 뜨지 않는다.
+      const imageTypes = [...new Set(skins.map((skin) => skin.imageType).filter(Boolean))];
       const generated = data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '';
       if (ui?.setStatus) ui.setStatus(generated);
       else status.textContent = generated;
@@ -112,6 +116,7 @@
           <div class="toolbar skin-toolbar">
             <input id="skinSearch" type="search" placeholder="스킨 또는 캐릭터 검색" autocomplete="off">
             <select id="skinSort" aria-label="정렬"><option value="newest">최신 ${escapeHtml(catalog.orderLabel)} ↓</option><option value="oldest">오래된 ${escapeHtml(catalog.orderLabel)} ↑</option><option value="name">이름순</option></select>
+            ${imageTypes.length > 1 ? `<select id="skinType" aria-label="종류"><option value="">모든 종류</option>${imageTypes.map((type) => `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join('')}</select>` : ''}
           </div>
           <div class="section-title"><h2>${escapeHtml(catalog.title)}</h2><span id="skinCount"></span></div>
           <section id="skinGrid" class="skin-grid"></section>
@@ -120,6 +125,7 @@
 
       const search = document.getElementById('skinSearch');
       const sort = document.getElementById('skinSort');
+      const typeFilter = document.getElementById('skinType');
       const grid = document.getElementById('skinGrid');
       const count = document.getElementById('skinCount');
       const more = document.getElementById('skinMore');
@@ -133,7 +139,8 @@
         visible = skins.filter((skin) => {
           const text = [skin.skinName, skin.group, displayName(skin), skin.character?.names?.en, skin.character?.names?.ja]
             .filter(Boolean).join(' ').toLocaleLowerCase();
-          return !query || text.includes(query);
+          const typeOk = !typeFilter?.value || skin.imageType === typeFilter.value;
+          return typeOk && (!query || text.includes(query));
         });
         visible = [...visible].sort((a, b) => {
           if (sort.value === 'name') {
@@ -157,6 +164,7 @@
 
       search.addEventListener('input', () => update(true));
       sort.addEventListener('change', () => update(true));
+      typeFilter?.addEventListener('change', () => update(true));
       more.addEventListener('click', () => { shown += PAGE_SIZE; update(); });
       grid.addEventListener('click', (event) => {
         const character = event.target.closest('[data-character-id]');
