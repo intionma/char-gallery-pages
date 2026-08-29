@@ -106,8 +106,12 @@ export default async function buildArknights() {
     if (!list.length) continue;
 
     const id = slug('ak', charId);
-    const names = { en: entry.appellation || entry.name, ko: ko[charId]?.name || undefined };
-    const sourceUrl = `https://arknights.wiki.gg/wiki/${encodeURIComponent(String(entry.appellation || entry.name).replace(/ /g, '_'))}`;
+    // en_US 표는 name 에 영문명이 들어 있고 appellation 은 공백 한 칸일 때가 많다.
+    // 공백은 truthy 라 `appellation || name` 으로 받으면 영문명이 통째로 " " 가 된다.
+    // 276 명 전원이 그랬고, 그래서 위키 링크도 인기순 매칭도 깨져 있었다.
+    const english = String(entry.appellation || '').trim() || String(entry.name || '').trim();
+    const names = { en: english, ko: ko[charId]?.name || undefined };
+    const sourceUrl = `https://arknights.wiki.gg/wiki/${encodeURIComponent(english.replace(/ /g, '_'))}`;
 
     characters.push({
       id,

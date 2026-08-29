@@ -75,8 +75,11 @@
     const badge = skin.upcoming
       ? `출시 예정${skin.releaseDate ? ` · ${shortDate(skin.releaseDate)}` : ''}`
       : baseSkin ? '기본' : '';
+    // 메모리얼은 1920x1080 로비 아트다. 세로로 긴 스탠딩과 같은 비율에 넣으면
+    // 그림이 카드 한가운데 띠처럼 눌려 붙는다. 가로형 카드를 따로 쓴다.
+    const wide = skin.imageType === '메모리얼';
     return `
-      <article class="skin-card" data-skin-id="${escapeHtml(skin.id)}">
+      <article class="skin-card${wide ? ' wide' : ''}" data-skin-id="${escapeHtml(skin.id)}">
         <button class="skin-art" type="button" aria-label="${escapeHtml(`${displayName(skin)} ${skin.skinName} 크게 보기`)}">
           ${badge ? `<span class="skin-badge${skin.upcoming ? ' upcoming' : ''}">${escapeHtml(badge)}</span>` : ''}
           ${skin.announcementOnly ? '<span class="skin-waiting">공식 발표됨 · 전신 데이터 대기</span>' : ''}
@@ -107,6 +110,9 @@
       // 지금은 블루 아카이브만 해당한다 — 나머지 게임은 이미지와 스킨이 1:1 이라
       // 종류가 하나뿐이고, 그러면 이 장치는 뜨지 않는다.
       const imageTypes = [...new Set(skins.map((skin) => skin.imageType).filter(Boolean))];
+      // 인기도는 캐릭터 단위라 한 캐릭터의 스킨들이 같은 점수를 갖는다. 근거가 없는
+      // 게임에서는 이 옵션을 아예 띄우지 않는다 — 억지로 세우면 잘못된 순서가 된다.
+      const hasPopularity = skins.some((skin) => Number(skin.popularity) > 0);
       const generated = data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '';
       if (ui?.setStatus) ui.setStatus(generated);
       else status.textContent = generated;
@@ -115,7 +121,7 @@
           ${data.stale ? '<div class="notice">원본 갱신이 지연되어 마지막 정상 스킨 데이터를 표시합니다.</div>' : ''}
           <div class="toolbar skin-toolbar">
             <input id="skinSearch" type="search" placeholder="스킨 또는 캐릭터 검색" autocomplete="off">
-            <select id="skinSort" aria-label="정렬"><option value="newest">최신 ${escapeHtml(catalog.orderLabel)} ↓</option><option value="oldest">오래된 ${escapeHtml(catalog.orderLabel)} ↑</option><option value="name">이름순</option></select>
+            <select id="skinSort" aria-label="정렬">${hasPopularity ? '<option value="popular">인기순</option>' : ''}<option value="newest">최신 ${escapeHtml(catalog.orderLabel)} ↓</option><option value="oldest">오래된 ${escapeHtml(catalog.orderLabel)} ↑</option><option value="name">이름순</option></select>
             ${imageTypes.length > 1 ? `<select id="skinType" aria-label="종류"><option value="">모든 종류</option>${imageTypes.map((type) => `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join('')}</select>` : ''}
           </div>
           <div class="section-title"><h2>${escapeHtml(catalog.title)}</h2><span id="skinCount"></span></div>
@@ -143,6 +149,12 @@
           return typeOk && (!query || text.includes(query));
         });
         visible = [...visible].sort((a, b) => {
+          if (sort.value === 'popular') {
+            // 같은 캐릭터의 스킨은 점수가 같다. 그 안에서는 최신 순서를 유지한다.
+            return Number(b.popularity ?? 0) - Number(a.popularity ?? 0)
+              || Number(b.additionOrder) - Number(a.additionOrder)
+              || String(a.id).localeCompare(String(b.id));
+          }
           if (sort.value === 'name') {
             const bySkin = String(a.skinName).localeCompare(String(b.skinName), 'ko', { numeric: true });
             return bySkin
