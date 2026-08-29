@@ -160,8 +160,10 @@ const skins = released
       },
       skinName,
       group: skinName,
+      // 카드에 얼굴 아이콘(icon)을 걸면 눌러서 열리는 전신(portrait)과 다른 그림이 된다.
+      // 목록에 얼굴·홍보 카드·배너가 뒤섞여 보이던 원인이라, 카드도 전신을 쓴다.
+      // thumbUrl 이 없으면 화면이 url 을 그대로 쓴다 (artThumb: thumbUrl || url).
       url: `${BASE}/images/student/portrait/${student.Id}.webp`,
-      thumbUrl: `${BASE}/images/student/icon/${student.Id}.webp`,
       sourceUrl: `${BASE}/student/${student.PathName}`,
       sourceType: baseSkin ? 'official_standing' : 'official_skin',
       releaseDate,
@@ -190,7 +192,6 @@ for (const announced of ANNOUNCED_SKINS) {
     skinName: announced.skinName,
     group: announced.skinName,
     url: `${BASE}/images/student/portrait/${artStudent.Id}.webp`,
-    thumbUrl: `${BASE}/images/student/icon/${artStudent.Id}.webp`,
     sourceUrl: variant ? `${BASE}/student/${variant.PathName}` : announced.sourceUrl,
     sourceType: 'official_skin',
     additionOrder: Date.parse(`${announced.announcedDate}T00:00:00+09:00`),
