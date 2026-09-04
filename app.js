@@ -618,7 +618,7 @@
         : data.error ? '<div class="error">일부 원본 데이터를 갱신하지 못했습니다. 마지막 생성 결과만 표시합니다.</div>' : ''}
       ${navBar}
       <div class="section-title"><h2>${escapeHtml(GAME_BY_ID.get(gameId)?.labels?.detailSection || '스탠딩 · 의상')}</h2><span>${images.length}종</span></div>
-      <section class="standing-grid">
+      <section class="standing-grid" data-game="${escapeAttr(gameId)}">
         ${images.length ? images.map((image, index) => detailCard(image, index)).join('') : '<div class="empty">공식 이미지를 찾지 못했어요.</div>'}
       </section>
       ${navBar}

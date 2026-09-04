@@ -517,6 +517,57 @@ export const GAMES = [
       },
     },
   },
+  {
+    id: 'brown-dust-2',
+    // Danbooru 캐릭터 태그의 게임 접미사. 인기순 정렬의 근거다.
+    // 브라운더스트 2 태그는 후속작이 아니라 시리즈 이름을 쓴다 — `*_(brown_dust)`.
+    booruSuffix: 'brown_dust',
+    name: '브라운더스트 2',
+    description: '코스튬 일러스트와 스킬 컷인',
+    dataFile: 'brown-dust-2.json',
+    // 홈 카드에 쓰는 게임 로고. enrich 단계에서 coverImage 를 이걸로 덮는다.
+    // 공식 사이트의 OG 이미지다(로고 + 키 아트).
+    logoImage: 'https://www.browndust2.com/img/seo/OGimg_EN_740x340_v5.jpg',
+    dataDescription: '게임 UI 아트 기반 코스튬 일러스트와 스킬 컷인',
+    coverImage: null,
+    collection: 'characters',
+    features: { skins: true, jackets: false },
+    labels: {
+      detailSection: '코스튬',
+      emptyList: '표시할 캐릭터가 없습니다.',
+      skins: '코스튬 일러스트와 스킬 컷인을 실제 출시일 최신순으로 한 번에 봅니다.',
+      skinsEntry: '전체 스킨 보기',
+      // 원본이 코스튬마다 실제 출시일을 준다. 추정이 섞이지 않으므로 그대로 적는다.
+      skinsOrder: '출시일순',
+    },
+    // 인기순을 기본으로 두지 않는다. Danbooru 태그가 20건(BOORU_TAG_MIN_POSTS)을
+    // 넘는 캐릭터가 84명 중 41명뿐이라, 기본값으로 세우면 절반이 0점 덩어리로 뭉쳐
+    // 이름순과 다를 바 없는 화면이 첫 화면이 된다. 출시일은 전원이 실제 값을 갖는다.
+    sort: {
+      capability: 'popularity',
+      modes: [['release', '출시순'], ['popularity', '인기순'], ['ko', '가나다순'], ['en', 'A–Z']],
+      fallbackModes: [['release', '출시순'], ['ko', '가나다순'], ['en', 'A–Z']],
+    },
+    // 오너 결정에 따라 필터 없이 전원을 담는다.
+    genderFilter: 'none',
+    theme: {
+      scheme: 'dark',
+      themeColor: '#100e12',
+      tokens: {
+        bg: '16 14 18',
+        'bg-2': '23 20 26',
+        panel: '32 28 36',
+        line: '62 54 68',
+        accent: '214 172 84',
+        'accent-strong': '238 205 132',
+        'accent-soft': '166 136 176',
+        text: '240 233 224',
+        sub: '170 158 152',
+        halo: '226 118 96',
+        'danger-bg': '52 24 30',
+      },
+    },
+  },
 ];
 
 // 원본 CDN마다 Referer 요구가 정반대다. 기본은 no-referrer 이고, 여기 적힌 호스트만

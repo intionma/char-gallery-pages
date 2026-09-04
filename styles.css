@@ -409,6 +409,12 @@ img { display: block; max-width: 100%; }
 .standing-card.landscape .art { aspect-ratio: 16 / 10; }
 .standing-card.landscape img { object-position: center; }
 .standing-card img { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; padding: 4px; }
+
+/* 브라운더스트 2 의 정지 아트는 게임이 UI 에 쓰는 256x256 정사각이다. 세로 3:4 틀에
+   넣으면 양옆이 비어 그림이 실제보다 작아 보인다. 이 게임만 정사각 틀을 쓴다.
+   정사각을 정사각에 채우는 것이라 cover 여도 잘리는 부분은 없다. */
+.standing-grid[data-game="brown-dust-2"] .standing-card .art { aspect-ratio: 1 / 1; }
+.standing-grid[data-game="brown-dust-2"] .standing-card img { object-fit: cover; object-position: center; padding: 0; }
 .standing-card .badge,
 .jacket-card .badge { position: absolute; top: 8px; left: 8px; z-index: 2; border-radius: 999px; background: rgb(var(--panel) / .92); color: rgb(var(--accent-strong)); padding: 4px 8px; font-size: 10px; font-weight: 800; box-shadow: 0 1px 4px rgb(0 0 0 / .14); }
 
