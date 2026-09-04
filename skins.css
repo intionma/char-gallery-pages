@@ -91,3 +91,8 @@
 @media (min-width: 720px) {
   .skin-card.wide { grid-column: span 2; }
 }
+
+/* 브라운더스트 2 도 같은 이유로 정사각 카드를 쓴다(styles.css 의 상세 화면과 짝).
+   전체 스킨 뷰는 게임별 훅이 뷰 컨테이너에 이미 붙어 있다. */
+[data-skins-view="brown-dust-2"] .skin-art { aspect-ratio: 1 / 1; }
+[data-skins-view="brown-dust-2"] .skin-art img { object-fit: cover; }

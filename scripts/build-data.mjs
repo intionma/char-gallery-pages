@@ -10,6 +10,7 @@ import buildAzurLane from './adapters/azur-lane.mjs';
 import buildArknights from './adapters/arknights.mjs';
 import buildLastOrigin from './adapters/last-origin.mjs';
 import buildNikke from './adapters/nikke.mjs';
+import buildBrownDust2 from './adapters/brown-dust-2.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
@@ -861,6 +862,7 @@ const BUILDERS = {
   arknights: async () => ({ generatedAt, game: gameMeta('arknights'), ...(await buildArknights()) }),
   'last-origin': async () => ({ generatedAt, game: gameMeta('last-origin'), ...(await buildLastOrigin()) }),
   nikke: async () => ({ generatedAt, game: gameMeta('nikke'), ...(await buildNikke()) }),
+  'brown-dust-2': async () => ({ generatedAt, game: gameMeta('brown-dust-2'), ...(await buildBrownDust2()) }),
 };
 const builders = GAMES.map((game) => {
   const builder = BUILDERS[game.id];
