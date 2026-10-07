@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { filterLiveImages as filterLive, mapLimited, additionOrderOf } from './adapters/shared.mjs';
-import { buildBooruPopularityScores } from './sort-utils.mjs';
+import { buildBooruPopularityScores, booruCandidates } from './sort-utils.mjs';
 
 // 이 값을 넘으면 epoch ms(실제 시각), 아니면 순번이다.
 const REAL_TIME_FLOOR = 1e12;
@@ -643,6 +643,108 @@ async function applySkinPopularity() {
   }
 }
 
+/**
+ * 캐릭터 상세의 "팬아트 불러오기"가 쓸 Danbooru 태그를 캐릭터마다 붙인다.
+ *
+ * 그림은 빌드에 넣지 않는다. 방문자가 버튼을 누르면 브라우저가 Danbooru 에서 바로
+ * 받는다(posts.json 은 CORS 를 연다). 그래서 빌드가 할 일은 "어느 태그로 물을지"뿐이다.
+ *
+ * 방문자가 태그를 입력하는 장치는 두지 않는다. 예전 갤러리는 서버와 DB 에 수동 태그를
+ * 저장했는데, 이 저장소는 둘 다 쓰지 않는다. 자동으로 못 찾거나 잘못 잡힌 캐릭터는
+ * scripts/data/booru-tags.json 에 우리가 찾아서 적는다. null 은 "태그가 없다고 확인함"
+ * 이라 자동 매칭도 건너뛴다.
+ *
+ * 인기순과 기준이 다르다. 인기순은 게시물 20건 미만을 0점으로 보지만, 팬아트는 한
+ * 장이라도 있으면 보여 줄 가치가 있어서 1건부터 받는다. 목록 파일의 태그(콜라보
+ * 캐릭터의 원작 태그 등)도 팬아트에만 쓰고 인기순에는 섞지 않는다.
+ */
+const FANART_TAGS_FILE = path.join(root, 'scripts/data/booru-tags.json');
+
+/**
+ * 팬아트용 후보 태그. 이름 매칭은 인기순과 같은 규칙을 쓰되, 별도 유닛 표기를 앞에 더한다.
+ * 니케의 `Rapi: Red Hood` 같은 별도 유닛을 Danbooru 는 `rapi_(red_hood)_(nikke)` 로
+ * 적는다(기본 캐릭터 + 괄호 안 유닛명 + 게임). 이 규칙이 없으면 별도 유닛 47명이 전부
+ * 기본 캐릭터 태그로도, 아무 태그로도 잡히지 않는다.
+ */
+function fanartCandidates(name, suffix) {
+  const under = (value) => String(value).trim().toLowerCase().replace(/\s+/g, '_');
+  const alternate = /^([^:]+):\s*(.+)$/.exec(String(name || ''));
+  const candidates = alternate ? [`${under(alternate[1])}_(${under(alternate[2])})_(${suffix})`] : [];
+  return [...candidates, ...booruCandidates(name, suffix)];
+}
+
+async function applyFanartTags() {
+  const listed = JSON.parse(await fs.readFile(FANART_TAGS_FILE, 'utf8'));
+  for (const game of GAMES) {
+    if (!game.features?.fanart || !game.booruSuffix) continue;
+    const data = await readJson(game.dataFile);
+    const characters = Array.isArray(data.characters) ? data.characters : [];
+    if (!characters.length) continue;
+    const manual = listed[game.id] || {};
+
+    // Danbooru 가 막힌 날 자동 태그가 통째로 사라지면 버튼도 함께 사라진다.
+    // 그때는 지난 배포본의 태그를 그대로 쓴다.
+    let counts = null;
+    let previous = new Map();
+    if (!SKIP_REMOTE) {
+      try {
+        counts = new Map((await fetchBooruTags(game.booruSuffix))
+          .map((tag) => [String(tag.name).toLowerCase(), Number(tag.post_count) || 0]));
+      } catch (error) {
+        console.warn(`${game.id}: 팬아트 태그 목록을 못 받음 — 지난 배포본 태그 유지 (${error.message})`);
+        try {
+          const published = await fetchJson(`https://intionma.github.io/char-gallery-pages/data/${game.dataFile}`);
+          previous = new Map((published.characters || [])
+            .filter((character) => character.booruTag)
+            .map((character) => [character.id, character.booruTag]));
+        } catch {
+          // 처음 켜는 날이거나 배포본도 못 읽으면 목록 파일만으로 간다.
+        }
+      }
+    }
+
+    const suffix = `_(${game.booruSuffix})`;
+    let auto = 0;
+    let fromList = 0;
+    let none = 0;
+    const unresolved = [];
+    for (const character of characters) {
+      delete character.booruTag;
+      if (Object.hasOwn(manual, character.id)) {
+        if (manual[character.id]) {
+          character.booruTag = manual[character.id];
+          fromList += 1;
+        } else {
+          none += 1;
+        }
+        continue;
+      }
+      let tag;
+      if (counts) {
+        // 게임 접미사가 붙은 태그만 자동으로 받는다. 맨이름(`aru` 등)은 다른 작품의
+        // 동명이인일 수 있어서, 그런 연결은 사람이 확인하고 목록에 적는다.
+        tag = fanartCandidates(character.names?.en, game.booruSuffix)
+          .find((candidate) => candidate.endsWith(suffix) && (counts.get(candidate) || 0) > 0);
+      } else {
+        tag = previous.get(character.id);
+      }
+      if (tag) {
+        character.booruTag = tag;
+        auto += 1;
+      } else {
+        unresolved.push(character.names?.ko || character.names?.en || character.id);
+      }
+    }
+    await writeJson(game.dataFile, data);
+    const tagged = auto + fromList;
+    console.log(`${game.id}: 팬아트 태그 ${tagged}/${characters.length} (자동 ${auto} · 목록 ${fromList} · 없음 확인 ${none})`);
+    // 새 캐릭터가 들어왔는데 태그를 못 찾으면 매일 여기 이름이 뜬다. 점검 때 보고 채운다.
+    if (unresolved.length) {
+      console.log(`  미확정 ${unresolved.length}: ${unresolved.slice(0, 30).join(', ')}${unresolved.length > 30 ? ' …' : ''}`);
+    }
+  }
+}
+
 async function restoreGameLogos() {
 
   const manifest = await readJson('manifest.json');
@@ -664,4 +766,5 @@ await pruneDanglingReferences();
 await ensureSkinCatalogs();
 await applyFirstSeenSkinOrder();
 await applySkinPopularity();
+await applyFanartTags();
 await restoreGameLogos();

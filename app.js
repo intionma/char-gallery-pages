@@ -621,6 +621,7 @@
       <section class="standing-grid" data-game="${escapeAttr(gameId)}">
         ${images.length ? images.map((image, index) => detailCard(image, index)).join('') : '<div class="empty">공식 이미지를 찾지 못했어요.</div>'}
       </section>
+      ${fanartSection(gameId, character)}
       ${navBar}
     `;
     const chain = characterOrder(gameId, data, characterId);
@@ -637,10 +638,138 @@
         navigate(`game/${gameId}/character/${encodeURIComponent(button.dataset.characterNav)}`);
       });
     });
+    bindFanart(gameId, character, name);
     characterNav = neighbors ? {
       previous: `game/${gameId}/character/${encodeURIComponent(neighbors.previous.id)}`,
       next: `game/${gameId}/character/${encodeURIComponent(neighbors.next.id)}`,
     } : null;
+  }
+
+  // ── 팬아트 ────────────────────────────────────────────────────────────────
+  // 버튼을 누르면 방문자 브라우저가 Danbooru 에서 바로 받는다(posts.json 은 CORS 를 연다).
+  // 서버도 DB 도 없고 그림을 저장하지도 않는다. 물을 태그는 빌드가 붙여 둔
+  // character.booruTag 하나뿐이다. 방문자가 태그를 고치는 장치는 일부러 두지 않는다 —
+  // 못 찾거나 잘못 잡힌 건 저장소의 scripts/data/booru-tags.json 에 우리가 적는다.
+  const DANBOORU = 'https://danbooru.donmai.us';
+  const FANART_LIMIT = 100;
+  const FANART_PAGE = 24;
+  const fanartCache = new Map();
+
+  function fanartImage(post, name) {
+    const extension = String(post?.file_ext || '').toLowerCase();
+    if (!['jpg', 'jpeg', 'png', 'webp'].includes(extension)) return null;
+    // 열람 제한 게시물은 파일 주소가 비어 온다.
+    const url = post.large_file_url || post.file_url;
+    if (!url) return null;
+    // preview_file_url 은 180px 라 카드에서 뭉개진다. 360px 변형이 있으면 그걸 쓴다.
+    const preview = (post.media_asset?.variants || []).find((variant) => variant.type === '360x360');
+    return {
+      url,
+      thumbUrl: preview?.url || post.preview_file_url || url,
+      width: post.image_width,
+      height: post.image_height,
+      group: '팬아트',
+      type: '팬아트',
+      sourceType: 'fanart',
+      viewerTitle: `${name} · 팬아트`,
+      // 원본은 작가가 올린 곳을 먼저 가리킨다. 없으면 Danbooru 게시물로 남긴다.
+      sourceUrl: post.source && /^https?:\/\//.test(post.source) ? post.source : `${DANBOORU}/posts/${post.id}`,
+      artist: post.tag_string_artist ? post.tag_string_artist.split(' ').join(', ') : undefined,
+      score: Number(post.score) || 0,
+    };
+  }
+
+  function loadFanart(tag, name) {
+    if (fanartCache.has(tag)) return fanartCache.get(tag);
+    // 익명 검색은 태그 두 개까지다. 두 번째 자리는 일반 등급 고정이 쓴다. 그래서 점수순
+    // (order:score)을 검색어에 넣지 못하고, 받아 온 뒤에 정렬한다.
+    const params = new URLSearchParams({ tags: `${tag} rating:general`, limit: String(FANART_LIMIT) });
+    const request = fetch(`${DANBOORU}/posts.json?${params}`, { headers: { Accept: 'application/json' } })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const posts = await response.json();
+        if (!Array.isArray(posts)) throw new Error('응답 형식이 예상과 다릅니다');
+        return posts.map((post) => fanartImage(post, name)).filter(Boolean).sort((a, b) => b.score - a.score);
+      });
+    fanartCache.set(tag, request);
+    // 실패한 요청은 남기지 않는다. 남기면 "다시 시도"를 눌러도 같은 실패를 돌려준다.
+    request.catch(() => fanartCache.delete(tag));
+    return request;
+  }
+
+  function fanartSection(gameId, character) {
+    if (!GAME_BY_ID.get(gameId)?.features?.fanart || !character.booruTag) return '';
+    const browse = `${DANBOORU}/posts?tags=${encodeURIComponent(`${character.booruTag} rating:general`)}`;
+    return `
+      <div class="section-title"><h2>팬아트</h2><span id="fanartCount"></span></div>
+      <section id="fanartBlock" class="fanart-block">
+        <div class="notice fanart-intro">
+          <p>Danbooru 의 일반 등급 팬아트를 불러옵니다. 그림의 권리는 각 작가에게 있고, 열면 원본으로 갈 수 있어요.</p>
+          <button class="button" id="fanartLoad" type="button">팬아트 불러오기</button>
+        </div>
+      </section>
+      <a class="fanart-source" href="${escapeAttr(browse)}" target="_blank" rel="noopener noreferrer">Danbooru 에서 보기 ↗</a>`;
+  }
+
+  function fanartCard(image, index) {
+    const label = image.artist || '팬아트';
+    const landscape = Number(image.width) > Number(image.height) * 1.15;
+    return `
+      <button class="standing-card${landscape ? ' landscape' : ''}" type="button" data-fanart-index="${index}" aria-label="${escapeAttr(`팬아트 · ${label} 크게 보기`)}">
+        <span class="badge">${escapeHtml(label)}</span>
+        <div class="art"><img src="${escapeAttr(image.thumbUrl)}" alt="${escapeAttr(`팬아트 · ${label}`)}" loading="lazy" referrerpolicy="${referrerPolicyFor(image.thumbUrl)}"></div>
+      </button>
+    `;
+  }
+
+  function bindFanart(gameId, character, name) {
+    const block = document.getElementById('fanartBlock');
+    if (!block) return;
+    const count = document.getElementById('fanartCount');
+    let images = [];
+    let shown = 0;
+
+    const showMore = () => {
+      const grid = block.querySelector('.fanart-grid');
+      const more = block.querySelector('#fanartMore');
+      const next = images.slice(shown, shown + FANART_PAGE);
+      grid.insertAdjacentHTML('beforeend', next.map((image, offset) => fanartCard(image, shown + offset)).join(''));
+      shown += next.length;
+      const left = images.length - shown;
+      more.hidden = left <= 0;
+      more.textContent = `더 보기 (${left}장 남음)`;
+    };
+
+    const start = async () => {
+      block.innerHTML = '<div class="skeleton"></div>';
+      try {
+        images = await loadFanart(character.booruTag, name);
+      } catch (error) {
+        if (!block.isConnected) return;
+        block.innerHTML = `<div class="error">팬아트를 불러오지 못했어요. 잠시 뒤 다시 시도해 주세요. (${escapeHtml(error.message)})<br><button class="button secondary" id="fanartRetry" type="button">다시 시도</button></div>`;
+        block.querySelector('#fanartRetry').addEventListener('click', start);
+        return;
+      }
+      // 받는 사이 다른 캐릭터로 넘어갔으면 그 화면을 건드리지 않는다.
+      if (!block.isConnected) return;
+      if (!images.length) {
+        block.innerHTML = '<div class="empty">아직 일반 등급 팬아트가 없어요.</div>';
+        return;
+      }
+      count.textContent = `${images.length}장`;
+      block.innerHTML = '<section class="standing-grid fanart-grid"></section><button class="button secondary load-more" id="fanartMore" type="button" hidden></button>';
+      // 카드는 나눠서 붙지만 클릭은 한 번만 건다. 더 보기로 늘어난 카드도 같은 목록을 연다.
+      block.querySelector('.fanart-grid').addEventListener('click', (event) => {
+        const card = event.target.closest('[data-fanart-index]');
+        if (!card) return;
+        imageViewer.open(images, Number(card.dataset.fanartIndex), { gameId, characterId: character.id, characterName: name });
+      });
+      block.querySelector('#fanartMore').addEventListener('click', showMore);
+      shown = 0;
+      showMore();
+    };
+
+    block.querySelector('#fanartLoad')?.addEventListener('click', start);
   }
 
   function detailCard(image, index) {
