@@ -31,7 +31,10 @@ export const GAMES = [
     dataDescription: 'SchaleDB 기반 공식 스탠딩과 의상',
     coverImage: 'https://schaledb.com/images/student/portrait/10000.webp',
     collection: 'characters',
-    features: { skins: true, jackets: false },
+    // fanart: 캐릭터 상세에 "팬아트 불러오기"를 띄운다. 방문자 브라우저가 Danbooru 에서
+    // 일반 등급만 받는다. 태그는 빌드가 붙이고, 못 찾은 건 scripts/data/booru-tags.json 에 적는다.
+    // DJMAX 는 빌드 때 팬아트를 이미 본문에 넣으므로 이 기능을 켜지 않는다.
+    features: { skins: true, jackets: false, fanart: true },
     labels: {
       detailSection: '스탠딩 · 의상',
       emptyList: '표시할 캐릭터가 없습니다.',
@@ -100,7 +103,7 @@ export const GAMES = [
     dataDescription: 'DAK.GG 및 공식 위키 기반 스탠딩과 스킨',
     coverImage: 'https://cdn.dak.gg/assets/er/game-assets/11.7.0/ui/characterfullsize/CharFull_Jackie_S000.png',
     collection: 'characters',
-    features: { skins: true, jackets: false, wallpapers: true },
+    features: { skins: true, jackets: false, wallpapers: true, fanart: true },
     labels: {
       detailSection: '스탠딩 · 의상',
       emptyList: '표시할 캐릭터가 없습니다.',
@@ -148,7 +151,7 @@ export const GAMES = [
     dataDescription: 'Project Amber 기반 공식 캐릭터 이미지와 의상',
     coverImage: 'https://gi.yatta.moe/assets/UI/UI_Gacha_AvatarImg_Ayaka.png',
     collection: 'characters',
-    features: { skins: true, jackets: false },
+    features: { skins: true, jackets: false, fanart: true },
     labels: {
       detailSection: '스탠딩 · 의상',
       emptyList: '표시할 캐릭터가 없습니다.',
@@ -203,7 +206,7 @@ export const GAMES = [
     coverImage: null,
     collection: 'jackets',
     // 자켓 뷰(전곡)와 별개로, 캐릭터가 그려진 자켓만 모아 보는 화면도 함께 둔다.
-    features: { skins: true, jackets: true, crew: true },
+    features: { skins: true, jackets: true, crew: true, fanart: true },
     labels: {
       detailSection: '공식 이미지',
       emptyList: 'SDVX 캐릭터 데이터가 준비되면 이 화면에 기존과 같은 목록으로 표시됩니다.',
@@ -487,7 +490,7 @@ export const GAMES = [
     dataDescription: 'NIKKE Wiki 기반 니케 일러스트와 코스튬',
     coverImage: null,
     collection: 'characters',
-    features: { skins: true, jackets: false },
+    features: { skins: true, jackets: false, fanart: true },
     labels: {
       detailSection: '스탠딩 · 의상',
       emptyList: '표시할 캐릭터가 없습니다.',

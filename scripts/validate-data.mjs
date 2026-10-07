@@ -102,6 +102,20 @@ for (const [gameId, expectation] of Object.entries(expectations)) {
     }
   }
 
+  // 팬아트 태그는 방문자 브라우저가 그대로 Danbooru 검색어로 보낸다. 공백이 섞이면
+  // 태그 두 개가 되어 익명 검색 한도(2개)를 넘고, rating 을 직접 넣으면 일반 등급
+  // 고정이 풀린다. 둘 다 여기서 막는다.
+  if (GAMES.find((game) => game.id === gameId)?.features?.fanart) {
+    const tagged = (data.characters || []).filter((character) => character.booruTag != null);
+    for (const character of tagged) {
+      const tag = character.booruTag;
+      if (typeof tag !== 'string' || !tag || /\s/.test(tag) || /rating:/i.test(tag)) {
+        fail(gameId, `character ${character.id} has an invalid booruTag ${JSON.stringify(tag)}`);
+      }
+    }
+    if (!tagged.length) fail(gameId, 'fanart is enabled but no character has a booruTag');
+  }
+
   // 목록에서 서로 구분되지 않는 이름은 사용자에게 같은 캐릭터로 보인다.
   const labels = (data.characters || []).map((character) => character.names?.ko || character.names?.en);
   const duplicateLabels = [...new Set(labels.filter((value, index) => labels.indexOf(value) !== index))];

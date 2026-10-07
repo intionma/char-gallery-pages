@@ -949,3 +949,9 @@ img { display: block; max-width: 100%; }
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* 팬아트 — 상세 화면 아래, 누를 때만 불러온다. */
+.fanart-intro p { margin: 0 0 14px; }
+.fanart-grid .badge { max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fanart-source { display: inline-block; margin: 10px 0 0; color: rgb(var(--sub)); font-size: 12px; text-decoration: none; }
+.fanart-source:hover { color: rgb(var(--accent)); }
