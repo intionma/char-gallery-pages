@@ -36,7 +36,7 @@ python3 -m http.server 8000 -d dist
 - Genshin Impact: Project Amber, genshin-db, Genshin Impact Wiki
 - Honkai: Star Rail: Project Amber
 - Azur Lane: AzurAPI, Azur Lane Wiki
-- Arknights: ArknightsGameData(YoStar), Aceship 이미지, ArknightsGameResource 아이콘
+- Arknights: ArknightsAssets 게임 데이터(영문·한국어), Aceship 이미지, ArknightsGameResource 아이콘
 - Last Origin: Last Origin Wiki (검열판·무검열판 모두 수록, 화면 기본값은 검열판)
 - NIKKE: NIKKE Wiki
 - SOUND VOLTEX: SDVX Index

@@ -32,10 +32,15 @@ export default async function buildNikke() {
   for (const name of names) {
     const files = pageImages.get(normalizeTitle(name)) || [];
     const byCostume = new Map();
+    // 별도 유닛(`Rapi: Red Hood`, `Snow White: Heavy Arms` …)은 문서 제목에 콜론이 있지만
+    // 파일 이름에서는 빠진다(`Rapi Red Hood FB.png`). 제목 그대로만 비교하면 47명이
+    // 그림 0장으로 잡혀 통째로 빠진다. 두 표기를 모두 접두어로 받는다.
+    const prefixes = [...new Set([name, name.replace(/:/g, '')])];
     for (const file of files) {
       const base = file.replace(/^File:/i, '').replace(/\.(png|jpg|jpeg|webp)$/i, '');
-      if (!base.startsWith(name)) continue;
-      const match = ART_PATTERN.exec(base.slice(name.length));
+      const prefix = prefixes.find((candidate) => base.startsWith(candidate));
+      if (!prefix) continue;
+      const match = ART_PATTERN.exec(base.slice(prefix.length));
       if (!match) continue;
       const costume = match[1] || '기본';
       const kind = match[2];
