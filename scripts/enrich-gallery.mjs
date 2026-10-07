@@ -535,6 +535,7 @@ async function applyFirstSeenSkinOrder() {
     if (!orders.size) continue;
 
     let added = 0;
+    let datedNew = 0;
     for (const skin of skins) {
       // 원본이 실제 날짜를 준 항목은 그 날짜가 진실이다. 최초 관측 시각은 어디까지나
       // 날짜를 모르는 항목의 대체값이지, 아는 날짜를 덮어쓸 근거가 아니다.
@@ -543,13 +544,21 @@ async function applyFirstSeenSkinOrder() {
       // 전부 같은 값이 되어 목록 맨 위에 뭉친다.
       if (skin.orderFrom === 'parent') continue;
       const seen = orders.get(skin.id);
-      if (seen == null) added += 1;
-      const previous = seen ?? firstSeenAt;
       // 순번은 실제 시각과 자릿수가 달라서 max 로 섞으면 옛 순번이 눌러앉는다.
       // 순번 기준을 바꿔도 반영되도록, 실제 시각일 때만 max 를 쓴다.
       // 순번은 0 부터 시작할 수 있다(SchaleDB DefaultOrder). || 로 받으면 0 이
       // 옛 값으로 새어 나가므로 유한한 숫자인지로 판단한다.
       const current = Number(skin.additionOrder);
+      // 최초 관측 시각은 날짜를 모르는 항목(순번)의 대체값이다. 원본이 이미 실제 시각
+      // (위키 업로드 시각 등)을 준 항목은 처음 봤더라도 그 시각을 쓴다. 그러지 않으면
+      // 수집 규칙을 고쳐 예전부터 있던 그림을 새로 줍게 됐을 때 전부 "오늘 추가"로 찍혀
+      // 최신순 맨 위를 덮는다(니케 별도 유닛 65장이 그 경우였다).
+      const knownTime = Number.isFinite(current) && current > REAL_TIME_FLOOR ? current : undefined;
+      const previous = seen ?? knownTime ?? firstSeenAt;
+      if (seen == null) {
+        if (knownTime == null) added += 1;
+        else datedNew += 1;
+      }
       skin.additionOrder = previous > REAL_TIME_FLOOR
         ? Math.max(Number.isFinite(current) ? current : 0, previous)
         : (Number.isFinite(current) ? current : previous);
@@ -564,6 +573,7 @@ async function applyFirstSeenSkinOrder() {
     skins.sort((a, b) => b.additionOrder - a.additionOrder || String(a.id).localeCompare(String(b.id)));
     await writeJson(game.dataFile, data);
     if (added) console.log(`${game.id}: ${added} newly added skin(s) moved to the top`);
+    if (datedNew) console.log(`${game.id}: ${datedNew} newly collected skin(s) kept at their own timestamp`);
   }
 }
 

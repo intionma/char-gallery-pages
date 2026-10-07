@@ -1,10 +1,14 @@
-// 명일방주 — ArknightsGameData(YoStar) + Aceship 이미지
+// 명일방주 — ArknightsAssets 게임 데이터(영문·한국어) + Aceship 이미지
 //
 // 공식 데이터에 성별 필드는 없지만 핸드북 프로필 본문에 `[Gender] Female` 이 들어 있어
 // 자동 판별이 된다 (registry 의 genderFilter: 'handbook').
 import { fetchJson, slug, mapLimited, isMissingUrl, additionOrderOf } from './shared.mjs';
 
-const GAME_DATA = 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/main';
+// 예전 원본(Kengxxiao/ArknightsGameData_YoStar)은 2025-11 에 v46.4.0 에서 갱신이 끊겼다.
+// 응답은 계속 정상이라 빌드가 실패하지 않았고, 그래서 열 달 가까이 옛 데이터가 조용히
+// 나갔다(스킨 1754 대 2094). 같은 영문 클라이언트 데이터를 지금도 따라가는 쪽으로 옮긴다.
+// 표 형식은 같고 경로만 다르다(en_US → en, ko_KR → kr).
+const GAME_DATA = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsGamedata/master';
 // 전신 일러는 Aceship 이 화질이 가장 좋지만 최신 오퍼레이터가 빠져 있다(표본 14% 누락).
 // 아이콘은 커버리지가 완전한 ArknightsGameResource 를 쓰고, 전신은 Aceship 을 쓰되
 // 실제로 없는 것은 빌드에서 걸러낸다.
@@ -64,10 +68,10 @@ function resourcePortrait(portraitId) {
 
 export default async function buildArknights() {
   const [en, ko, handbook, skinTable] = await Promise.all([
-    fetchJson(`${GAME_DATA}/en_US/gamedata/excel/character_table.json`, { timeout: 180000 }),
-    fetchJson(`${GAME_DATA}/ko_KR/gamedata/excel/character_table.json`, { timeout: 180000 }),
-    fetchJson(`${GAME_DATA}/en_US/gamedata/excel/handbook_info_table.json`, { timeout: 180000 }),
-    fetchJson(`${GAME_DATA}/en_US/gamedata/excel/skin_table.json`, { timeout: 180000 }),
+    fetchJson(`${GAME_DATA}/en/gamedata/excel/character_table.json`, { timeout: 180000 }),
+    fetchJson(`${GAME_DATA}/kr/gamedata/excel/character_table.json`, { timeout: 180000 }),
+    fetchJson(`${GAME_DATA}/en/gamedata/excel/handbook_info_table.json`, { timeout: 180000 }),
+    fetchJson(`${GAME_DATA}/en/gamedata/excel/skin_table.json`, { timeout: 180000 }),
   ]);
 
   const handbookDict = handbook.handbookDict || {};
@@ -75,10 +79,18 @@ export default async function buildArknights() {
 
   // 스킨을 캐릭터별로 모아 둔다. 기본 의상은 skinName 이 비어 있어 그룹명을 쓴다.
   const skinsByChar = new Map();
+  // 클라이언트 데이터에는 실장 예정 스킨도 미리 들어 있다(getTime 이 미래). 아직 나오지
+  // 않은 그림이라 싣지 않는다.
+  const nowSeconds = Date.now() / 1000;
+  let scheduled = 0;
   for (const skin of Object.values(charSkins)) {
     const charId = skin?.charId;
     const portraitId = skin?.portraitId;
     if (!charId || !portraitId) continue;
+    if (Number(skin.displaySkin?.getTime) > nowSeconds) {
+      scheduled += 1;
+      continue;
+    }
     if (!skinsByChar.has(charId)) skinsByChar.set(charId, []);
     const isDefault = !skin.displaySkin?.skinName;
     skinsByChar.get(charId).push({
@@ -194,6 +206,7 @@ export default async function buildArknights() {
   const kept = characters.filter((character) => character.images.length);
   const droppedCharacters = characters.length - kept.length;
   console.log(`Arknights art: ${swapped} swapped to the fallback source, ${thumbless} without a thumbnail, ${removed} removed, ${droppedCharacters} operator(s) dropped`);
+  if (scheduled) console.log(`Arknights: ${scheduled} scheduled skin(s) skipped until release`);
   characters.length = 0;
   characters.push(...kept);
 

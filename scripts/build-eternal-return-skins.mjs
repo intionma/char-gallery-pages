@@ -304,6 +304,13 @@ pageData.characters.forEach((character, characterIndex) => {
     const verified = verifiedByKey.get(`${normKey(en)}:${normKey(skinName)}`);
     const seededDate = releaseDate(en, skinName, baseSkin);
     const seededOrder = seededDate ? dateOrder(seededDate) : undefined;
+    // 검증 매니페스트에 적힌 출시일은 화면에도 "출시 M/D" 로 나가는 값이다. 그런데 정렬은
+    // 이걸 건너뛰고 URL 날짜·최초 관측 시각을 써서, 10/1 에 나온 스킨(프리야 테니스부·
+    // 세레스 기본)이 8월에 로드맵 티저를 처음 본 자리에 묶여 최신순 위로 오지 못했다.
+    // 출시일이 지났으면 그 날짜로 세운다. 아직 안 왔으면 지금처럼 관측 시각에 둔다 —
+    // 미래 날짜로 세우면 나오지도 않은 스킨이 맨 위를 차지한다.
+    const verifiedRelease = verified?.releasedAt ? dateOrder(verified.releasedAt) : undefined;
+    const verifiedReleaseOrder = verifiedRelease <= Date.now() ? verifiedRelease : undefined;
     const verifiedOrder = verified ? dateFromUrl(verified.mainUrl) : undefined;
     const wikiOrder = uploadDates.get(norm(rawName));
     const fallbackOrder = dakOrder.get(key) ?? 1_000_000 + characterIndex * 100 + skinIndex;
@@ -341,7 +348,7 @@ pageData.characters.forEach((character, characterIndex) => {
       sourceType: baseSkin ? 'official_standing' : 'official_skin',
       releasedAt: seededDate || verified?.releasedAt,
       ...(variants ? { variants } : {}),
-      additionOrder: seededOrder ?? verifiedOrder ?? wikiOrder ?? fallbackOrder,
+      additionOrder: seededOrder ?? verifiedReleaseOrder ?? verifiedOrder ?? wikiOrder ?? fallbackOrder,
     });
   });
 });
