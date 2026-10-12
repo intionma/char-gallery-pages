@@ -171,15 +171,32 @@
         count.textContent = `${visible.length}종`;
         ui?.setHeader?.({ title: `${catalog.gameName} · ${catalog.title}`, subtitle: `${visible.length}종`, back: catalog.gameRoute });
         grid.innerHTML = visible.slice(0, shown).map(card).join('');
-        const remaining = visible.length - shown;
+        refreshMore();
+        if (reset) ui?.scrollToListStart?.(grid);
+      };
+
+      const refreshMore = () => {
+        const remaining = visible.length - Math.min(shown, visible.length);
         more.hidden = remaining <= 0;
         more.textContent = remaining > 0 ? `더 보기 · ${remaining}종` : '';
+      };
+
+      // 다음 묶음은 뒤에 이어 붙인다. 전부 다시 그리면 이미 본 카드까지 매번 다시 깔려서
+      // 스크롤로 자동으로 넘길 때 화면이 깜빡인다. 클릭은 목록에 위임돼 있어 새 카드도 그대로 된다.
+      const loadMore = () => {
+        const start = Math.min(shown, visible.length);
+        shown = start + PAGE_SIZE;
+        const next = visible.slice(start, shown);
+        if (!next.length) return;
+        grid.insertAdjacentHTML('beforeend', next.map((skin, offset) => card(skin, start + offset)).join(''));
+        refreshMore();
       };
 
       search.addEventListener('input', () => update(true));
       sort.addEventListener('change', () => update(true));
       typeFilter?.addEventListener('change', () => update(true));
-      more.addEventListener('click', () => { shown += PAGE_SIZE; update(); });
+      more.addEventListener('click', loadMore);
+      ui?.autoLoadMore?.(more, loadMore);
       grid.addEventListener('click', (event) => {
         const character = event.target.closest('[data-character-id]');
         if (character) {

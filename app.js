@@ -232,9 +232,55 @@
     routeActions.parentElement.classList.toggle('has-route-actions', Boolean(content));
   }
 
+  /**
+   * 목록 끝으로 내려가면 "더 보기"를 누른 것처럼 다음 묶음을 붙인다.
+   *
+   * 버튼은 그대로 둔다. 키보드로 쓰거나 이 기능이 없는 브라우저에서는 여전히 눌러서
+   * 넘긴다. 바닥에 닿기 전에 미리 붙도록 화면 아래 900px 를 미리 본다.
+   *
+   * IntersectionObserver 는 "보이는지"가 바뀔 때만 알린다. 한 묶음을 붙인 뒤에도 버튼이
+   * 여전히 감시 범위 안이면(큰 화면·검색으로 줄어든 목록) 다시 알리지 않아서 거기서
+   * 멈춘다. 그래서 붙일 때마다 감시를 걸었다 다시 건다 — 다시 걸면 현재 상태를 한 번
+   * 알려 주므로, 범위 안에 있으면 다음 묶음이 이어서 붙는다.
+   */
+  function autoLoadMore(button, load) {
+    if (!button || !('IntersectionObserver' in window)) return;
+    const observer = new IntersectionObserver((entries) => {
+      // 화면이 바뀌어 버튼이 문서에서 빠지면 감시도 끝낸다.
+      if (!button.isConnected) {
+        observer.disconnect();
+        return;
+      }
+      if (button.hidden || !entries.some((entry) => entry.isIntersecting)) return;
+      load();
+      requestAnimationFrame(() => {
+        if (!button.isConnected) return;
+        observer.unobserve(button);
+        observer.observe(button);
+      });
+    }, { rootMargin: '0px 0px 900px 0px' });
+    observer.observe(button);
+  }
+
+  /**
+   * 정렬·필터·검색을 바꿨을 때 목록 맨 위로 돌아간다.
+   *
+   * 도구 막대가 화면 위에 붙어 다녀서, 목록 깊숙이 내려간 채로도 정렬을 바꿀 수 있다.
+   * 그대로 두면 새 목록 60장을 그린 자리가 여전히 바닥이라 자동 더 보기가 곧장 원래
+   * 깊이까지 다시 채우고, 새 순서의 처음이 아니라 중간이 보인다. 이미 목록 위쪽이면
+   * 움직이지 않는다.
+   */
+  function scrollToListStart(grid) {
+    if (!grid?.isConnected) return;
+    const toolbar = document.querySelector('.toolbar');
+    const covered = toolbar ? Math.max(0, toolbar.getBoundingClientRect().bottom) : 0;
+    const target = window.scrollY + grid.getBoundingClientRect().top - covered - 56;
+    if (window.scrollY > target) window.scrollTo({ top: Math.max(0, target) });
+  }
+
   window.CharGalleryUI = {
     navigate, setTheme, setHeader, setStatus, setRouteActions, referrerPolicyFor,
-    artUrl, artThumb, artProfile, setCensorAvailability, uncensored,
+    artUrl, artThumb, artProfile, setCensorAvailability, uncensored, autoLoadMore, scrollToListStart,
   };
 
   async function loadJson(name) {
@@ -765,6 +811,7 @@
         imageViewer.open(images, Number(card.dataset.fanartIndex), { gameId, characterId: character.id, characterName: name });
       });
       block.querySelector('#fanartMore').addEventListener('click', showMore);
+      autoLoadMore(block.querySelector('#fanartMore'), showMore);
       shown = 0;
       showMore();
     };
@@ -795,6 +842,7 @@
     let shown = PAGE_SIZE;
     let visibleRows = [];
     let allRows = [];
+    let currentLevel = null;
 
     setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
     setHeader({ title: '모든 곡 자켓', subtitle: `${jackets.length}곡`, back: `game/${gameId}` });
@@ -864,24 +912,45 @@
         return (b.releasedAt || '0000').localeCompare(a.releasedAt || '0000') || songNo(b) - songNo(a);
       });
       allRows = rows;
+      currentLevel = selectedLevel;
       visibleRows = rows.slice(0, shown);
       count.textContent = `${rows.length}곡`;
       headerSubtitle.textContent = `${rows.length}곡`;
       headerSubtitle.hidden = false;
       grid.innerHTML = visibleRows.length ? visibleRows.map((jacket, index) => jacketCard(jacket, index, selectedLevel)).join('') : '<div class="empty">조건에 맞는 자켓이 없어요.</div>';
-      grid.querySelectorAll('[data-image-index]').forEach((card) => {
-        card.addEventListener('click', () => imageViewer.open(visibleRows, Number(card.dataset.imageIndex), { gameId }));
-      });
-      const remaining = rows.length - shown;
+      refreshMore();
+      if (reset) scrollToListStart(grid);
+    };
+
+    const refreshMore = () => {
+      const remaining = allRows.length - visibleRows.length;
       more.hidden = remaining <= 0;
       more.textContent = remaining > 0 ? `더 보기 · ${remaining}곡` : '';
+    };
+
+    // 다음 묶음은 뒤에 이어 붙인다. 전부 다시 그리면 이미 본 자켓까지 매번 다시 깔려서
+    // 스크롤로 자동으로 넘길 때 화면이 깜빡인다.
+    const loadMore = () => {
+      const start = visibleRows.length;
+      shown = start + PAGE_SIZE;
+      const next = allRows.slice(start, shown);
+      if (!next.length) return;
+      visibleRows = allRows.slice(0, shown);
+      grid.insertAdjacentHTML('beforeend', next.map((jacket, offset) => jacketCard(jacket, start + offset, currentLevel)).join(''));
+      refreshMore();
     };
 
     search.addEventListener('input', () => update(true));
     level.addEventListener('change', () => update(true));
     category?.addEventListener('change', () => update(true));
     sort.addEventListener('change', () => update(true));
-    more.addEventListener('click', () => { shown += PAGE_SIZE; update(); });
+    more.addEventListener('click', loadMore);
+    autoLoadMore(more, loadMore);
+    // 카드는 묶음마다 이어 붙으므로 클릭은 목록에 한 번만 건다.
+    grid.addEventListener('click', (event) => {
+      const card = event.target.closest('[data-image-index]');
+      if (card) imageViewer.open(visibleRows, Number(card.dataset.imageIndex), { gameId });
+    });
     update();
 
     // "이 자켓으로 이동"으로 들어온 경우. 목록은 60곡씩 끊어 그리므로 해당 곡이 나올
