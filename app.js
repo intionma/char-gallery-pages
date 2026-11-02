@@ -278,6 +278,174 @@
     if (window.scrollY > target) window.scrollTo({ top: Math.max(0, target) });
   }
 
+  /**
+   * 맨 아래에서 한 번 더 세게 당기면 실행한다. 지금은 팬아트 불러오기에 쓴다.
+   *
+   * 다른 "더 보기"처럼 바닥에 닿기만 해도 실행하지 않는다. 팬아트는 누르기 전에는
+   * Danbooru 에 요청하지 않는다는 원칙이 있어서, 바닥을 지나 한 번 더 당기는 동작을
+   * "보고 싶다"는 의사표시로 받는다.
+   *
+   *   손가락: 바닥에서 화면 높이 15% 를 더 끌어 올린 뒤 떼면 실행
+   *   휠·트랙패드: 바닥에서 화면 높이 30% 만큼 더 굴린 뒤 멈추면 실행
+   *            (휠 한 칸이 손가락보다 훨씬 싸서 같은 거리로 두면 너무 쉽게 걸린다)
+   *
+   * 당기는 동안 아래쪽 알약이 차오르고, 임계점을 넘는 순간 색·아이콘이 바뀌며 진동한다.
+   * 덜 당긴 채 놓으면 원위치하고 아무 일도 없다. 버튼은 그대로 남는다(키보드 등).
+   */
+  function pullToLoad({ onFire, isActive }) {
+    const controller = new AbortController();
+    const { signal } = controller;
+    const hint = document.createElement('div');
+    hint.className = 'pull-hint';
+    hint.setAttribute('aria-hidden', 'true');
+    hint.innerHTML = '<span class="pull-ring"><svg viewBox="0 0 36 36"><circle class="track" cx="18" cy="18" r="15"></circle><circle class="fill" cx="18" cy="18" r="15" pathLength="100"></circle></svg><span class="pull-icon">↓</span></span><span class="pull-text"></span>';
+    document.body.append(hint);
+    const text = hint.querySelector('.pull-text');
+    const icon = hint.querySelector('.pull-icon');
+    const LABELS = {
+      touch: ['더 당기면 팬아트 불러오기', '놓으면 불러옵니다'],
+      wheel: ['더 내리면 팬아트 불러오기', '멈추면 불러옵니다'],
+    };
+    let mode = 'touch';
+    let progress = 0;
+    let armed = false;
+    let stopped = false;
+
+    const atBottom = () => window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+    const blocked = () => {
+      if (!isActive()) {
+        stop();
+        return true;
+      }
+      return Boolean(document.querySelector('dialog.lightbox[open]'));
+    };
+
+    const render = (value) => {
+      progress = Math.max(0, value);
+      hint.style.setProperty('--pull', Math.min(progress, 1).toFixed(3));
+      hint.classList.toggle('visible', progress > 0.02);
+      const nowArmed = progress >= 1;
+      if (nowArmed !== armed) {
+        armed = nowArmed;
+        hint.classList.toggle('armed', armed);
+        // 넘는 순간에만 울린다. 다시 덜 당겼다가 넘으면 또 울린다.
+        if (armed) haptic(14);
+      }
+      text.textContent = LABELS[mode][armed ? 1 : 0];
+      icon.textContent = armed ? '✓' : '↓';
+    };
+    const reset = () => render(0);
+
+    function stop() {
+      if (stopped) return;
+      stopped = true;
+      controller.abort();
+      if (!hint.classList.contains('fired')) hint.remove();
+    }
+
+    const fire = () => {
+      if (stopped) return;
+      haptic(28);
+      hint.classList.add('fired');
+      text.textContent = '불러오는 중…';
+      stop();
+      setTimeout(() => hint.remove(), 600);
+      onFire();
+    };
+
+    // ── 손가락 ──
+    // 스크롤을 막지 않는다(passive). 바닥에 닿은 뒤부터 손가락이 위로 더 간 거리만 센다.
+    let baseY = null;
+    window.addEventListener('touchstart', (event) => {
+      baseY = null;
+      if (event.touches.length !== 1 || blocked()) return;
+      mode = 'touch';
+      if (atBottom()) baseY = event.touches[0].clientY;
+    }, { passive: true, signal });
+    window.addEventListener('touchmove', (event) => {
+      if (event.touches.length !== 1 || blocked()) return;
+      const y = event.touches[0].clientY;
+      if (!atBottom()) {
+        baseY = null;
+        if (progress) reset();
+        return;
+      }
+      // 바닥에 닿은 그 순간을 기준으로 삼는다. 거꾸로(아래로) 끌면 기준을 따라 내린다.
+      if (baseY == null || y > baseY) baseY = y;
+      mode = 'touch';
+      render((baseY - y) / (window.innerHeight * 0.15));
+    }, { passive: true, signal });
+    window.addEventListener('touchend', () => {
+      baseY = null;
+      if (mode === 'touch' && armed) fire();
+      else if (mode === 'touch') reset();
+    }, { passive: true, signal });
+    window.addEventListener('touchcancel', () => {
+      baseY = null;
+      reset();
+    }, { passive: true, signal });
+
+    // ── 휠·트랙패드 ──
+    // 놓는 동작이 없으므로 굴림이 멈추면(280ms) 놓은 것으로 본다.
+    // 바닥에 막 도착시킨 그 굴림은 세지 않는다 — 내려오던 힘이 그대로 게이지를 채우지 않게.
+    let wheelSum = 0;
+    let wheelIdle = 0;
+    let wasBottom = false;
+    window.addEventListener('wheel', (event) => {
+      if (event.ctrlKey || blocked()) return;
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+      const dy = event.deltaY * unit;
+      const bottom = atBottom();
+      if (!bottom || dy < 0) {
+        wasBottom = bottom && dy >= 0;
+        wheelSum = 0;
+        clearTimeout(wheelIdle);
+        if (mode === 'wheel' && progress) reset();
+        return;
+      }
+      if (!wasBottom) {
+        wasBottom = true;
+        return;
+      }
+      mode = 'wheel';
+      wheelSum += dy;
+      render(wheelSum / (window.innerHeight * 0.3));
+      clearTimeout(wheelIdle);
+      wheelIdle = setTimeout(() => {
+        wheelSum = 0;
+        if (armed) fire();
+        else reset();
+      }, 280);
+    }, { passive: true, signal });
+
+    window.addEventListener('hashchange', stop, { signal });
+    return { stop };
+  }
+
+  /**
+   * 짧은 진동. 안드로이드 크롬은 Vibration API 로 된다.
+   * iOS 사파리는 웹 진동을 막아 두었다. iOS 18 부터 switch 체크박스를 토글하면 시스템
+   * 햅틱이 나는데, 공식 기능이 아니라서 안 되면 조용히 지나간다. PC 는 대부분 아무 일 없다.
+   */
+  let hapticSwitch = null;
+  function haptic(ms) {
+    if (typeof navigator.vibrate === 'function') {
+      try { navigator.vibrate(ms); } catch { /* 사용자 동작 전이면 브라우저가 무시한다 */ }
+      return;
+    }
+    const ios = /iP(hone|ad|od)/.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!ios) return;
+    if (!hapticSwitch) {
+      hapticSwitch = document.createElement('label');
+      hapticSwitch.setAttribute('aria-hidden', 'true');
+      hapticSwitch.className = 'haptic-switch';
+      hapticSwitch.innerHTML = '<input type="checkbox" switch tabindex="-1">';
+      document.body.append(hapticSwitch);
+    }
+    hapticSwitch.click();
+  }
+
   window.CharGalleryUI = {
     navigate, setTheme, setHeader, setStatus, setRouteActions, referrerPolicyFor,
     artUrl, artThumb, artProfile, setCensorAvailability, uncensored, autoLoadMore, scrollToListStart,
@@ -752,6 +920,7 @@
         <div class="notice fanart-intro">
           <p>Danbooru 의 일반 등급 팬아트를 불러옵니다. 그림의 권리는 각 작가에게 있고, 열면 원본으로 갈 수 있어요.</p>
           <button class="button" id="fanartLoad" type="button">팬아트 불러오기</button>
+          <p class="fanart-gesture">맨 아래에서 한 번 더 세게 내려도 불러와요</p>
         </div>
       </section>
       <a class="fanart-source" href="${escapeAttr(browse)}" target="_blank" rel="noopener noreferrer">Danbooru 에서 보기 ↗</a>`;
@@ -816,7 +985,16 @@
       showMore();
     };
 
-    block.querySelector('#fanartLoad')?.addEventListener('click', start);
+    const button = block.querySelector('#fanartLoad');
+    if (!button) return;
+    const pull = pullToLoad({
+      onFire: start,
+      isActive: () => block.isConnected && Boolean(block.querySelector('#fanartLoad')),
+    });
+    button.addEventListener('click', () => {
+      pull.stop();
+      start();
+    });
   }
 
   function detailCard(image, index) {
