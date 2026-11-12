@@ -324,13 +324,37 @@ async function djmaxFanart(tag) {
 
 async function enrichDjmax() {
   const previous = await readJson('djmax.json');
+  // Danbooru 가 막힌 날은 그 캐릭터의 팬아트를 지난 배포본에서 그대로 가져온다.
+  // 예전에는 팬아트 없이 공식 이미지만 남은 걸 "그림이 너무 적다"로 보고 빌드를 통째로
+  // 멈췄다. 그래서 2026-11-05 ~ 11-11 Danbooru 가 503 을 주는 동안 DJMAX 하나 때문에
+  // 11개 게임 전체가 7일 동안 갱신되지 않았다. 다른 게임처럼 지난 데이터를 유지한다.
+  let published;
+  const publishedFanart = async (id) => {
+    if (published === undefined) {
+      try {
+        published = await fetchJson('https://intionma.github.io/char-gallery-pages/data/djmax.json');
+      } catch (error) {
+        published = null;
+        console.warn(`DJMAX: 지난 배포본도 못 읽음 (${error.message})`);
+      }
+    }
+    const character = (published?.characters || []).find((item) => item.id === id);
+    return (character?.images || []).filter((image) => image.sourceType === 'fanart');
+  };
   const characters = [];
+  let failed = 0;
+  let retained = 0;
+  let fresh = 0;
   for (const entry of DJMAX_CHARACTERS) {
     let fanart = [];
     try {
       fanart = await djmaxFanart(entry.tag);
+      fresh += fanart.length;
     } catch (error) {
-      console.warn(`DJMAX fanart refresh skipped for ${entry.en}: ${error.message}`);
+      failed += 1;
+      fanart = await publishedFanart(slug('djmax', entry.en));
+      retained += fanart.length;
+      console.warn(`DJMAX fanart refresh skipped for ${entry.en}: ${error.message} — 지난 배포본 ${fanart.length}장 유지`);
     }
     const representative = {
       url: entry.profileImage,
@@ -358,8 +382,12 @@ async function enrichDjmax() {
   }
   const imageCount = characters.reduce((sum, character) => sum + character.images.length, 0);
   if (characters.length !== DJMAX_CHARACTERS.length) throw new Error(`DJMAX roster mismatch (${characters.length})`);
-  if (!SKIP_REMOTE && imageCount <= DJMAX_CHARACTERS.length) {
-    throw new Error(`DJMAX fanart enrichment returned too few images (${imageCount})`);
+  // 팬아트가 비는 건 빌드를 멈출 일이 아니다. 대신 Actions 주석으로 올려 실행 목록에서
+  // 바로 보이게 한다 — 로그 한 줄로는 아무도 눈치채지 못한다.
+  if (failed) {
+    console.warn(`::warning title=DJMAX 팬아트 갱신 실패::${failed}/${DJMAX_CHARACTERS.length}명 Danbooru 응답 실패 — 지난 배포본 팬아트 ${retained}장을 유지합니다`);
+  } else if (!SKIP_REMOTE && fresh === 0) {
+    console.warn('::warning title=DJMAX 팬아트 0장::Danbooru 는 응답했지만 팬아트가 한 장도 없습니다. 태그가 바뀌었는지 확인하세요');
   }
 
   await writeJson('djmax.json', {
@@ -619,12 +647,24 @@ async function applySkinPopularity() {
     let scores = new Map(characters
       .filter((character) => Number(character.popularityScore) > 0)
       .map((character) => [character.id, Number(character.popularityScore)]));
+    let source = 'danbooru';
     if (!scores.size) {
       try {
         scores = buildBooruPopularityScores(characters, await fetchBooruTags(game.booruSuffix), game.booruSuffix);
       } catch (error) {
-        console.log(`${game.id}: 인기순 근거 없음 — ${error.message}`);
-        continue;
+        // Danbooru 가 막힌 날 점수가 통째로 빠지면 전체 스킨 뷰에서 인기순이 사라진다.
+        // 지난 배포본의 캐릭터 점수를 그대로 쓴다(팬아트 태그·DJMAX 팬아트와 같은 규칙).
+        try {
+          const published = await fetchJson(`https://intionma.github.io/char-gallery-pages/data/${game.dataFile}`);
+          scores = new Map((published.characters || [])
+            .filter((character) => Number(character.popularityScore) > 0)
+            .map((character) => [character.id, Number(character.popularityScore)]));
+          source = 'published-snapshot';
+          console.warn(`${game.id}: Danbooru 응답 실패 — 지난 배포본 인기순 점수 유지 (${error.message})`);
+        } catch {
+          console.log(`${game.id}: 인기순 근거 없음 — ${error.message}`);
+          continue;
+        }
       }
     }
     const matched = [...scores.values()].filter((score) => score > 0).length;
@@ -636,10 +676,10 @@ async function applySkinPopularity() {
     for (const skin of skins) skin.popularity = scores.get(skin.characterId) || 0;
     data.sortMetadata = {
       ...(data.sortMetadata || {}),
-      skinPopularity: { available: true, source: 'danbooru', matched, total: characters.length },
+      skinPopularity: { available: true, source, matched, total: characters.length },
     };
     await writeJson(game.dataFile, data);
-    console.log(`${game.id}: 인기순 근거 ${matched}/${characters.length} 캐릭터 (danbooru)`);
+    console.log(`${game.id}: 인기순 근거 ${matched}/${characters.length} 캐릭터 (${source})`);
   }
 }
 
