@@ -868,6 +868,32 @@
   const FANART_LIMIT = 100;
   const FANART_PAGE = 24;
   const fanartCache = new Map();
+  // Danbooru 등급 네 가지. 순서가 곧 칩 순서다.
+  const FANART_RATINGS = [
+    { key: 'g', label: '일반' },
+    { key: 's', label: '민감' },
+    { key: 'q', label: '노출' },
+    { key: 'e', label: '성인' },
+  ];
+  const FANART_RATING_KEY = 'cg-fanart-rating';
+
+  function savedFanartRating() {
+    try {
+      const value = localStorage.getItem(FANART_RATING_KEY) || '';
+      return FANART_RATINGS.some((rating) => rating.key === value) ? value : '';
+    } catch {
+      return '';
+    }
+  }
+
+  function saveFanartRating(value) {
+    try {
+      if (value) localStorage.setItem(FANART_RATING_KEY, value);
+      else localStorage.removeItem(FANART_RATING_KEY);
+    } catch {
+      // Private browsing may make localStorage unavailable.
+    }
+  }
 
   function fanartImage(post, name) {
     const extension = String(post?.file_ext || '').toLowerCase();
@@ -890,6 +916,7 @@
       sourceUrl: post.source && /^https?:\/\//.test(post.source) ? post.source : `${DANBOORU}/posts/${post.id}`,
       artist: post.tag_string_artist ? post.tag_string_artist.split(' ').join(', ') : undefined,
       score: Number(post.score) || 0,
+      rating: FANART_RATINGS.some((rating) => rating.key === post.rating) ? post.rating : 'g',
     };
   }
 
@@ -929,9 +956,12 @@
   function fanartCard(image, index) {
     const label = image.artist || '팬아트';
     const landscape = Number(image.width) > Number(image.height) * 1.15;
+    // 일반 등급은 표시하지 않는다. 나머지만 오른쪽 위에 작게 단다.
+    const rating = image.rating !== 'g' ? FANART_RATINGS.find((item) => item.key === image.rating) : null;
     return `
-      <button class="standing-card${landscape ? ' landscape' : ''}" type="button" data-fanart-index="${index}" aria-label="${escapeAttr(`팬아트 · ${label} 크게 보기`)}">
+      <button class="standing-card${landscape ? ' landscape' : ''}" type="button" data-fanart-index="${index}" aria-label="${escapeAttr(`팬아트 · ${label}${rating ? ` · ${rating.label}` : ''} 크게 보기`)}">
         <span class="badge">${escapeHtml(label)}</span>
+        ${rating ? `<span class="fanart-rating" data-rating="${rating.key}">${rating.label}</span>` : ''}
         <div class="art"><img src="${escapeAttr(image.thumbUrl)}" alt="${escapeAttr(`팬아트 · ${label}`)}" loading="lazy" referrerpolicy="${referrerPolicyFor(image.thumbUrl)}"></div>
       </button>
     `;
@@ -942,17 +972,38 @@
     if (!block) return;
     const count = document.getElementById('fanartCount');
     let images = [];
+    let visible = [];
+    let rating = savedFanartRating();
     let shown = 0;
 
     const showMore = () => {
       const grid = block.querySelector('.fanart-grid');
       const more = block.querySelector('#fanartMore');
-      const next = images.slice(shown, shown + FANART_PAGE);
+      const next = visible.slice(shown, shown + FANART_PAGE);
       grid.insertAdjacentHTML('beforeend', next.map((image, offset) => fanartCard(image, shown + offset)).join(''));
       shown += next.length;
-      const left = images.length - shown;
+      const left = visible.length - shown;
       more.hidden = left <= 0;
       more.textContent = `더 보기 (${left}장 남음)`;
+    };
+
+    const ratingChips = () => {
+      const tally = (key) => images.filter((image) => image.rating === key).length;
+      const chip = (key, label, total) => `<button class="filter-chip${rating === key ? ' active' : ''}" type="button" data-fanart-rating="${key}" aria-pressed="${rating === key}"${total || rating === key ? '' : ' disabled'}>${label}<span class="chip-count">${total}</span></button>`;
+      return chip('', '전체', images.length)
+        + FANART_RATINGS.map((item) => chip(item.key, item.label, tally(item.key))).join('');
+    };
+
+    const applyRating = () => {
+      visible = rating ? images.filter((image) => image.rating === rating) : images;
+      const label = FANART_RATINGS.find((item) => item.key === rating)?.label;
+      count.textContent = rating ? `${label} ${visible.length}장 · 전체 ${images.length}장` : `${images.length}장`;
+      block.querySelector('.fanart-ratings').innerHTML = ratingChips();
+      const grid = block.querySelector('.fanart-grid');
+      grid.innerHTML = '';
+      block.querySelector('.fanart-filter-empty').hidden = visible.length > 0;
+      shown = 0;
+      showMore();
     };
 
     const start = async () => {
@@ -971,18 +1022,29 @@
         block.innerHTML = '<div class="empty">아직 팬아트가 없어요.</div>';
         return;
       }
-      count.textContent = `${images.length}장`;
-      block.innerHTML = '<section class="standing-grid fanart-grid"></section><button class="button secondary load-more" id="fanartMore" type="button" hidden></button>';
+      block.innerHTML = `
+        <div class="filter-chips fanart-ratings" role="group" aria-label="팬아트 등급"></div>
+        <div class="empty fanart-filter-empty" hidden>이 등급의 팬아트는 아직 없어요.</div>
+        <section class="standing-grid fanart-grid"></section>
+        <button class="button secondary load-more" id="fanartMore" type="button" hidden></button>`;
+      block.querySelector('.fanart-ratings').addEventListener('click', (event) => {
+        const chip = event.target.closest('[data-fanart-rating]');
+        if (!chip || chip.disabled) return;
+        rating = chip.dataset.fanartRating;
+        saveFanartRating(rating);
+        applyRating();
+        scrollToListStart(block.querySelector('.fanart-ratings'));
+      });
       // 카드는 나눠서 붙지만 클릭은 한 번만 건다. 더 보기로 늘어난 카드도 같은 목록을 연다.
+      // 라이트박스도 지금 고른 등급의 목록 안에서만 넘긴다.
       block.querySelector('.fanart-grid').addEventListener('click', (event) => {
         const card = event.target.closest('[data-fanart-index]');
         if (!card) return;
-        imageViewer.open(images, Number(card.dataset.fanartIndex), { gameId, characterId: character.id, characterName: name });
+        imageViewer.open(visible, Number(card.dataset.fanartIndex), { gameId, characterId: character.id, characterName: name });
       });
       block.querySelector('#fanartMore').addEventListener('click', showMore);
       autoLoadMore(block.querySelector('#fanartMore'), showMore);
-      shown = 0;
-      showMore();
+      applyRating();
     };
 
     const button = block.querySelector('#fanartLoad');

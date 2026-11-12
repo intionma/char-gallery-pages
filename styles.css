@@ -953,6 +953,25 @@ img { display: block; max-width: 100%; }
 /* 팬아트 — 상세 화면 아래, 누를 때만 불러온다. */
 .fanart-intro p { margin: 0 0 14px; }
 .fanart-grid .badge { max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 등급 칩 — 위의 그룹 칩과 같은 알약에 장수만 덧붙인다. */
+.fanart-ratings { margin: 0 0 14px; }
+.filter-chip .chip-count { margin-left: 6px; font-size: 11px; font-weight: 800; opacity: .6; font-variant-numeric: tabular-nums; }
+.filter-chip.active .chip-count { opacity: .85; }
+.filter-chip:disabled { opacity: .4; cursor: default; }
+.filter-chip:disabled:hover { border-color: rgb(var(--line)); color: rgb(var(--sub)); }
+.filter-chip:disabled:active { transform: none; }
+.fanart-filter-empty { margin: 0 0 14px; }
+/* 카드 오른쪽 위 등급 표시. 일반은 달지 않는다. 왼쪽 작가 배지와 같은 알약 모양. */
+.fanart-rating {
+  position: absolute; top: 8px; right: 8px; z-index: 2;
+  border-radius: 999px; padding: 4px 8px;
+  font-size: 10px; font-weight: 800; line-height: 1.2;
+  background: rgb(var(--panel) / .92); color: rgb(var(--sub));
+  box-shadow: 0 1px 4px rgb(0 0 0 / .14);
+}
+.fanart-rating[data-rating="q"] { color: rgb(var(--accent-strong)); }
+.fanart-rating[data-rating="e"] { background: rgb(var(--danger)); color: #fff; }
+.fanart-grid .standing-card:has(.fanart-rating) .badge { max-width: calc(100% - 64px); }
 .fanart-source { display: inline-block; margin: 10px 0 0; color: rgb(var(--sub)); font-size: 12px; text-decoration: none; }
 .fanart-source:hover { color: rgb(var(--accent)); }
 
