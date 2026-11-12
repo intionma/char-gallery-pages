@@ -102,9 +102,9 @@ for (const [gameId, expectation] of Object.entries(expectations)) {
     }
   }
 
-  // 팬아트 태그는 방문자 브라우저가 그대로 Danbooru 검색어로 보낸다. 공백이 섞이면
-  // 태그 두 개가 되어 익명 검색 한도(2개)를 넘고, rating 을 직접 넣으면 일반 등급
-  // 고정이 풀린다. 둘 다 여기서 막는다.
+  // 팬아트 태그는 방문자 브라우저가 그대로 Danbooru 검색어로 보낸다. 태그 하나만
+  // 들어와야 한다 — 공백이 섞이거나 rating 같은 메타 태그가 붙으면 검색이 달라진다.
+  // 둘 다 여기서 막는다.
   if (GAMES.find((game) => game.id === gameId)?.features?.fanart) {
     const tagged = (data.characters || []).filter((character) => character.booruTag != null);
     for (const character of tagged) {

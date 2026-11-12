@@ -895,9 +895,9 @@
 
   function loadFanart(tag, name) {
     if (fanartCache.has(tag)) return fanartCache.get(tag);
-    // 익명 검색은 태그 두 개까지다. 두 번째 자리는 일반 등급 고정이 쓴다. 그래서 점수순
-    // (order:score)을 검색어에 넣지 못하고, 받아 온 뒤에 정렬한다.
-    const params = new URLSearchParams({ tags: `${tag} rating:general`, limit: String(FANART_LIMIT) });
+    // 등급은 가리지 않는다(일반·민감·성인 모두). 점수순(order:score)을 검색어에 넣으면
+    // 상위 100장이 거의 성인 등급으로 채워져서, 최신 100장을 받은 뒤에 점수순으로 정렬한다.
+    const params = new URLSearchParams({ tags: tag, limit: String(FANART_LIMIT) });
     const request = fetch(`${DANBOORU}/posts.json?${params}`, { headers: { Accept: 'application/json' } })
       .then(async (response) => {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -913,12 +913,12 @@
 
   function fanartSection(gameId, character) {
     if (!GAME_BY_ID.get(gameId)?.features?.fanart || !character.booruTag) return '';
-    const browse = `${DANBOORU}/posts?tags=${encodeURIComponent(`${character.booruTag} rating:general`)}`;
+    const browse = `${DANBOORU}/posts?tags=${encodeURIComponent(character.booruTag)}`;
     return `
       <div class="section-title"><h2>팬아트</h2><span id="fanartCount"></span></div>
       <section id="fanartBlock" class="fanart-block">
         <div class="notice fanart-intro">
-          <p>Danbooru 의 일반 등급 팬아트를 불러옵니다. 그림의 권리는 각 작가에게 있고, 열면 원본으로 갈 수 있어요.</p>
+          <p>Danbooru 의 팬아트를 등급 구분 없이 불러옵니다. 성인 등급 그림이 섞여 있을 수 있어요. 그림의 권리는 각 작가에게 있고, 열면 원본으로 갈 수 있어요.</p>
           <button class="button" id="fanartLoad" type="button">팬아트 불러오기</button>
           <p class="fanart-gesture">맨 아래에서 한 번 더 세게 내려도 불러와요</p>
         </div>
@@ -968,7 +968,7 @@
       // 받는 사이 다른 캐릭터로 넘어갔으면 그 화면을 건드리지 않는다.
       if (!block.isConnected) return;
       if (!images.length) {
-        block.innerHTML = '<div class="empty">아직 일반 등급 팬아트가 없어요.</div>';
+        block.innerHTML = '<div class="empty">아직 팬아트가 없어요.</div>';
         return;
       }
       count.textContent = `${images.length}장`;
