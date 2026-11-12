@@ -32,7 +32,7 @@ export const GAMES = [
     coverImage: 'https://schaledb.com/images/student/portrait/10000.webp',
     collection: 'characters',
     // fanart: 캐릭터 상세에 "팬아트 불러오기"를 띄운다. 방문자 브라우저가 Danbooru 에서
-    // 일반 등급만 받는다. 태그는 빌드가 붙이고, 못 찾은 건 scripts/data/booru-tags.json 에 적는다.
+    // 등급 구분 없이 받는다. 태그는 빌드가 붙이고, 못 찾은 건 scripts/data/booru-tags.json 에 적는다.
     // DJMAX 는 빌드 때 팬아트를 이미 본문에 넣으므로 이 기능을 켜지 않는다.
     features: { skins: true, jackets: false, fanart: true },
     labels: {
@@ -313,7 +313,7 @@ export const GAMES = [
     coverImage: 'https://sr.yatta.moe/hsr/assets/UI/avatar/large/1003.png',
     collection: 'characters',
     // 캐릭터당 공식 일러 한 장뿐이라 "스킨"이 없다. 같은 화면을 위해 파생한다.
-    features: { skins: true, jackets: false },
+    features: { skins: true, jackets: false, fanart: true },
     labels: {
       detailSection: '스탠딩 · 의상',
       emptyList: '표시할 캐릭터가 없습니다.',
@@ -360,7 +360,7 @@ export const GAMES = [
     dataDescription: 'AzurAPI 기반 함선 일러스트와 스킨',
     coverImage: 'https://raw.githubusercontent.com/AzurAPI/azurapi-js-setup/master/images/skins/077/Default/image.png',
     collection: 'characters',
-    features: { skins: true, jackets: false },
+    features: { skins: true, jackets: false, fanart: true },
     labels: {
       detailSection: '스탠딩 · 의상',
       emptyList: '표시할 캐릭터가 없습니다.',
@@ -404,7 +404,7 @@ export const GAMES = [
     dataDescription: 'ArknightsGameData 및 Aceship 기반 오퍼레이터 일러스트',
     coverImage: 'https://raw.githubusercontent.com/Aceship/Arknight-Images/main/characters/char_002_amiya_2.png',
     collection: 'characters',
-    features: { skins: true, jackets: false },
+    features: { skins: true, jackets: false, fanart: true },
     labels: {
       detailSection: '스탠딩 · 의상',
       emptyList: '표시할 캐릭터가 없습니다.',
@@ -447,7 +447,7 @@ export const GAMES = [
     dataDescription: 'Last Origin Wiki 기반 바이오로이드 일러스트',
     coverImage: null,
     collection: 'characters',
-    features: { skins: true, jackets: false },
+    features: { skins: true, jackets: false, fanart: true },
     labels: {
       detailSection: '스탠딩 · 의상',
       emptyList: '표시할 캐릭터가 없습니다.',
@@ -534,7 +534,7 @@ export const GAMES = [
     dataDescription: '게임 UI 아트 기반 코스튬 일러스트와 스킬 컷인',
     coverImage: null,
     collection: 'characters',
-    features: { skins: true, jackets: false },
+    features: { skins: true, jackets: false, fanart: true },
     labels: {
       detailSection: '코스튬',
       emptyList: '표시할 캐릭터가 없습니다.',

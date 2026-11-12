@@ -316,7 +316,8 @@ function postToImage(post) {
 
 async function djmaxFanart(tag) {
   if (SKIP_REMOTE) return [];
-  const params = new URLSearchParams({ tags: `${tag} rating:general`, limit: '100' });
+  // 등급은 가리지 않는다. 다른 게임의 "팬아트 불러오기"와 같은 기준이다.
+  const params = new URLSearchParams({ tags: tag, limit: '100' });
   const posts = await fetchJson(`${DANBOORU}/posts.json?${params}`);
   if (!Array.isArray(posts)) return [];
   return posts.map(postToImage).filter(Boolean);

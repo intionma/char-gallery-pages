@@ -40,8 +40,8 @@ python3 -m http.server 8000 -d dist
 - Last Origin: Last Origin Wiki (검열판·무검열판 모두 수록, 화면 기본값은 검열판)
 - NIKKE: NIKKE Wiki
 - SOUND VOLTEX: SDVX Index
-- DJMAX RESPECT V: DJMAX Wiki, Danbooru 일반 등급 팬아트 및 각 이미지 원본 페이지
-- 팬아트(블루 아카이브·원신·니케·이터널 리턴·SOUND VOLTEX): Danbooru 일반 등급. 상세 화면에서 누를 때 방문자 브라우저가 직접 불러옵니다
+- DJMAX RESPECT V: DJMAX Wiki, Danbooru 팬아트(등급 구분 없음) 및 각 이미지 원본 페이지
+- 팬아트(DJMAX 를 뺀 전체 게임): Danbooru, 등급 구분 없음(성인 등급 포함). 상세 화면에서 누를 때 방문자 브라우저가 직접 불러옵니다
 - Brown Dust 2: BD2ModManager(이름·출시일), Brown-Dust-2-Assets(게임 UI 아트)
 
 캐릭터 목록은 가능한 경우 블루 아카이브 Danbooru 인기순과 이터널 리턴 공식 위키 출시순 메타데이터를 정적 JSON에 함께 저장합니다. 외부 원본 갱신이 일시적으로 실패하면 빈 목록으로 덮지 않고 마지막 정상 배포본을 검증해 유지합니다.
