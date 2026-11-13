@@ -1,7 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildBooruPopularityScores, releaseTimestamp } from './sort-utils.mjs';
+import {
+  buildBooruPopularityScores, releaseTimestamp,
+  parseAge, parseHeightCm, parseBirthday, profileFields, profileSortMetadata,
+} from './sort-utils.mjs';
 import { rateSdvxJacket } from './sdvx-jacket-ratings.mjs';
 import { GAMES, gameById } from './games/registry.mjs';
 import { wikiCategoryMembers } from './adapters/shared.mjs';
@@ -401,6 +404,11 @@ async function buildBlueArchive() {
         order: [schoolOrder.indexOf(base.School), base.DefaultOrder || 0],
         profileImage: `${BASE}/images/student/icon/${base.Id}.webp`,
         sourceUrl: `${BASE}/student/${base.PathName}`,
+        ...profileFields({
+          age: parseAge(base.CharacterAge),
+          heightCm: parseHeightCm(base.CharHeightMetric),
+          birthday: parseBirthday(base.BirthDay),
+        }),
         images: members.map((student) => ({
           url: `${BASE}/images/student/portrait/${student.Id}.webp`,
           thumbUrl: `${BASE}/images/student/icon/${student.Id}.webp`,
@@ -417,7 +425,10 @@ async function buildBlueArchive() {
     generatedAt,
     game: gameMeta('blue-archive'),
     characters: popularity.characters,
-    sortMetadata: { popularity: popularity.metadata },
+    sortMetadata: {
+      popularity: popularity.metadata,
+      ...profileSortMetadata(popularity.characters, 'schaledb'),
+    },
   };
 }
 
@@ -443,6 +454,7 @@ async function buildGenshin() {
       group: elementKo[avatar.element] || avatar.element || '기타',
       profileImage: asset(avatar.icon),
       sourceUrl: `${AMBR}/en/archive/avatar/${id}/${avatar.route || ''}`,
+      ...profileFields({ birthday: parseBirthday(avatar.birthday) }),
       images: [{
         url: defaultUrl,
         group: '기본',
@@ -506,7 +518,12 @@ async function buildGenshin() {
   // 여행자는 원소별로 6명이 같은 이름을 쓴다. 목록에서 구분되도록 원소를 덧붙인다.
   disambiguateByGroup(characters);
   characters.sort((a, b) => a.group.localeCompare(b.group, 'ko') || (a.names.ko || a.names.en).localeCompare(b.names.ko || b.names.en, 'ko'));
-  return { generatedAt, game: gameMeta('genshin'), characters };
+  return {
+    generatedAt,
+    game: gameMeta('genshin'),
+    characters,
+    sortMetadata: profileSortMetadata(characters, 'project-amber', ['birthday']),
+  };
 }
 
 // 구현은 어댑터 공용 모듈에 한 벌만 둔다. 신규 위키 기반 게임도 같은 것을 쓴다.
@@ -613,7 +630,9 @@ async function buildEternalReturn() {
   const host = 'eternalreturn.fandom.com';
   let female = new Set();
   const releaseByName = new Map();
+  const profileByName = new Map();
   let releaseSource = 'eternal-return-wiki';
+  let profileSource = 'eternal-return-wiki';
   try {
     const category = await wikiCategory(host, 'Characters');
     const titles = category.map((row) => row.title);
@@ -625,6 +644,12 @@ async function buildEternalReturn() {
         if (/\|\s*gender\s*=\s*female/i.test(content)) female.add(page.title);
         const timestamp = releaseTimestamp(content);
         if (timestamp > 0) releaseByName.set(norm(page.title), timestamp);
+        // 인포박스의 나이·키. 생일 칸은 이 위키에 없다.
+        const field = (key) => content.match(new RegExp(`^\\s*\\|\\s*${key}\\s*=\\s*(.*)$`, 'im'))?.[1];
+        profileByName.set(norm(page.title), profileFields({
+          age: parseAge(field('age')),
+          heightCm: parseHeightCm(field('height')),
+        }));
       }
     }
   } catch (error) {
@@ -636,6 +661,11 @@ async function buildEternalReturn() {
     );
     if (!female.size) throw error;
     releaseSource = 'dak-character-id-fallback';
+    // 위키가 막힌 날 나이·키 정렬이 통째로 사라지지 않게 지난 배포본 값을 이어 쓴다.
+    profileSource = 'published-snapshot';
+    for (const character of previous.characters || []) {
+      if (character.names?.en) profileByName.set(norm(character.names.en), profileFields(character));
+    }
     console.warn(`ER wiki metadata unavailable; reused ${female.size} verified female names (${error.message})`);
   }
   const [enData, koData] = await Promise.all([
@@ -675,6 +705,7 @@ async function buildEternalReturn() {
       sourceUrl: `https://${host}/wiki/${encodeURIComponent(name.replace(/ /g, '_'))}`,
       images,
       releasedAt: released ? new Date(released).toISOString().slice(0, 10) : undefined,
+      ...(profileByName.get(norm(name)) || {}),
       releaseSequence: Number(dak.id) || 0,
     }];
   });
@@ -704,6 +735,7 @@ async function buildEternalReturn() {
         source: releaseSource,
         updatedAt: generatedAt,
       },
+      ...profileSortMetadata(roster, profileSource, ['age', 'height']),
     },
   };
 }

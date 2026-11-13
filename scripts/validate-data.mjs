@@ -217,6 +217,28 @@ for (const [gameId, expectation] of Object.entries(expectations)) {
     }
   }
 
+  // 나이·키·생일순. 값이 실려 있으면 형식이 맞아야 하고, 메타데이터가 켜져 있으면
+  // 값이 실제로 있어야 한다. 프런트엔드는 이 값을 그대로 비교해 정렬한다. 개수는
+  // 맞추지 않는다 — 뒤 단계(enrich-gallery)가 그림 없는 캐릭터를 걸러낸다.
+  const PROFILE_FIELDS = { age: 'age', height: 'heightCm', birthday: 'birthday' };
+  for (const character of items) {
+    if (character.age !== undefined && !(Number.isInteger(character.age) && character.age > 0)) {
+      fail(gameId, `character ${character.id} has an invalid age`);
+    }
+    if (character.heightCm !== undefined && !(Number.isFinite(character.heightCm) && character.heightCm > 0)) {
+      fail(gameId, `character ${character.id} has an invalid heightCm`);
+    }
+    if (character.birthday !== undefined && !/^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(character.birthday)) {
+      fail(gameId, `character ${character.id} has an invalid birthday`);
+    }
+  }
+  for (const [key, field] of Object.entries(PROFILE_FIELDS)) {
+    const meta = data.sortMetadata?.[key];
+    if (!meta) continue;
+    const present = items.filter((character) => character[field] !== undefined).length;
+    if (meta.available && !(present > 0)) fail(gameId, `${key} metadata is available but no character has ${field}`);
+  }
+
   if (gameId === 'genshin') {
     const trimTargets = [
       ...items.flatMap((character) => character.images || []),

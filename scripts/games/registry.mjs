@@ -46,9 +46,10 @@ export const GAMES = [
     },
     sort: {
       // capabilities.popularity 가 참일 때 첫 모드를, 아니면 fallback 을 쓴다.
+      // 나이·키·생일순은 데이터에 근거가 있을 때만 보인다(app.js PROFILE_SORT_MODES).
       capability: 'popularity',
-      modes: [['popularity', '인기순'], ['ko', '가나다순']],
-      fallbackModes: [['source', '기본순'], ['ko', '가나다순']],
+      modes: [['popularity', '인기순'], ['age', '나이순'], ['height', '키순'], ['birthday', '생일순'], ['ko', '가나다순']],
+      fallbackModes: [['source', '기본순'], ['age', '나이순'], ['height', '키순'], ['birthday', '생일순'], ['ko', '가나다순']],
     },
     genderFilter: 'source-curated',
     theme: {
@@ -115,8 +116,8 @@ export const GAMES = [
     },
     sort: {
       capability: 'release',
-      modes: [['release', '출시순'], ['ko', '가나다순'], ['en', 'A–Z']],
-      fallbackModes: [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']],
+      modes: [['release', '출시순'], ['age', '나이순'], ['height', '키순'], ['ko', '가나다순'], ['en', 'A–Z']],
+      fallbackModes: [['source', '기본순'], ['age', '나이순'], ['height', '키순'], ['ko', '가나다순'], ['en', 'A–Z']],
     },
     genderFilter: 'source-curated',
     theme: {
@@ -158,7 +159,7 @@ export const GAMES = [
       skins: '기본 일러스트와 의상을 게임 버전 최신순으로 한 번에 봅니다.',
       skinsOrder: '버전순',
     },
-    sort: { modes: [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']] },
+    sort: { modes: [['source', '기본순'], ['birthday', '생일순'], ['ko', '가나다순'], ['en', 'A–Z']] },
     genderFilter: 'bodyType',
     theme: {
       scheme: 'light',
@@ -413,7 +414,7 @@ export const GAMES = [
       skinsEntry: '전체 스킨 보기',
       skinsOrder: '실장순',
     },
-    sort: { modes: [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']] },
+    sort: { modes: [['source', '기본순'], ['height', '키순'], ['birthday', '생일순'], ['ko', '가나다순'], ['en', 'A–Z']] },
     // 핸드북 프로필의 [Gender] Female 로 자동 판별한다.
     genderFilter: 'handbook',
     theme: {
@@ -456,7 +457,7 @@ export const GAMES = [
       skinsEntry: '전체 스킨 보기',
       skinsOrder: '등록순',
     },
-    sort: { modes: [['source', '기본순'], ['en', 'A–Z']] },
+    sort: { modes: [['source', '기본순'], ['height', '키순'], ['en', 'A–Z']] },
     // 등장인물이 전부 여성형 바이오로이드라 필터가 필요 없다.
     genderFilter: 'not-needed',
     theme: {

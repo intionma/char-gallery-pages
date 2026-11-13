@@ -388,6 +388,7 @@ img { display: block; max-width: 100%; }
 .character-card .info { width: 100%; padding: 6px 2px 0; text-align: center; }
 .character-card strong { display: block; overflow: hidden; color: rgb(var(--text)); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .character-card small { display: none; }
+.character-card .sort-value { display: block; margin-top: 1px; color: rgb(var(--sub)); font-size: 10px; font-variant-numeric: tabular-nums; }
 
 .standing-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .standing-card {
