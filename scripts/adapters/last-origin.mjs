@@ -5,9 +5,10 @@
 // 등장인물이 전부 여성형 바이오로이드라 성별 필터가 필요 없다.
 import {
   fetchJson, slug, mapLimited, wikiCategoryMembers, wikiPageImages, wikiImageInfo,
-  wikiThumb, additionOrderOf,
+  wikiThumb, additionOrderOf, wikiPageContent,
   normalizeTitle, wikiPageUrl,
 } from './shared.mjs';
+import { parseHeightCm, profileFields, profileSortMetadata } from '../sort-utils.mjs';
 
 const HOST = 'lastorigin.fandom.com';
 
@@ -72,6 +73,20 @@ export default async function buildLastOrigin() {
     }
   }
 
+  // 인포박스의 키. 나이·생일 칸은 이 위키에 없다. 문서 본문은 부가 정보라 받지 못해도
+  // 목록은 그대로 내보내고 키순만 숨긴다.
+  const heightByName = new Map();
+  try {
+    const pages = await wikiPageContent(HOST, [...wanted.keys()]);
+    for (const name of wanted.keys()) {
+      const raw = pages.get(normalizeTitle(name))?.match(/^\s*\|\s*height\s*=\s*(.*)$/im)?.[1];
+      const heightCm = parseHeightCm(raw);
+      if (heightCm !== undefined) heightByName.set(name, heightCm);
+    }
+  } catch (error) {
+    console.warn(`Last Origin height lookup skipped: ${error.message}`);
+  }
+
   const allTitles = [...new Set([...[...wanted.values()].flat(), ...censoredOf.values()])];
   const info = await wikiImageInfo(HOST, allTitles);
 
@@ -120,6 +135,7 @@ export default async function buildLastOrigin() {
       profileImage: wikiThumb(images[0].url, 240),
       ...(images[0].safeUrl ? { safeProfileImage: wikiThumb(images[0].safeUrl, 240) } : {}),
       sourceUrl,
+      ...profileFields({ heightCm: heightByName.get(name) }),
       images: images.map(({ file: _file, uploadedAt: _uploadedAt, ...image }) => image),
     });
     images.forEach((image, index) => {
@@ -147,5 +163,5 @@ export default async function buildLastOrigin() {
   }
 
   characters.sort((a, b) => a.names.en.localeCompare(b.names.en, 'en'));
-  return { characters, skins };
+  return { characters, skins, sortMetadata: profileSortMetadata(characters, 'last-origin-wiki', ['height']) };
 }

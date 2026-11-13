@@ -3,6 +3,7 @@
 // 공식 데이터에 성별 필드는 없지만 핸드북 프로필 본문에 `[Gender] Female` 이 들어 있어
 // 자동 판별이 된다 (registry 의 genderFilter: 'handbook').
 import { fetchJson, slug, mapLimited, isMissingUrl, additionOrderOf } from './shared.mjs';
+import { parseBirthday, parseHeightCm, profileFields, profileSortMetadata } from '../sort-utils.mjs';
 
 // 예전 원본(Kengxxiao/ArknightsGameData_YoStar)은 2025-11 에 v46.4.0 에서 갱신이 끊겼다.
 // 응답은 계속 정상이라 빌드가 실패하지 않았고, 그래서 열 달 가까이 옛 데이터가 조용히
@@ -38,12 +39,25 @@ function defaultSkinLabel(portraitId) {
   return ELITE_SUFFIX_KO[suffix] || '기본';
 }
 
-/** 핸드북 프로필 본문에서 [Gender] 값을 뽑는다. */
-function genderOf(entry) {
-  const story = (entry?.storyTextAudio || [])
+function profileText(entry) {
+  return (entry?.storyTextAudio || [])
     .flatMap((section) => (section.stories || []).map((item) => item.storyText || ''))
     .join('\n');
-  return story.match(/\[Gender\]\s*([^\s\n\r]+)/i)?.[1]?.toLowerCase() || '';
+}
+
+/** 핸드북 프로필 본문에서 [Gender] 값을 뽑는다. */
+function genderOf(entry) {
+  return profileText(entry).match(/\[Gender\]\s*([^\s\n\r]+)/i)?.[1]?.toLowerCase() || '';
+}
+
+/** 같은 본문의 [Height]·[Date of Birth]. 나이 칸은 원본에 없다. */
+function profileOf(entry) {
+  const text = profileText(entry);
+  const line = (label) => text.match(new RegExp(`\\[${label}\\]\\s*([^\\n\\r]*)`, 'i'))?.[1];
+  return profileFields({
+    heightCm: parseHeightCm(line('Height')),
+    birthday: parseBirthday(line('Date of Birth')),
+  });
 }
 
 // slug 는 영숫자가 아닌 문자를 지우기 때문에 '_1' 과 '_1+' 가 같은 id 로 뭉개진다.
@@ -131,6 +145,7 @@ export default async function buildArknights() {
       group: PROFESSION_KO[entry.profession] || entry.profession || '기타',
       profileImage: `${RESOURCE}/avatar/${encodeURIComponent(charId)}.png`,
       sourceUrl,
+      ...profileOf(handbookDict[charId]),
       images: list.map((skin) => ({
         url: acePortrait(skin.portraitId),
         thumbUrl: resourcePortrait(skin.portraitId),
@@ -219,5 +234,9 @@ export default async function buildArknights() {
     || (a.names.ko || a.names.en).localeCompare(b.names.ko || b.names.en, 'ko')
   ));
 
-  return { characters, skins };
+  return {
+    characters,
+    skins,
+    sortMetadata: profileSortMetadata(characters, 'arknights-handbook', ['height', 'birthday']),
+  };
 }

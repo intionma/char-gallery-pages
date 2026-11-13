@@ -5,6 +5,9 @@
   const REGISTRY = window.CharGalleryGames || { games: [], defaultGameId: '' };
   const GAMES = REGISTRY.games;
   const GAME_BY_ID = new Map(GAMES.map((game) => [game.id, game]));
+  // 나이·키·생일순 → 캐릭터 필드. 원본에 그 값이 있는 게임에서만 선택지가 보이고,
+  // 값이 없는 캐릭터는 맨 뒤로 간다.
+  const PROFILE_SORT_MODES = { age: 'age', height: 'heightCm', birthday: 'birthday' };
   const DEFAULT_GAME_ID = REGISTRY.defaultGameId || GAMES[0]?.id || '';
   const DATA_FILES = Object.fromEntries(GAMES.map((game) => [game.id, game.dataFile]));
   const PAGE_SIZE = 60;
@@ -607,6 +610,12 @@
     const grid = document.getElementById('characterGrid');
     const count = document.getElementById('count');
 
+    // 나이·키·생일순일 때는 이름 밑에 그 값을 적어 순서의 근거가 보이게 한다.
+    const sortValue = (character) => {
+      const value = sortMode in PROFILE_SORT_MODES ? profileLabel(character, sortMode) : '';
+      return value ? `<span class="sort-value">${escapeHtml(value)}</span>` : '';
+    };
+
     const update = () => {
       const normalizedQuery = query.trim().toLocaleLowerCase();
       let rows = characters.filter((character) => {
@@ -627,7 +636,7 @@
               ? `<img src="${escapeAttr(artProfile(character))}" alt="${escapeAttr(displayName(character))}" loading="${index < 24 ? 'eager' : 'lazy'}" referrerpolicy="${referrerPolicyFor(artProfile(character))}">`
               : `<div class="empty">${escapeHtml(displayName(character))}</div>`}
           </div>
-          <div class="info"><strong>${escapeHtml(displayName(character))}</strong><small>${escapeHtml(character.group || character.names?.en || '')}</small></div>
+          <div class="info"><strong>${escapeHtml(displayName(character))}</strong>${sortValue(character)}<small>${escapeHtml(character.group || character.names?.en || '')}</small></div>
         </article>
       `).join('') : `<div class="empty">${characters.length ? '검색 결과가 없어요.' : escapeHtml(GAME_BY_ID.get(gameId)?.labels?.emptyList || '표시할 캐릭터가 없습니다.')}</div>`;
       grid.querySelectorAll('[data-id]').forEach((card) => {
@@ -679,12 +688,26 @@
   }
 
   function sortCapabilities(data, characters) {
-    return {
+    const capabilities = {
       popularity: Boolean(data.sortMetadata?.popularity?.available)
         || characters.some((character) => Number(character.popularityScore) > 0),
       release: Boolean(data.sortMetadata?.release?.available)
         || characters.some((character) => Boolean(character.releasedAt)),
     };
+    for (const [mode, field] of Object.entries(PROFILE_SORT_MODES)) {
+      capabilities[mode] = Boolean(data.sortMetadata?.[mode]?.available)
+        || characters.some((character) => character[field] !== undefined);
+    }
+    return capabilities;
+  }
+
+  function profileLabel(character, mode) {
+    const value = character[PROFILE_SORT_MODES[mode]];
+    if (value === undefined) return '';
+    if (mode === 'age') return `${value}세`;
+    if (mode === 'height') return `${value}cm`;
+    const [month, day] = String(value).split('-').map(Number);
+    return `${month}월 ${day}일`;
   }
 
   // 상세 화면의 이전/다음 대상. 목록을 거쳐 들어왔으면 그때 보던 순서를,
@@ -767,7 +790,8 @@
     const sort = GAME_BY_ID.get(gameId)?.sort;
     if (!sort) return [['source', '기본순'], ['ko', '가나다순'], ['en', 'A–Z']];
     const satisfied = !sort.capability || Boolean(capabilities[sort.capability]);
-    return (satisfied ? sort.modes : sort.fallbackModes || sort.modes);
+    return (satisfied ? sort.modes : sort.fallbackModes || sort.modes)
+      .filter(([value]) => !(value in PROFILE_SORT_MODES) || capabilities[value]);
   }
 
   function defaultSort(gameId, capabilities) {
@@ -791,6 +815,20 @@
         const aScore = Number(a.popularityScore ?? a.popularity ?? 0);
         const bScore = Number(b.popularityScore ?? b.popularity ?? 0);
         return bScore - aScore
+          || displayName(a).localeCompare(displayName(b), 'ko', { numeric: true })
+          || (sourceIndex.get(a.id) ?? 0) - (sourceIndex.get(b.id) ?? 0);
+      });
+    }
+    if (mode in PROFILE_SORT_MODES) {
+      const field = PROFILE_SORT_MODES[mode];
+      return [...rows].sort((a, b) => {
+        const aValue = a[field];
+        const bValue = b[field];
+        const missing = Number(aValue === undefined) - Number(bValue === undefined);
+        if (missing) return missing;
+        const order = aValue === undefined ? 0
+          : typeof aValue === 'number' ? aValue - bValue : String(aValue).localeCompare(String(bValue));
+        return order
           || displayName(a).localeCompare(displayName(b), 'ko', { numeric: true })
           || (sourceIndex.get(a.id) ?? 0) - (sourceIndex.get(b.id) ?? 0);
       });
