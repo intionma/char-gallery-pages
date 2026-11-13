@@ -868,18 +868,20 @@
   const FANART_LIMIT = 100;
   const FANART_PAGE = 24;
   const fanartCache = new Map();
-  // Danbooru 등급 네 가지. 순서가 곧 칩 순서다.
+  // 화면의 등급 칸. Danbooru 의 네 등급 중 민감(s)과 성인(e)은 한 칸 "성인"으로 묶는다.
+  // 순서가 곧 칩 순서다.
   const FANART_RATINGS = [
-    { key: 'g', label: '일반' },
-    { key: 's', label: '민감' },
-    { key: 'q', label: '노출' },
-    { key: 'e', label: '성인' },
+    { key: 'g', label: '일반', ratings: ['g'] },
+    { key: 'q', label: '노출', ratings: ['q'] },
+    { key: 'e', label: '성인', ratings: ['s', 'e'] },
   ];
   const FANART_RATING_KEY = 'cg-fanart-rating';
 
   function savedFanartRating() {
     try {
-      const value = localStorage.getItem(FANART_RATING_KEY) || '';
+      let value = localStorage.getItem(FANART_RATING_KEY) || '';
+      // 민감 칸이 따로 있던 때 고른 값은 이제 성인 칸이다.
+      if (value === 's') value = 'e';
       return FANART_RATINGS.some((rating) => rating.key === value) ? value : '';
     } catch {
       return '';
@@ -916,7 +918,7 @@
       sourceUrl: post.source && /^https?:\/\//.test(post.source) ? post.source : `${DANBOORU}/posts/${post.id}`,
       artist: post.tag_string_artist ? post.tag_string_artist.split(' ').join(', ') : undefined,
       score: Number(post.score) || 0,
-      rating: FANART_RATINGS.some((rating) => rating.key === post.rating) ? post.rating : 'g',
+      rating: FANART_RATINGS.find((rating) => rating.ratings.includes(post.rating))?.key || 'g',
     };
   }
 
