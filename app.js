@@ -8,6 +8,9 @@
   // 나이·키·생일순 → 캐릭터 필드. 원본에 그 값이 있는 게임에서만 선택지가 보이고,
   // 값이 없는 캐릭터는 맨 뒤로 간다.
   const PROFILE_SORT_MODES = { age: 'age', height: 'heightCm', birthday: 'birthday' };
+  // 세션 저장소 키. 상세의 이전/다음 순서와 목록에서 마지막으로 고른 정렬·필터.
+  const BROWSE_ORDER_KEY = 'cg-browse-order';
+  const LIST_QUERY_KEY = 'cg-list-query';
   const DEFAULT_GAME_ID = REGISTRY.defaultGameId || GAMES[0]?.id || '';
   const DATA_FILES = Object.fromEntries(GAMES.map((game) => [game.id, game.dataFile]));
   const PAGE_SIZE = 60;
@@ -139,14 +142,16 @@
   const lightboxNextMobile = document.getElementById('lightboxNextMobile');
   const cache = new Map();
   // 목록에서 보고 있던 순서(정렬·검색·그룹 필터 반영)를 상세로 넘겨 이전/다음 이동에 쓴다.
-  let browseOrder = { gameId: '', ids: [] };
+  let browseOrder = loadBrowseOrder();
   let characterNav = null;
   const imageViewer = createImageViewer();
   window.CharGalleryViewer = imageViewer;
   let backPath = '';
 
   homeButton.addEventListener('click', () => navigate(''));
-  backButton.addEventListener('click', () => navigate(backPath));
+  backButton.addEventListener('click', goBack);
+  window.addEventListener('scroll', scheduleScrollSave, { passive: true });
+  window.addEventListener('pagehide', flushScrollSave);
   colorModeToggle.addEventListener('click', toggleColorMode);
   window.addEventListener('hashchange', renderRoute);
   // 상세 화면에서 좌우 방향키로 캐릭터를 넘긴다. 라이트박스가 열려 있을 때는
@@ -158,20 +163,218 @@
     if (target instanceof HTMLElement && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
     if (event.key === 'ArrowLeft') {
       event.preventDefault();
-      navigate(characterNav.previous);
+      navigate(characterNav.previous, { replace: true });
     } else if (event.key === 'ArrowRight') {
       event.preventDefault();
-      navigate(characterNav.next);
+      navigate(characterNav.next, { replace: true });
     }
   });
   censorToggle.addEventListener('click', toggleCensor);
   syncColorModeButton();
   syncCensorButton();
 
-  function navigate(path) {
+  // ── 방문 기록과 뒤로가기 ───────────────────────────────────────────────
+  //
+  // 화면은 계층으로 들어간다.
+  //   홈(0) → 게임 목록(1) → 캐릭터 상세·전체 스킨·자켓·배경화면·크루(2) → 라이트박스
+  //
+  // 뒤로가기는 이 계층에서 한 칸 위로 가야 한다. 그래서
+  //  - 같은 층 안의 이동(캐릭터 이전/다음)은 방문 기록에 칸을 늘리지 않고 바꿔치기한다.
+  //  - 목록의 정렬·필터·검색은 주소 뒤 ?sort=… 에 담고, 바꿀 때도 칸을 늘리지 않는다.
+  //  - 스크롤 위치와 "더 보기"로 펼친 개수는 그 칸의 history.state 에 적어 두었다가
+  //    뒤로가기로 돌아왔을 때만 되살린다. 새로 들어온 화면은 맨 위부터다.
+  //  - 헤더 ← 는 위층에서 들어온 칸이면 브라우저 뒤로가기와 똑같이 동작하고, 아니면
+  //    (링크로 바로 들어온 경우 등) 위층으로 바꿔치기한다. 칸을 늘리면 그 뒤 브라우저
+  //    뒤로가기가 다시 아래층으로 들어가 버린다.
+  //  - 링크로 아래층에 바로 들어오면 위층 칸을 미리 깔아 둔다(seedAncestors).
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  let lastPath = null;
+  let routeToken = 0;
+  let scrollSaveTimer = 0;
+  let scrollSaveSuspended = true;
+
+  /** '#/game/x?sort=age' → { path: 'game/x', query: URLSearchParams } */
+  function splitHash(hash = location.hash) {
+    const raw = String(hash).replace(/^#\/?/, '');
+    const mark = raw.indexOf('?');
+    return {
+      path: (mark < 0 ? raw : raw.slice(0, mark)).replace(/\/+$/, ''),
+      query: new URLSearchParams(mark < 0 ? '' : raw.slice(mark + 1)),
+    };
+  }
+
+  function hashFor(path, query) {
+    const search = query ? String(query) : '';
+    return `#/${String(path || '').replace(/^\/+/, '')}${search ? `?${search}` : ''}`;
+  }
+
+  function routeDepth(path) {
+    const parts = String(path || '').split('/').filter(Boolean);
+    if (!parts.length) return 0;
+    return parts[0] === 'game' && parts.length > 2 ? 2 : 1;
+  }
+
+  function parentPath(path) {
+    const parts = String(path || '').split('/').filter(Boolean);
+    return routeDepth(path) === 2 ? parts.slice(0, 2).join('/') : '';
+  }
+
+  function viewState() {
+    return window.history.state?.cg || null;
+  }
+
+  /** 지금 칸의 history.state 에 덧쓴다. 라이트박스가 넣은 칸에는 쓰지 않는다. */
+  function patchViewState(patch) {
+    if (lightbox.open) return;
+    window.history.replaceState({
+      ...(window.history.state || {}),
+      cg: { ...(viewState() || {}), ...patch },
+    }, '', window.location.href);
+  }
+
+  function navigate(path, { replace = false, from } = {}) {
     const next = path ? `#/${path.replace(/^\/+/, '')}` : '#/';
+    flushScrollSave();
+    if (replace) {
+      // 같은 층 이동은 "어디서 왔는지"를 물려받는다. 그래야 몇 번을 넘겼든 ← 한 번에
+      // 처음 들어온 목록으로 돌아간다. 스크롤·펼친 개수는 새 화면 것이 아니라 버린다.
+      const inherited = from === undefined ? viewState()?.from ?? null : from;
+      window.history.replaceState({ cg: { from: inherited } }, '', next);
+      renderRoute();
+      return;
+    }
     if (location.hash === next) renderRoute();
     else location.hash = next;
+  }
+
+  function goBack() {
+    const { path } = splitHash();
+    const from = viewState()?.from;
+    const cameFromAbove = typeof from === 'string' && from !== path && routeDepth(from) <= routeDepth(path);
+    if (cameFromAbove) {
+      flushScrollSave();
+      window.history.back();
+      return;
+    }
+    navigate(withRememberedQuery(backPath), { replace: true, from: null });
+  }
+
+  /** 링크로 아래층에 바로 들어왔으면 위층 칸을 미리 깐다. 브라우저 뒤로가기도 계층을 따른다. */
+  function seedAncestors() {
+    if (viewState()) return; // 새로고침이면 이미 우리 칸이다
+    const { path } = splitHash();
+    const chain = [];
+    for (let current = path; routeDepth(current) > 0; current = parentPath(current)) {
+      chain.unshift(parentPath(current));
+    }
+    if (!chain.length) return;
+    const here = window.location.href;
+    window.history.replaceState({ cg: { from: null } }, '', hashFor(chain[0]));
+    for (let index = 1; index < chain.length; index += 1) {
+      window.history.pushState({ cg: { from: chain[index - 1] } }, '', hashFor(chain[index]));
+    }
+    window.history.pushState({ cg: { from: chain.at(-1) } }, '', here);
+  }
+
+  /** 화면을 그리기 시작할 때. 새 칸이면 어디서 왔는지 적는다. 돌려준 값은 restoreScroll 에 넘긴다. */
+  function beginRoute() {
+    routeToken += 1;
+    scrollSaveSuspended = true;
+    window.clearTimeout(scrollSaveTimer);
+    scrollSaveTimer = 0;
+    const { path } = splitHash();
+    if (!viewState()) {
+      window.history.replaceState({
+        ...(window.history.state || {}),
+        cg: { from: lastPath },
+      }, '', window.location.href);
+    }
+    lastPath = path;
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    return routeToken;
+  }
+
+  /** 그리기가 끝난 뒤. 뒤로가기로 돌아온 칸이면 적어 둔 스크롤 위치로 간다. */
+  function restoreScroll(token = routeToken) {
+    const top = Number(viewState()?.scrollY) || 0;
+    requestAnimationFrame(() => {
+      if (token !== routeToken) return;
+      if (top > 0) window.scrollTo({ top, behavior: 'auto' });
+      scrollSaveSuspended = false;
+    });
+  }
+
+  function scheduleScrollSave() {
+    if (scrollSaveSuspended || lightbox.open) return;
+    window.clearTimeout(scrollSaveTimer);
+    scrollSaveTimer = window.setTimeout(saveScroll, 150);
+  }
+
+  function saveScroll() {
+    scrollSaveTimer = 0;
+    if (scrollSaveSuspended || lightbox.open) return;
+    patchViewState({ scrollY: Math.round(window.scrollY) });
+  }
+
+  function flushScrollSave() {
+    if (!scrollSaveTimer) return;
+    window.clearTimeout(scrollSaveTimer);
+    saveScroll();
+  }
+
+  function routeQuery() {
+    return splitHash().query;
+  }
+
+  /**
+   * 목록의 정렬·필터·검색을 주소에 적는다. 기본값(빈 값)은 적지 않는다. 칸을 늘리지
+   * 않으므로 정렬을 여러 번 바꿔도 뒤로가기가 그 단계마다 멈추지 않는다.
+   */
+  function setRouteQuery(values) {
+    const { path } = splitHash();
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(values)) {
+      if (value) query.set(key, value);
+    }
+    const next = hashFor(path, query);
+    if (routeDepth(path) === 1) storeSession(LIST_QUERY_KEY, { path, query: String(query) });
+    if (next === location.hash) return;
+    window.history.replaceState(window.history.state, '', next);
+  }
+
+  /** 위층으로 바꿔치기할 때, 그 목록에서 마지막으로 고른 정렬·필터를 되살린다. */
+  function withRememberedQuery(path) {
+    const remembered = loadSession(LIST_QUERY_KEY);
+    return remembered?.path === path && remembered.query ? `${path}?${remembered.query}` : path;
+  }
+
+  function storeSession(key, value) {
+    try {
+      sessionStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // 사생활 보호 모드 등에서는 저장소를 못 쓴다. 이 기능 없이도 화면은 동작한다.
+    }
+  }
+
+  function loadSession(key) {
+    try {
+      return JSON.parse(sessionStorage.getItem(key) || 'null');
+    } catch {
+      return null;
+    }
+  }
+
+  // 상세의 이전/다음이 쓰는 목록 순서. 새로고침해도 이어지게 세션에 둔다.
+  function loadBrowseOrder() {
+    const stored = loadSession(BROWSE_ORDER_KEY);
+    return stored && typeof stored.gameId === 'string' && Array.isArray(stored.ids)
+      ? stored
+      : { gameId: '', ids: [] };
+  }
+
+  function storeBrowseOrder(order) {
+    browseOrder = order;
+    storeSession(BROWSE_ORDER_KEY, order);
   }
 
   function setTheme(gameId = DEFAULT_GAME_ID) {
@@ -452,6 +655,7 @@
   window.CharGalleryUI = {
     navigate, setTheme, setHeader, setStatus, setRouteActions, referrerPolicyFor,
     artUrl, artThumb, artProfile, setCensorAvailability, uncensored, autoLoadMore, scrollToListStart,
+    beginRoute, restoreScroll, viewState, patchViewState, routeQuery, setRouteQuery,
   };
 
   async function loadJson(name) {
@@ -466,23 +670,29 @@
   }
 
   function routeParts() {
-    return location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
+    return splitHash().path.split('/').filter(Boolean).map(decodeURIComponent);
   }
 
   async function renderRoute() {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    const token = beginRoute();
     const parts = routeParts();
     characterNav = null;
     setCensorAvailability(false);
     setRouteActions('');
     app.innerHTML = '<div class="skeleton"></div>';
+    // 전체 스킨 뷰는 skins.js 가 그리고, 다 그린 뒤 스스로 restoreScroll 을 부른다.
+    if (parts[0] === 'game' && DATA_FILES[parts[1]] && parts[2] === 'skins') return;
+    await dispatchRoute(parts);
+    restoreScroll(token);
+  }
+
+  async function dispatchRoute(parts) {
     try {
-      if (!parts.length) return renderHome();
+      if (!parts.length) return await renderHome();
       if (parts[0] !== 'game' || !parts[1]) return renderNotFound();
       const gameId = parts[1];
       if (!DATA_FILES[gameId]) return renderNotFound();
-      if (parts[2] === 'skins') return;
-      if (parts[2] === 'character' && parts[3]) return renderCharacter(gameId, parts[3]);
+      if (parts[2] === 'character' && parts[3]) return await renderCharacter(gameId, parts[3]);
       if (GAME_BY_ID.get(gameId)?.features?.wallpapers && parts[2] === 'wallpapers') {
         const data = await loadJson(DATA_FILES[gameId]);
         return renderWallpapers(data, gameId);
@@ -496,7 +706,7 @@
         // parts[3] 이 있으면 그 자켓까지 펼쳐서 라이트박스로 연다 ("이 자켓으로 이동").
         return renderJackets(data, gameId, parts[3]);
       }
-      return renderGame(gameId);
+      return await renderGame(gameId);
     } catch (error) {
       console.error(error);
       renderLoadError(error);
@@ -551,10 +761,29 @@
     const capabilities = sortCapabilities(data, characters);
     setCensorAvailability(characters.some((character) => character.safeProfileImage
       || (character.images || []).some((image) => image.safeUrl)));
-    let activeGroup = '';
-    let query = '';
+    // 주소 뒤 ?sort=…&group=…&q=… 에서 되살린다(뒤로가기·새로고침·공유 링크).
+    // 지금 데이터에 없는 값이면 기본값으로 둔다.
+    const initial = routeQuery();
     const defaultMode = defaultSort(gameId, capabilities);
-    let sortMode = defaultMode;
+    const availableModes = sortModesFor(gameId, capabilities).map(([value]) => value);
+    let sortMode = availableModes.includes(initial.get('sort')) ? initial.get('sort') : defaultMode;
+    let activeGroup = groups.includes(initial.get('group')) ? initial.get('group') : '';
+    let query = initial.get('q') || '';
+    let querySyncTimer = 0;
+    const syncQuery = () => {
+      window.clearTimeout(querySyncTimer);
+      querySyncTimer = 0;
+      setRouteQuery({
+        sort: sortMode === defaultMode ? '' : sortMode,
+        group: activeGroup,
+        q: query.trim(),
+      });
+    };
+    // 검색어를 친 직후 바로 떠나도 주소에 남게, 미뤄 둔 것을 먼저 적는다.
+    const leave = (path) => {
+      if (querySyncTimer) syncQuery();
+      navigate(path);
+    };
 
     setStatus(data.generatedAt ? `갱신 ${formatDate(data.generatedAt)}` : '');
     setHeader({ title, subtitle: `${characters.length}명`, back: '' });
@@ -565,7 +794,7 @@
       </label>
       <label class="header-sort">
         <span aria-hidden="true">⇅</span>
-        <select id="headerSort" aria-label="정렬 기준">${sortOptions(gameId, defaultMode, capabilities)}</select>
+        <select id="headerSort" aria-label="정렬 기준">${sortOptions(gameId, sortMode, capabilities)}</select>
         <span aria-hidden="true">▾</span>
       </label>
     `);
@@ -598,15 +827,16 @@
           <span class="search-icon" aria-hidden="true">${searchIcon()}</span>
           <input id="mobileSearch" type="search" placeholder="이름 검색 (한/영/일)" autocomplete="off">
         </label>
-        <select id="mobileSort" aria-label="정렬 기준">${sortOptions(gameId, defaultMode, capabilities)}</select>
+        <select id="mobileSort" aria-label="정렬 기준">${sortOptions(gameId, sortMode, capabilities)}</select>
       </div>
-      ${groups.length > 1 ? `<div id="groupChips" class="filter-chips"><button class="filter-chip active" type="button" data-group="">전체</button>${groups.map((group) => `<button class="filter-chip" type="button" data-group="${escapeAttr(group)}">${escapeHtml(group)}</button>`).join('')}</div>` : ''}
+      ${groups.length > 1 ? `<div id="groupChips" class="filter-chips"><button class="filter-chip${activeGroup ? '' : ' active'}" type="button" data-group="">전체</button>${groups.map((group) => `<button class="filter-chip${group === activeGroup ? ' active' : ''}" type="button" data-group="${escapeAttr(group)}">${escapeHtml(group)}</button>`).join('')}</div>` : ''}
       <div class="section-title"><h2>캐릭터</h2><span id="count"></span></div>
       <section id="characterGrid" class="character-grid"></section>
     `;
 
     const searchInputs = [document.getElementById('headerSearch'), document.getElementById('mobileSearch')].filter(Boolean);
     const sortInputs = [document.getElementById('headerSort'), document.getElementById('mobileSort')].filter(Boolean);
+    searchInputs.forEach((input) => { input.value = query; });
     const grid = document.getElementById('characterGrid');
     const count = document.getElementById('count');
 
@@ -625,7 +855,7 @@
       });
       rows = sortCharacters(rows, sortMode, sourceIndex);
       // 상세에서 이전/다음이 지금 보고 있는 목록 순서를 그대로 따르게 한다.
-      browseOrder = { gameId, ids: rows.map((character) => character.id) };
+      storeBrowseOrder({ gameId, ids: rows.map((character) => character.id) });
       count.textContent = `${rows.length}명`;
       headerSubtitle.textContent = `${rows.length}명`;
       headerSubtitle.hidden = false;
@@ -640,7 +870,7 @@
         </article>
       `).join('') : `<div class="empty">${characters.length ? '검색 결과가 없어요.' : escapeHtml(GAME_BY_ID.get(gameId)?.labels?.emptyList || '표시할 캐릭터가 없습니다.')}</div>`;
       grid.querySelectorAll('[data-id]').forEach((card) => {
-        const go = () => navigate(`game/${gameId}/character/${encodeURIComponent(card.dataset.id)}`);
+        const go = () => leave(`game/${gameId}/character/${encodeURIComponent(card.dataset.id)}`);
         card.addEventListener('click', go);
         card.addEventListener('keydown', (event) => {
           if (event.key === 'Enter' || event.key === ' ') {
@@ -658,6 +888,9 @@
           if (other !== input && other.value !== query) other.value = query;
         });
         update();
+        // 글자마다 주소를 고치면 브라우저가 history 호출 횟수 제한에 걸린다. 멈추면 적는다.
+        window.clearTimeout(querySyncTimer);
+        querySyncTimer = window.setTimeout(syncQuery, 300);
       });
     });
     sortInputs.forEach((select) => {
@@ -667,6 +900,7 @@
           if (other !== select && other.value !== sortMode) other.value = sortMode;
         });
         update();
+        syncQuery();
       });
     });
     app.querySelectorAll('[data-group]').forEach((chip) => {
@@ -674,12 +908,13 @@
         activeGroup = chip.dataset.group || '';
         app.querySelectorAll('[data-group]').forEach((node) => node.classList.toggle('active', node === chip));
         update();
+        syncQuery();
       });
     });
-    app.querySelector('[data-jackets-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/jackets`));
-    app.querySelector('[data-skins-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/skins`));
-    app.querySelector('[data-wallpapers-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/wallpapers`));
-    app.querySelector('[data-crew-entry]')?.addEventListener('click', () => navigate(`game/${gameId}/crew`));
+    app.querySelector('[data-jackets-entry]')?.addEventListener('click', () => leave(`game/${gameId}/jackets`));
+    app.querySelector('[data-skins-entry]')?.addEventListener('click', () => leave(`game/${gameId}/skins`));
+    app.querySelector('[data-wallpapers-entry]')?.addEventListener('click', () => leave(`game/${gameId}/wallpapers`));
+    app.querySelector('[data-crew-entry]')?.addEventListener('click', () => leave(`game/${gameId}/crew`));
     update();
   }
 
@@ -885,9 +1120,10 @@
         chain: chain.index >= 0 ? chain : null,
       }));
     });
+    // 옆 캐릭터로 넘기는 것은 같은 층 이동이라 방문 기록에 칸을 늘리지 않는다.
     app.querySelectorAll('[data-character-nav]').forEach((button) => {
       button.addEventListener('click', () => {
-        navigate(`game/${gameId}/character/${encodeURIComponent(button.dataset.characterNav)}`);
+        navigate(`game/${gameId}/character/${encodeURIComponent(button.dataset.characterNav)}`, { replace: true });
       });
     });
     bindFanart(gameId, character, name);
@@ -1119,7 +1355,8 @@
     const hasCategory = jackets.some((jacket) => jacket.category);
     const categories = JACKET_CATEGORIES.filter((value) => jackets.some((jacket) => jacket.category === value));
     const hasPopularity = jackets.some((jacket) => jacket.popularity != null);
-    let shown = PAGE_SIZE;
+    // 뒤로가기로 돌아왔으면 그때 펼쳐 둔 개수까지 다시 펼쳐야 스크롤 위치에 카드가 있다.
+    let shown = Math.max(PAGE_SIZE, Number(viewState()?.shown) || 0);
     let visibleRows = [];
     let allRows = [];
     let currentLevel = null;
@@ -1156,8 +1393,32 @@
     const count = document.getElementById('count');
     const more = document.getElementById('jacketMore');
 
+    // 검색·레벨·분류·정렬을 주소에서 되살린다. 없는 값이면 기본값으로 둔다.
+    const initial = routeQuery();
+    const restoreSelect = (select, value) => {
+      if (select && value && [...select.options].some((option) => option.value === value)) select.value = value;
+    };
+    search.value = initial.get('q') || '';
+    restoreSelect(level, initial.get('level'));
+    restoreSelect(category, initial.get('category'));
+    restoreSelect(sort, initial.get('sort'));
+    let querySyncTimer = 0;
+    const syncQuery = () => {
+      window.clearTimeout(querySyncTimer);
+      querySyncTimer = 0;
+      setRouteQuery({
+        q: search.value.trim(),
+        level: level.value,
+        category: category?.value || '',
+        sort: sort.value === 'newest' ? '' : sort.value,
+      });
+    };
+
     const update = (reset = false) => {
-      if (reset) shown = PAGE_SIZE;
+      if (reset) {
+        shown = PAGE_SIZE;
+        patchViewState({ shown });
+      }
       const query = search.value.trim().toLocaleLowerCase();
       const selectedLevel = level.value ? Number(level.value) : null;
       let rows = jackets.filter((jacket) => {
@@ -1218,12 +1479,17 @@
       visibleRows = allRows.slice(0, shown);
       grid.insertAdjacentHTML('beforeend', next.map((jacket, offset) => jacketCard(jacket, start + offset, currentLevel)).join(''));
       refreshMore();
+      patchViewState({ shown });
     };
 
-    search.addEventListener('input', () => update(true));
-    level.addEventListener('change', () => update(true));
-    category?.addEventListener('change', () => update(true));
-    sort.addEventListener('change', () => update(true));
+    search.addEventListener('input', () => {
+      update(true);
+      window.clearTimeout(querySyncTimer);
+      querySyncTimer = window.setTimeout(syncQuery, 300);
+    });
+    level.addEventListener('change', () => { update(true); syncQuery(); });
+    category?.addEventListener('change', () => { update(true); syncQuery(); });
+    sort.addEventListener('change', () => { update(true); syncQuery(); });
     more.addEventListener('click', loadMore);
     autoLoadMore(more, loadMore);
     // 카드는 묶음마다 이어 붙으므로 클릭은 목록에 한 번만 건다.
@@ -1997,11 +2263,11 @@
       if (historyEntryActive && !fromHistory) {
         historyEntryActive = false;
         // history.back() 은 비동기라 곧바로 hash 를 바꾸면 되돌려진다. 빠진 뒤에 이동한다.
-        if (landing) window.addEventListener('popstate', () => navigate(landing), { once: true });
+        if (landing) window.addEventListener('popstate', () => navigate(landing, { replace: true }), { once: true });
         window.history.back();
       } else if (fromHistory) {
         historyEntryActive = false;
-        if (landing) navigate(landing);
+        if (landing) navigate(landing, { replace: true });
       }
       returnFocus?.focus?.({ preventScroll: true });
       returnFocus = null;
@@ -2125,5 +2391,8 @@
   });
 
   if (!location.hash) location.hash = '#/';
-  else renderRoute();
+  else {
+    seedAncestors();
+    renderRoute();
+  }
 })();

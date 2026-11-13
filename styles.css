@@ -446,7 +446,10 @@ img { display: block; max-width: 100%; }
   background: rgb(var(--panel));
   box-shadow: var(--shadow);
 }
-.jacket-card .art { position: relative; aspect-ratio: 1 / 1; cursor: zoom-in; }
+/* 그림 영역은 버튼이라 그대로 두면 inline-block 이 되어, 이미지가 오기 전에는 16px 로
+   쪼그라들었다가 로드되며 커진다. 그 사이 페이지 높이가 계속 바뀌어 뒤로가기 스크롤
+   복원이 어긋난다. 처음부터 카드 폭에 맞춘다. */
+.jacket-card .art { position: relative; display: block; width: 100%; aspect-ratio: 1 / 1; cursor: zoom-in; }
 .jacket-card img { width: 100%; height: 100%; object-fit: cover; }
 .jacket-card .badge { background: rgb(0 0 0 / .75); color: white; }
 .jacket-card .category { position: absolute; right: 8px; top: 8px; border-radius: 999px; background: rgb(0 0 0 / .75); color: white; padding: 4px 8px; font-size: 10px; font-weight: 800; }

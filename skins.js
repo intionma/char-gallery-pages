@@ -28,8 +28,9 @@
   let renderToken = 0;
   let scheduled = false;
 
+  // 주소 뒤 ?sort=… 는 목록 상태라 화면을 고르는 데는 쓰지 않는다.
   function route() {
-    return location.hash.replace(/^#\/?/, '').replace(/\/+$/, '');
+    return location.hash.replace(/^#\/?/, '').split('?')[0].replace(/\/+$/, '');
   }
 
   function skinCatalogForRoute() {
@@ -137,12 +138,35 @@
       const grid = document.getElementById('skinGrid');
       const count = document.getElementById('skinCount');
       const more = document.getElementById('skinMore');
-      let shown = PAGE_SIZE;
+      // 뒤로가기로 돌아왔으면 그때 펼쳐 둔 개수까지 다시 펼쳐야 스크롤 위치에 카드가 있다.
+      let shown = Math.max(PAGE_SIZE, Number(ui?.viewState?.()?.shown) || 0);
       let visible = [];
       const byId = new Map(skins.map((skin) => [skin.id, skin]));
 
+      // 검색·정렬·종류를 주소에서 되살린다. 없는 값이면 기본값으로 둔다.
+      const initial = ui?.routeQuery?.() || new URLSearchParams();
+      const restoreSelect = (select, value) => {
+        if (select && value && [...select.options].some((option) => option.value === value)) select.value = value;
+      };
+      search.value = initial.get('q') || '';
+      restoreSelect(sort, initial.get('sort'));
+      restoreSelect(typeFilter, initial.get('type'));
+      let querySyncTimer = 0;
+      const syncQuery = () => {
+        window.clearTimeout(querySyncTimer);
+        querySyncTimer = 0;
+        ui?.setRouteQuery?.({
+          q: search.value.trim(),
+          sort: sort.value === 'newest' ? '' : sort.value,
+          type: typeFilter?.value || '',
+        });
+      };
+
       const update = (reset = false) => {
-        if (reset) shown = PAGE_SIZE;
+        if (reset) {
+          shown = PAGE_SIZE;
+          ui?.patchViewState?.({ shown });
+        }
         const query = search.value.trim().toLocaleLowerCase();
         visible = skins.filter((skin) => {
           const text = [skin.skinName, skin.group, displayName(skin), skin.character?.names?.en, skin.character?.names?.ja]
@@ -190,16 +214,22 @@
         if (!next.length) return;
         grid.insertAdjacentHTML('beforeend', next.map((skin, offset) => card(skin, start + offset)).join(''));
         refreshMore();
+        ui?.patchViewState?.({ shown });
       };
 
-      search.addEventListener('input', () => update(true));
-      sort.addEventListener('change', () => update(true));
-      typeFilter?.addEventListener('change', () => update(true));
+      search.addEventListener('input', () => {
+        update(true);
+        window.clearTimeout(querySyncTimer);
+        querySyncTimer = window.setTimeout(syncQuery, 300);
+      });
+      sort.addEventListener('change', () => { update(true); syncQuery(); });
+      typeFilter?.addEventListener('change', () => { update(true); syncQuery(); });
       more.addEventListener('click', loadMore);
       ui?.autoLoadMore?.(more, loadMore);
       grid.addEventListener('click', (event) => {
         const character = event.target.closest('[data-character-id]');
         if (character) {
+          if (querySyncTimer) syncQuery();
           navigate(`${catalog.gameRoute}/character/${encodeURIComponent(character.dataset.characterId)}`);
           return;
         }
@@ -211,6 +241,7 @@
         }
       });
       update();
+      ui?.restoreScroll?.();
     } catch (error) {
       if (token !== renderToken || skinCatalogForRoute()?.gameId !== catalog.gameId) return;
       app.innerHTML = `<section class="skins-view" data-skins-view="${escapeHtml(catalog.gameId)}"><div class="error">스킨 목록을 불러오지 못했어요.<br><small>${escapeHtml(error.message || String(error))}</small><br><button class="button" type="button" data-skins-retry>다시 시도</button></div></section>`;
@@ -218,6 +249,7 @@
       if (ui?.setStatus) ui.setStatus('스킨 데이터 로드 실패');
       else status.textContent = '스킨 데이터 로드 실패';
       app.querySelector('[data-skins-retry]')?.addEventListener('click', () => renderSkins(catalog));
+      ui?.restoreScroll?.();
     }
   }
 
@@ -241,6 +273,9 @@
     const catalog = skinCatalogForRoute();
     if (catalog) {
       event?.stopImmediatePropagation();
+      // app.js 의 renderRoute 를 건너뛰므로 방문 기록 표시·스크롤 초기화를 여기서 한다.
+      // 첫 로드에는 renderRoute 가 이미 했다.
+      if (event) ui?.beginRoute?.();
       renderSkins(catalog);
     } else {
       queueMicrotask(ensureEntryLink);
